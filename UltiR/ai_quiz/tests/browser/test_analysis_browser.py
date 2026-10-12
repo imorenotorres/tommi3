@@ -60,7 +60,10 @@ def test_the_instructor_asks_once_and_the_suggestion_stays_until_it_is_made_agai
     expect(points.nth(0)).to_contain_text("Point 1: many students chose the same wrong option in Q1.")
     expect(points.nth(0).locator(".cite")).to_contain_text("Question 1 · handout.pdf, page 1:")
     assert len(points.nth(0).locator(".cite q").inner_text()) > 30                   # the stored passage
-    expect(points.nth(1).locator(".cite")).to_contain_text("Question 2 · handout.pdf, page 2:")
+    # Everybody was right on question 2, so the model was not told about it: the second point is about question 3.
+    expect(points.nth(1)).to_contain_text("Point 2: many students chose the same wrong option in Q3.")
+    expect(points.nth(1).locator(".cite")).to_contain_text("Question 3 · handout.pdf, page 3:")
+    expect(teacher.locator("#analysis-note")).to_contain_text("the questions in which at least a third of the answers were wrong")
     expect(button).to_have_text("Regenerate")
     assert len(fake_llm.calls) == before + 1
     assert unlabelled_controls(teacher) == [] and hard_to_read(teacher) == [] and small_buttons(teacher) == []
@@ -104,14 +107,14 @@ def test_what_the_model_wrote_is_shown_as_text(site, fake_llm):
 def test_the_page_says_when_points_were_left_out_for_contradicting_the_answer_key(site, fake_llm):
     teacher = answered(site)                                         # the key is B in every fake question
     bad = json.dumps({"points": [{"question": "Q1", "text": "The correct option (A) was chosen twice."},
-                                 {"question": "Q2", "text": "Everybody got this one right."}]})
+                                 {"question": "Q3", "text": "Two of three missed this one."}]})
     fake_llm.queue(bad, bad)
 
     teacher.locator("#analysis-button").click()
 
     expect(teacher.locator("#analysis-result")).to_be_visible()
     expect(teacher.locator("#analysis-points li")).to_have_count(1)
-    expect(teacher.locator("#analysis-points li")).to_contain_text("Everybody got this one right.")
+    expect(teacher.locator("#analysis-points li")).to_contain_text("Two of three missed this one.")
     expect(teacher.locator("#analysis-result")).not_to_contain_text("The correct option (A)")
     expect(teacher.locator("#analysis-dropped")).to_be_visible()
     expect(teacher.locator("#analysis-dropped")).to_have_text(

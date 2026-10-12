@@ -46,6 +46,7 @@ MAX_ANALYSIS_POINTS = 4         # points kept from one reply
 MAX_ANALYSIS_POINT_CHARS = 400  # a longer point is dropped, never cut
 MAX_ANALYSIS_ATTEMPTS = 2       # calls for one analysis, the first one included
 MAX_ANALYSIS_TOKENS = 700       # reply length asked of the model
+ANALYSIS_WRONG_ONE_IN = 3       # a question is analysed only if at least one answer in this many was wrong
 
 # Attempts
 MAX_ATTEMPTS_PER_QUIZ = 50      # per learner and quiz

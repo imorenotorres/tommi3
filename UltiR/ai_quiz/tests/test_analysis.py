@@ -285,6 +285,73 @@ def test_a_point_about_a_question_whose_passage_was_not_located_shows_the_page_a
     assert point["source"]["excerpt"] is None and point["source"]["page"] == published["questions"][0]["source"]["page"]
 
 
+# ── Only questions that went badly ──────────────────────────────────────────
+
+@pytest.mark.parametrize("answered, correct, yes", [
+    (3, 2, True),       # one wrong of three: exactly a third
+    (3, 3, False),
+    (4, 3, False),      # one wrong of four
+    (12, 8, True),      # four wrong of twelve: exactly a third
+    (12, 9, False),     # three of twelve, the case that was called "many"
+    (12, 10, False),    # two of twelve, the case that was called "most"
+    (12, 5, True),
+    (12, 0, True),
+])
+def test_a_question_stands_out_when_at_least_a_third_of_its_answers_were_wrong(answered, correct, yes):
+    assert analysis.stands_out({"answered": answered, "correct": correct}) is yes
+
+
+def mixed_quiz(client, course):
+    """Three published questions (key B): everybody right on the first, one of three wrong on the second,
+    everybody wrong on the third."""
+    quiz = course.published_quiz(3)
+    for (user, _, _), picks in zip(STUDENTS, ("BAA", "BBC", "BBD")):
+        assert submit(client, course.learner(user=user), quiz, dict(zip(ids(quiz), picks))).status_code == 201
+    return quiz
+
+
+def test_the_model_is_told_only_about_questions_in_which_a_third_or_more_answered_wrong(client, course, fake_llm):
+    quiz = mixed_quiz(client, course)
+    fake_llm.queue(points(("Q3", "Nobody got this one.")))
+
+    response = analyse(client, course.instructor, quiz)
+
+    assert response.status_code == 201
+    system, user = (m["content"] for m in fake_llm.calls[-1]["messages"])
+    assert "in which at least a third of the answers were wrong" in system
+    assert "BEGIN QUESTION Q2" in user and "BEGIN QUESTION Q3" in user
+    assert "Q1" not in user and quiz["questions"][0]["question"] not in user      # it went well: not sent at all
+    assert quiz["questions"][1]["question"] in user and quiz["questions"][2]["question"] in user
+
+
+def test_a_point_about_a_question_that_went_well_is_dropped(client, course, fake_llm):
+    quiz = mixed_quiz(client, course)
+    fake_llm.queue(points(("Q1", "Most were confused here."), ("Q3", "Nobody got this one."), ("Q2", "One slipped.")))
+    before = len(fake_llm.calls)
+
+    made = analyse(client, course.instructor, quiz).json()["analysis"]
+
+    assert [(p["number"], p["text"]) for p in made["points"]] == [(3, "Nobody got this one."), (2, "One slipped.")]
+    assert made["dropped"] == 0 and len(fake_llm.calls) == before + 1          # not a contradiction of the key: no second call
+    assert "Most were confused" not in stored_file(quiz).read_text(encoding="utf-8")
+
+
+def test_when_every_question_went_well_no_model_is_asked(client, course, fake_llm):
+    quiz = course.published_quiz(2)
+    for user, _, _ in STUDENTS:
+        submit(client, course.learner(user=user), quiz, dict.fromkeys(ids(quiz), "B"))      # everybody right
+    usage = storage.course_dir(cid("course-A")) / "usage.json"
+    runs = len(storage.read_json(usage)["generations"])
+    before = len(fake_llm.calls)
+
+    response = analyse(client, course.instructor, quiz)
+
+    assert (response.status_code, code(response)) == (409, "nothing_stands_out")
+    assert len(fake_llm.calls) == before and not stored_file(quiz).exists()
+    assert len(storage.read_json(usage)["generations"]) == runs                 # and it is not counted as a model run
+    assert saved(client, course.instructor, quiz).json()["available"] is True   # there are answers enough: it is not "too few"
+
+
 # ── A point must agree with the answer key ──────────────────────────────────
 
 @pytest.mark.parametrize("text, key, contradicts", [
@@ -378,8 +445,9 @@ def test_a_point_is_judged_by_the_key_of_its_own_question(client, course, fake_l
     for index in range(2):
         course.edit(quiz, index, review_status="approved")
     published = course.publish(quiz)
-    for user, _, _ in STUDENTS:
-        submit(client, course.learner(user=user), published, dict.fromkeys(ids(published), "A"))
+    first, second = ids(published)
+    for (user, _, _), pick in zip(STUDENTS, "BAA"):                  # one of three wrong on the first, all on the second
+        submit(client, course.learner(user=user), published, {first: pick, second: "A"})
     fake_llm.queue(points(("Q1", "The correct answer is A."), ("Q2", "The correct answer is A.")),
                    points(("Q1", "The correct answer is A."), ("Q2", "The correct answer is A.")))
 

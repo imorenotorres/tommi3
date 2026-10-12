@@ -301,7 +301,7 @@ window.AI_QUIZ_STRINGS = {
     "review_box_skipped": "Not answered.",
     "analysis_button": "Analyse the answers",
     "analysis_again": "Regenerate",
-    "analysis_note": "A language model reads the totals above, the questions and their passages, and suggests what stands out. It is sent no names and no single answers.",
+    "analysis_note": "A language model reads the questions in which at least a third of the answers were wrong, with their totals and passages, and suggests what to go over. It is sent no names and no single answers.",
     "analysis_too_few": "Available once at least {min} students have answered a question.",
     "analysis_working": "Analysing the answers. This can take up to a minute…",
     "analysis_done": "The suggestion is below the class summary.",
@@ -312,7 +312,8 @@ window.AI_QUIZ_STRINGS = {
     "err_too_few_answers": "Too few students have answered yet for an analysis.",
     "err_analysis_invalid": "The model did not return a usable analysis this time. Try again.",
     "review_box_intro_plain": "The questions you did not get right, with where to read in the course material.",
-    "analysis_dropped": "Points left out: {n}. Each called a wrong option correct, or the correct one wrong; the tool checks that against the answer key."
+    "analysis_dropped": "Points left out: {n}. Each called a wrong option correct, or the correct one wrong; the tool checks that against the answer key.",
+    "err_nothing_stands_out": "Nothing to analyse: in every question fewer than a third of the answers were wrong."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -613,7 +614,7 @@ window.AI_QUIZ_STRINGS = {
     "review_box_skipped": "Sin responder.",
     "analysis_button": "Analizar respuestas",
     "analysis_again": "Regenerar",
-    "analysis_note": "Un modelo de lenguaje lee los totales de arriba, las preguntas y sus pasajes, y sugiere qué destaca. No se le envían nombres ni respuestas individuales.",
+    "analysis_note": "Un modelo de lenguaje lee las preguntas en las que al menos un tercio de las respuestas fue incorrecto, con sus totales y pasajes, y sugiere qué repasar. No se le envían nombres ni respuestas individuales.",
     "analysis_too_few": "Disponible cuando al menos {min} estudiantes hayan respondido una pregunta.",
     "analysis_working": "Analizando las respuestas. Puede tardar hasta un minuto…",
     "analysis_done": "La sugerencia está debajo del resumen de la clase.",
@@ -624,6 +625,7 @@ window.AI_QUIZ_STRINGS = {
     "err_too_few_answers": "Todavía han respondido muy pocos estudiantes para hacer un análisis.",
     "err_analysis_invalid": "El modelo no ha devuelto un análisis utilizable esta vez. Inténtalo de nuevo.",
     "review_box_intro_plain": "Las preguntas que no has acertado y dónde leer en el material del curso.",
-    "analysis_dropped": "Puntos omitidos: {n}. Cada uno llamaba correcta a una opción incorrecta, o incorrecta a la correcta; la herramienta lo comprueba con la clave de respuestas."
+    "analysis_dropped": "Puntos omitidos: {n}. Cada uno llamaba correcta a una opción incorrecta, o incorrecta a la correcta; la herramienta lo comprueba con la clave de respuestas.",
+    "err_nothing_stands_out": "No hay nada que analizar: en todas las preguntas falló menos de un tercio de las respuestas."
   }
 };
