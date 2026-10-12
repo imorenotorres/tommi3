@@ -302,6 +302,14 @@ ul.choices .choice { align-items: baseline; flex-wrap: wrap; }
 .because { margin: 0.6rem 0 0; }
 .cite { margin: 0.6rem 0 0; font-size: 0.92rem; color: var(--text-soft); }
 .cite q { font-size: 1rem; line-height: 1.5; color: var(--text); background: var(--marker); quotes: none; }
+/* "Analyse the answers": the model's suggestion, set apart from the counted totals above it */
+#analysis { margin-top: 1rem; }
+.suggestion { margin-top: 0.9rem; padding: 0.8rem 1rem; border: 1px dashed #8793a3; border-radius: 8px; background: var(--page); }
+.suggestion h4 { margin: 0; font-size: 1rem; color: var(--ink); }
+.suggestion ol { margin: 0.6rem 0 0; padding-left: 1.4rem; }
+.suggestion li { margin-bottom: 0.7rem; }
+.suggestion .cite { margin-top: 0.25rem; }
+
 /* "What to review" on the result page */
 #review-box h3 { margin-top: 0; }
 ol.to-review { list-style: none; padding: 0; margin: 0.6rem 0 0; }

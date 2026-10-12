@@ -41,5 +41,11 @@ MAX_EXPLANATION_CHARS = 800
 MAX_EXCERPT_CHARS = 600
 MIN_EXCERPT_LETTERS = 30        # a located excerpt shorter than this proves nothing
 
+# Analysis of the class summary by the model
+MAX_ANALYSIS_POINTS = 4         # points kept from one reply
+MAX_ANALYSIS_POINT_CHARS = 400  # a longer point is dropped, never cut
+MAX_ANALYSIS_ATTEMPTS = 2       # calls for one analysis, the first one included
+MAX_ANALYSIS_TOKENS = 700       # reply length asked of the model
+
 # Attempts
 MAX_ATTEMPTS_PER_QUIZ = 50      # per learner and quiz

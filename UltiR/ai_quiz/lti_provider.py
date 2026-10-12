@@ -46,7 +46,9 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from starlette.concurrency import run_in_threadpool
 from starlette.datastructures import UploadFile
 
-from UltiR.ai_quiz import attempts, config, documents, generation, ingestion, limits, moodle_xml, review, storage
+from UltiR.ai_quiz import (
+    analysis, attempts, config, documents, generation, ingestion, limits, moodle_xml, review, storage,
+)
 from UltiR.lti_common import (
     LTISessionStore, is_instructor, lti_launch, lti_test_launch,
 )
@@ -584,6 +586,40 @@ async def ai_quiz_summary(quiz_id: str, request: Request):
     if summary is None:
         _refuse(404, "quiz_not_found")
     return summary
+
+
+@router.get(f"{BASE}/api/quizzes/{{quiz_id}}/analysis")
+async def ai_quiz_read_analysis(quiz_id: str, request: Request):
+    """The stored analysis of the published version, if there is one, and whether one can be made. Asks no model."""
+    session = require_instructor(request)
+    try:
+        return analysis.read(session["course_id"], quiz_id)
+    except analysis.AnalysisFailed as failed:
+        _refuse(failed.status, failed.code)
+
+
+@router.post(f"{BASE}/api/quizzes/{{quiz_id}}/analysis")
+async def ai_quiz_make_analysis(quiz_id: str, request: Request):
+    """Ask the model for an analysis of the class summary and store it. One model run, counted like a generation.
+
+    The model gets totals, question and option texts and source passages (see analysis.py), and
+    nothing of the session: not who asks, and not which course this is.
+    """
+    session = require_instructor(request)
+    course_id = session["course_id"]
+    body = await _json_object(request)
+    language = body.get("language", "en")               # the language the page is shown in
+    if not isinstance(language, str) or language not in analysis.LANGUAGES:
+        _refuse(400, "bad_request", field="language")
+    try:
+        analysis.require_available(course_id, quiz_id)   # refused here, before a run is counted
+        wait = generation.take_generation_slot(course_id)
+        if wait:
+            _refuse(429, "rate_limited", retry_after_seconds=wait)
+        made = await analysis.make(course_id, quiz_id, language)
+    except analysis.AnalysisFailed as failed:
+        _refuse(failed.status, failed.code)
+    return JSONResponse({"analysis": made}, status_code=201)
 
 
 @router.get(f"{BASE}/api/quizzes/{{quiz_id}}/export.xml")

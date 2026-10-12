@@ -4,7 +4,7 @@
   'use strict';
 
   var A = window.AiQuiz, t = A.t, el = A.el, clear = A.clear;
-  var state = { documents: [], quizzes: [], quiz: null, summary: null, figures: {} };   // figures: by document id
+  var state = { documents: [], quizzes: [], quiz: null, summary: null, analysis: null, figures: {} };   // figures: by document id
   var SIGNS = { draft: '✎', approved: '✓', rejected: '✕' };
 
   function byId(id) { return document.getElementById(id); }
@@ -327,12 +327,15 @@
     var line = byId('summary-line'), quizId = state.quiz.quiz_id;
     line.textContent = '';
     state.summary = null;
+    state.analysis = null;
     renderClass();
+    renderAnalysis();
     if (!state.quiz.current_revision) { return; }
     A.api('/api/quizzes/' + quizId + '/summary').then(function (summary) {
       if (!state.quiz || state.quiz.quiz_id !== quizId) { return; }
       state.summary = summary;
       renderClass();
+      if (summary.attempts) { return loadAnalysis(); }
     }).catch(function () { line.textContent = ''; });
   }
 
@@ -375,6 +378,59 @@
       ])]),
       el('tbody', {}, rows)
     ]));
+  }
+
+  /* "Analyse the answers". What the server has stored for the published version is shown when the
+     review opens: that asks no model. Only the button does, and what comes back replaces what was stored. */
+  function loadAnalysis() {
+    var quizId = state.quiz.quiz_id;
+    return A.api('/api/quizzes/' + quizId + '/analysis').then(function (body) {
+      if (!state.quiz || state.quiz.quiz_id !== quizId) { return; }
+      state.analysis = body;
+      renderAnalysis();
+    }).catch(function () { /* the summary above is still there; the button stays off */ });
+  }
+
+  function renderAnalysis() {
+    var body = state.analysis, made = body && body.analysis;
+    var button = byId('analysis-button'), result = byId('analysis-result');
+    button.textContent = t(made ? 'analysis_again' : 'analysis_button');
+    button.disabled = !(body && body.available);
+    byId('analysis-note').textContent = body && !body.available
+      ? t('analysis_too_few', { min: body.min_group }) : t('analysis_note');
+    result.hidden = !made;
+    if (!made) { return; }
+    // Labelled as what it is, with when it was made and from how many attempts.
+    byId('analysis-made').textContent = t('analysis_made', { when: A.formatDateTime(made.made_at), attempts: made.attempts })
+      + (body.attempts !== made.attempts ? ' ' + t('analysis_stale', { now: body.attempts }) : '');
+    var list = clear(byId('analysis-points'));
+    made.points.forEach(function (point) {
+      var source = point.source;
+      var where = t('analysis_point_about', { n: point.number }) + ' · ' + (source.doc_label || t('source_unknown'));
+      if (source.page) { where += ', ' + t('source_page', { n: source.page }); }
+      list.appendChild(el('li', {}, [
+        el('span', { class: 'content', text: point.text }),          // the model's words, as text
+        el('p', { class: 'cite' }, [
+          where + (source.excerpt ? ': ' : '.'),
+          source.excerpt ? A.math.shown('q', {}, source.excerpt, source.mode === 'full') : null
+        ])
+      ]));
+    });
+  }
+
+  function analyse() {
+    var button = byId('analysis-button'), quizId = state.quiz.quiz_id;
+    busy(button, true);
+    A.say(t('analysis_working'), 'plain');
+    A.send('POST', '/api/quizzes/' + quizId + '/analysis', { language: A.language() }).then(function (body) {
+      if (!state.quiz || state.quiz.quiz_id !== quizId) { return; }
+      state.analysis = { analysis: body.analysis, available: true, min_group: (state.analysis || {}).min_group,
+                         attempts: body.analysis.attempts };
+      A.say(t('analysis_done'), 'good');
+    }).catch(A.showError).then(function () {
+      busy(button, false);
+      if (state.quiz && state.quiz.quiz_id === quizId) { renderAnalysis(); }
+    });
   }
 
   /* Where in the document a question comes from: the document, the page, and the passage itself. */
@@ -582,6 +638,7 @@
   byId('back-button').addEventListener('click', showOverview);
   byId('rename-button').addEventListener('click', rename);
   byId('confidence-switch').addEventListener('change', setConfidence);
+  byId('analysis-button').addEventListener('click', analyse);
   byId('publish-button').addEventListener('click', function () { publish('/publish', 'review_published', this); });
   byId('unpublish-button').addEventListener('click', function () { publish('/unpublish', 'review_unpublished', this); });
 

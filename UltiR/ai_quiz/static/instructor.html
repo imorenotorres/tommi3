@@ -140,6 +140,19 @@
             <h3 data-i18n="class_heading"></h3>
             <p class="hint space-below" id="class-hint"></p>
             <div id="class-table"></div>
+            <!-- "Analyse the answers": a language model's reading of the table above. Pressing the button
+                 asks the model; opening the page shows what was stored. -->
+            <div id="analysis">
+              <div class="actions">
+                <button type="button" class="primary" id="analysis-button" data-i18n="analysis_button" disabled></button>
+              </div>
+              <p class="hint" id="analysis-note"></p>
+              <section class="suggestion" id="analysis-result" aria-labelledby="analysis-label" hidden>
+                <h4 id="analysis-label" data-i18n="analysis_label"></h4>
+                <p class="hint" id="analysis-made"></p>
+                <ol id="analysis-points"></ol>
+              </section>
+            </div>
           </div>
         </div>
       </section>

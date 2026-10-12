@@ -298,7 +298,19 @@ window.AI_QUIZ_STRINGS = {
     "review_box_question": "Question {n}",
     "review_box_sure_wrong": "You said “I know this”, and it was not correct.",
     "review_box_wrong": "Not correct.",
-    "review_box_skipped": "Not answered."
+    "review_box_skipped": "Not answered.",
+    "analysis_button": "Analyse the answers",
+    "analysis_again": "Regenerate",
+    "analysis_note": "A language model reads the totals above, the questions and their passages, and suggests what stands out. It is sent no names and no single answers.",
+    "analysis_too_few": "Available once at least {min} students have answered a question.",
+    "analysis_working": "Analysing the answers. This can take up to a minute…",
+    "analysis_done": "The suggestion is below the class summary.",
+    "analysis_label": "AI suggestion",
+    "analysis_made": "Made on {when} from {attempts} attempts. A model wrote it: check it against the table above.",
+    "analysis_stale": "There are {now} attempts now.",
+    "analysis_point_about": "Question {n}",
+    "err_too_few_answers": "Too few students have answered yet for an analysis.",
+    "err_analysis_invalid": "The model did not return a usable analysis this time. Try again."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -596,6 +608,18 @@ window.AI_QUIZ_STRINGS = {
     "review_box_question": "Pregunta {n}",
     "review_box_sure_wrong": "Dijiste «Lo sé» y no era correcta.",
     "review_box_wrong": "Incorrecta.",
-    "review_box_skipped": "Sin responder."
+    "review_box_skipped": "Sin responder.",
+    "analysis_button": "Analizar respuestas",
+    "analysis_again": "Regenerar",
+    "analysis_note": "Un modelo de lenguaje lee los totales de arriba, las preguntas y sus pasajes, y sugiere qué destaca. No se le envían nombres ni respuestas individuales.",
+    "analysis_too_few": "Disponible cuando al menos {min} estudiantes hayan respondido una pregunta.",
+    "analysis_working": "Analizando las respuestas. Puede tardar hasta un minuto…",
+    "analysis_done": "La sugerencia está debajo del resumen de la clase.",
+    "analysis_label": "Sugerencia de IA",
+    "analysis_made": "Hecha el {when} a partir de {attempts} intentos. La escribió un modelo: compruébala con la tabla de arriba.",
+    "analysis_stale": "Ahora hay {now} intentos.",
+    "analysis_point_about": "Pregunta {n}",
+    "err_too_few_answers": "Todavía han respondido muy pocos estudiantes para hacer un análisis.",
+    "err_analysis_invalid": "El modelo no ha devuelto un análisis utilizable esta vez. Inténtalo de nuevo."
   }
 };

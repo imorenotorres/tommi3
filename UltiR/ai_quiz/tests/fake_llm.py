@@ -51,6 +51,23 @@ def good_reply(messages, count: int | None = None, start: int = 1, **changes) ->
     return json.dumps({"questions": questions})
 
 
+QUESTION = re.compile(r"BEGIN QUESTION (Q\d+) (\w+)\n(.*?)\nEND QUESTION \1 \2", re.DOTALL)
+
+
+def questions_in(messages) -> dict[str, str]:
+    """The questions an analysis prompt hands to the model, by the label it calls them."""
+    user = "\n".join(m["content"] for m in messages if m["role"] == "user")
+    return {m.group(1): m.group(3) for m in QUESTION.finditer(user)}
+
+
+def analysis_reply(messages, count: int = 2) -> str:
+    """A well-formed analysis: one point for each of the first `count` questions of the prompt."""
+    labels = list(questions_in(messages))[:count]
+    return json.dumps({"points": [
+        {"question": label, "text": f"Point {n}: many students chose the same wrong option in {label}."}
+        for n, label in enumerate(labels, start=1)]})
+
+
 class FakeLLM:
     def __init__(self):
         self.calls: list[dict] = []
@@ -67,6 +84,8 @@ class FakeLLM:
             if isinstance(reply, BaseException):
                 raise reply
             return reply(messages) if callable(reply) else reply
+        if questions_in(messages):
+            return analysis_reply(messages)             # a request to analyse a class summary
         # Default: exactly what was asked for, numbered so that no two calls repeat a question.
         count = asked_for(messages)
         self._serial += count

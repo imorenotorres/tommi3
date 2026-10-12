@@ -63,6 +63,14 @@
     return date.toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
+  /* The day and the time of day, for something that says when it was made. */
+  function formatDateTime(iso) {
+    var date = new Date(iso);
+    if (isNaN(date.getTime())) { return ''; }
+    return date.toLocaleString(lang === 'es' ? 'es-ES' : 'en-GB',
+      { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
   // ── Elements ────────────────────────────────────────────────────────────
 
   /* el('button', {class: 'primary', text: label, on: {click: fn}}, [children])
@@ -182,7 +190,7 @@
 
   window.AiQuiz = {
     start: start, api: api, send: send, address: address, t: t, el: el, clear: clear, figure: figure,
-    say: say, showError: showError, errorText: errorText, formatDate: formatDate,
+    say: say, showError: showError, errorText: errorText, formatDate: formatDate, formatDateTime: formatDateTime,
     onLanguageChange: function (fn) { langListeners.push(fn); },
     language: function () { return lang; }
   };
