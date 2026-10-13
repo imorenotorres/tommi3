@@ -171,10 +171,17 @@ if (token) {
         .catch(function() { localStorage.removeItem('tommi_token'); localStorage.removeItem('uninovis_token'); });
 }
 
+// Only follow redirects to a path on this site ("/..."). Anything else — another
+// site ("https://…", "//host", "/\host"), a script URL, or a value with control
+// characters or backslashes — falls back to the default page.
+function safeRedirectPath(value, fallback) {
+    if (typeof value === 'string' && /^\/(?![\/\\])/.test(value) && !/[\u0000-\u001F\u007F\\]/.test(value)) return value;
+    return fallback;
+}
+
 function doRedirect() {
     var params = new URLSearchParams(window.location.search);
-    var redirect = params.get('redirect');
-    window.location.href = redirect || '/';
+    window.location.href = safeRedirectPath(params.get('redirect'), '/');
 }
 
 // ── Form switching ──

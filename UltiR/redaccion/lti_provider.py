@@ -13,6 +13,7 @@ Moodle setup:
     Consumer key / Shared secret: same as above
 """
 
+from starlette.concurrency import run_in_threadpool
 import json
 import os
 from datetime import datetime
@@ -233,7 +234,7 @@ INSTRUCCIONES:
 
     try:
         client = LLMClient()
-        response = client.chat.complete(messages=[{"role": "user", "content": prompt}], max_tokens=1024)
+        response = (await run_in_threadpool(client.chat.complete, messages=[{"role": "user", "content": prompt}], max_tokens=1024))
         llm_text = response.choices[0].message.content.strip()
         import re
         if "```" in llm_text:

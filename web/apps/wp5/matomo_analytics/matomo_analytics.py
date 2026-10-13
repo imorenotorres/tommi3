@@ -36,7 +36,8 @@ def _require_superuser(session: dict = Depends(require_login)) -> dict:
     return session
 
 MATOMO_URL = "https://uninovis.matomo.cloud"
-MATOMO_TOKEN = os.environ.get("MATOMO_TOKEN", "00695d820f1c1acf2a546d91ef60a825")
+# Set MATOMO_TOKEN in web/.env (loaded by app.py before this module is imported).
+MATOMO_TOKEN = os.environ.get("MATOMO_TOKEN", "")
 MATOMO_SITE_ID = "3"
 MATOMO_SITES = {
     "1": "uninovis.eu",
@@ -100,6 +101,8 @@ def matomo_proxy(
     session: dict = Depends(_require_tool_access),
 ):
     """Proxy a Matomo Reporting API call. Token is injected server-side."""
+    if not MATOMO_TOKEN:
+        return JSONResponse(status_code=503, content={"detail": "MATOMO_TOKEN is not configured on the server"})
     params = {
         "module": "API",
         "method": method,

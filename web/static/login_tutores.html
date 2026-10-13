@@ -77,6 +77,14 @@ var passwordInput = document.getElementById('password');
 var errorMsg = document.getElementById('error-msg');
 var loginBtn = document.getElementById('login-btn');
 
+// Only follow redirects to a path on this site ("/..."). Anything else — another
+// site ("https://…", "//host", "/\host"), a script URL, or a value with control
+// characters or backslashes — falls back to the default page.
+function safeRedirectPath(value, fallback) {
+    if (typeof value === 'string' && /^\/(?![\/\\])/.test(value) && !/[\u0000-\u001F\u007F\\]/.test(value)) return value;
+    return fallback;
+}
+
 // If already logged in (valid token), redirect — otherwise clear stale token
 (function() {
     var existingToken = localStorage.getItem('tutores_token');
@@ -90,7 +98,8 @@ var loginBtn = document.getElementById('login-btn');
         if (xhr.status === 200) {
             var data = JSON.parse(xhr.responseText);
             if (data && data.authenticated) {
-                var redirect = new URLSearchParams(window.location.search).get('redirect') || '/tutores-virtuales';
+                // The token is appended below, so the target must be a path on this site.
+                var redirect = safeRedirectPath(new URLSearchParams(window.location.search).get('redirect'), '/tutores-virtuales');
                 // Append token so the server-side route check can verify auth
                 var sep = redirect.indexOf('?') >= 0 ? '&' : '?';
                 window.location.href = redirect + sep + 'token=' + encodeURIComponent(existingToken);
@@ -132,7 +141,7 @@ function doLogin() {
         localStorage.setItem('tutores_username', data.username);
         localStorage.setItem('tutores_role', data.role);
 
-        var redirect = new URLSearchParams(window.location.search).get('redirect') || '/tutores-virtuales';
+        var redirect = safeRedirectPath(new URLSearchParams(window.location.search).get('redirect'), '/tutores-virtuales');
         var sep = redirect.indexOf('?') >= 0 ? '&' : '?';
         window.location.href = redirect + sep + 'token=' + encodeURIComponent(data.token);
     })

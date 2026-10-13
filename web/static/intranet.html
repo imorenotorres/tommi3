@@ -288,6 +288,14 @@ function esc(s) {
     return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
 }
 
+// Only follow redirects to a path on this site ("/..."). Anything else — another
+// site ("https://…", "//host", "/\host"), a script URL, or a value with control
+// characters or backslashes — falls back to the default page.
+function safeRedirectPath(value, fallback) {
+    if (typeof value === 'string' && /^\/(?![\/\\])/.test(value) && !/[\u0000-\u001F\u007F\\]/.test(value)) return value;
+    return fallback;
+}
+
 function canAccess(toolId, roles) {
     // Secure by default: a tool with no TOOL_ACCESS entry yet (e.g. a newly
     // added app nobody has configured in the Tool Visibility panel) is
@@ -339,7 +347,7 @@ async function checkAuth() {
                 return;
             }
             var params = new URLSearchParams(window.location.search);
-            var redirect = params.get('redirect');
+            var redirect = safeRedirectPath(params.get('redirect'), '');
             if (redirect) { window.location.href = redirect; return; }
             showMain();
         } else {

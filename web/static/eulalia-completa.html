@@ -2259,8 +2259,8 @@ document.getElementById('audio-file-input').addEventListener('change', function(
     if (!file) return;
     e.target.value = '';  // Reset for re-upload
 
-    if (file.size > 10 * 1024 * 1024) {
-        alert('El archivo es demasiado grande (máximo 10 MB).');
+    if (file.size > 2 * 1024 * 1024) {
+        alert('El archivo es demasiado grande (máximo 2 MB).');
         return;
     }
 

@@ -2,9 +2,11 @@
 Agent Runner - Ejecuta agentes Tommi directamente
 """
 
+import asyncio
 import importlib.util
 import json
 import sys
+import threading
 from pathlib import Path
 from typing import AsyncGenerator, Optional
 from dataclasses import dataclass
@@ -14,6 +16,10 @@ from error_codes import (
     AGENT_NOT_FOUND, AGENT_FILE_NOT_FOUND, AGENT_LOAD_ERROR,
     SERVER_STREAMING_ERROR
 )
+
+# Serialises agent loading across worker threads (see _load_agent_module).
+# Re-entrant because init/reindex load agents from inside other runner calls.
+_AGENT_LOAD_LOCK = threading.RLock()
 
 
 @dataclass
@@ -207,7 +213,18 @@ class AgentRunner:
         return None
 
     def _load_agent_module(self, agent_id: str, progress_callback=None) -> object:
-        """Carga dinámicamente el módulo agent.py y retorna una instancia de Agent"""
+        """Carga dinámicamente el módulo agent.py y retorna una instancia de Agent.
+
+        Loading can now run in worker threads (see run_in_threadpool in app.py).
+        It rewrites process-wide state (os.environ via load_dotenv, sys.path),
+        so loads are serialised by _AGENT_LOAD_LOCK; already-loaded agents are
+        returned without waiting for it."""
+        if agent_id in self._agent_instances:
+            return self._agent_instances[agent_id]
+        with _AGENT_LOAD_LOCK:
+            return self._load_agent_module_locked(agent_id, progress_callback)
+
+    def _load_agent_module_locked(self, agent_id: str, progress_callback=None) -> object:
         if agent_id in self._agent_instances:
             return self._agent_instances[agent_id]
 
@@ -302,7 +319,7 @@ class AgentRunner:
         session_id: Optional[str] = None
     ) -> QueryResult:
         """Ejecuta una query contra un agente y devuelve la respuesta"""
-        agent_instance = self._load_agent_module(agent_id)
+        agent_instance = await asyncio.to_thread(self._load_agent_module, agent_id)
 
         # Generar session_id si no existe
         if not session_id:
@@ -341,7 +358,7 @@ class AgentRunner:
         tipo: "status" o "content"
         model_override/transparency_override/prompt_level_override: per-request client preferences
         """
-        agent_instance = self._load_agent_module(agent_id)
+        agent_instance = await asyncio.to_thread(self._load_agent_module, agent_id)
 
         # Generar session_id si no existe
         if not session_id:

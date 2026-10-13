@@ -14,6 +14,7 @@ Moodle setup:
     Tool URL: https://gloria.uma.es/lti/proyecto
 """
 
+from starlette.concurrency import run_in_threadpool
 import json
 import math
 import os
@@ -355,7 +356,8 @@ async def proyecto_put_config(request: Request):
 # Document upload (instructor only)
 # ═══════════════════════════════════════════════════════════════════════
 
-MAX_UPLOAD_SIZE = 20 * 1024 * 1024  # 20 MB
+# The server-wide request limit (web/request_limits.py) applies to uploads here too.
+from request_limits import MAX_REQUEST_BYTES as MAX_UPLOAD_SIZE
 
 # MIME signatures for allowed file types
 _MIME_SIGNATURES = {
@@ -375,14 +377,14 @@ async def proyecto_upload_doc(request: Request, file: UploadFile = File(...)):
     content = await file.read()
     # Size limit
     if len(content) > MAX_UPLOAD_SIZE:
-        raise HTTPException(400, f"File too large (max {MAX_UPLOAD_SIZE // (1024*1024)} MB)")
+        raise HTTPException(413, f"File too large (max {MAX_UPLOAD_SIZE // (1024*1024)} MB)")
     # MIME validation for PDFs
     if ext == ".pdf" and not content[:5].startswith(b"%PDF"):
         raise HTTPException(400, "File does not appear to be a valid PDF")
     safe_name = re.sub(r'[^\w\-. ]', '_', file.filename or "doc")
     dest = _docs_dir(session["course_id"]) / safe_name
     dest.write_bytes(content)
-    _build_chunk_db(session["course_id"])
+    (await run_in_threadpool(_build_chunk_db, session["course_id"]))
     return {"ok": True, "filename": safe_name}
 
 
@@ -398,7 +400,7 @@ async def proyecto_delete_doc(filename: str, request: Request):
     if not path.exists():
         raise HTTPException(404, "Documento no encontrado")
     path.unlink()
-    _build_chunk_db(session["course_id"])
+    (await run_in_threadpool(_build_chunk_db, session["course_id"]))
     return {"ok": True}
 
 
@@ -555,7 +557,7 @@ async def proyecto_chat(project_id: str, request: Request):
     phase_name = next((ph["name"] for ph in phases if ph["id"] == fase), fase)
 
     # RAG: retrieve context from course documents
-    rag_context = _retrieve_context(course_id, mensaje)
+    rag_context = (await run_in_threadpool(_retrieve_context, course_id, mensaje))
 
     # Build system prompt
     sys_prompt = config.get("system_prompt", DEFAULT_SYSTEM_PROMPT)
@@ -589,7 +591,7 @@ async def proyecto_chat(project_id: str, request: Request):
     try:
         from llm_client import LLMClient
         client = LLMClient()
-        response = client.chat.complete(messages=messages, max_tokens=1024)
+        response = (await run_in_threadpool(client.chat.complete, messages=messages, max_tokens=1024))
         respuesta = response.choices[0].message.content
     except Exception as e:
         respuesta = f"Error querying AI: {str(e)}"

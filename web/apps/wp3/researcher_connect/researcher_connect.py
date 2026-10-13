@@ -13,6 +13,8 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from fastapi.responses import FileResponse, Response
+
+from request_limits import MAX_REQUEST_BYTES, MAX_REQUEST_MB
 from pydantic import BaseModel, field_validator
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
@@ -229,8 +231,8 @@ async def import_excel(file: UploadFile = File(...), session: dict = Depends(_re
         raise HTTPException(400, "File must be .xlsx")
 
     contents = await file.read()
-    if len(contents) > 5 * 1024 * 1024:
-        raise HTTPException(400, "File must be under 5 MB")
+    if len(contents) > MAX_REQUEST_BYTES:
+        raise HTTPException(413, f"File must be under {MAX_REQUEST_MB} MB")
 
     wb = openpyxl.load_workbook(io.BytesIO(contents), read_only=True)
     ws = wb.active

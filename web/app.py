@@ -22,6 +22,10 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, File as FastFile, HTTPException, Query, Request, Depends, UploadFile
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse, RedirectResponse
+# Blocking work (LLM calls, ffmpeg, Praat, agent loading/indexing) runs in a
+# worker thread so one slow request doesn't freeze the server for everyone.
+from starlette.concurrency import run_in_threadpool
+from request_limits import BodySizeLimitMiddleware, MAX_REQUEST_BYTES, MAX_REQUEST_MB
 from pydantic import BaseModel, field_validator
 
 # Cargar .env de web/ con override para asegurar que se usa la configuración correcta
@@ -378,6 +382,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(SecurityHeadersMiddleware)
 
+# Added last so it is the outermost middleware: requests over 2 MB are
+# refused before anything else reads their body (see request_limits.py).
+app.add_middleware(BodySizeLimitMiddleware)
+
 # Servir archivos estáticos
 app.mount("/static", StaticFiles(directory=SCRIPT_DIR / "static"), name="static")
 app.mount("/img", StaticFiles(directory=SCRIPT_DIR / "img"), name="img")
@@ -629,8 +637,8 @@ async def api_bulk_create_users(
     """
     filename = (file.filename or "").lower()
     content = await file.read()
-    if len(content) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File too large (max 10 MB)")
+    if len(content) > MAX_REQUEST_BYTES:
+        raise HTTPException(status_code=413, detail=f"File too large (max {MAX_REQUEST_MB} MB)")
 
     rows: list[list[str]] = []
 
@@ -816,6 +824,21 @@ def _get_smtp_config() -> dict:
     }
 
 
+def _public_base_url(request: Request) -> str:
+    """Base URL for links mailed to users (invites, password resets).
+
+    Read from PUBLIC_BASE_URL in .env so the link can't be steered to another
+    domain through a forged Host header. Falls back to the request's own URL
+    (local development) when unset.
+    """
+    from dotenv import dotenv_values
+    configured = (dotenv_values(_web_env).get("PUBLIC_BASE_URL") or "").strip()
+    if configured:
+        return configured.rstrip("/")
+    logger.warning("PUBLIC_BASE_URL not set in .env; building emailed link from the request Host header")
+    return str(request.base_url).rstrip("/").replace("http://", "https://", 1)
+
+
 class InviteUserRequest(BaseModel):
     username: str  # email address
     role: str
@@ -854,7 +877,7 @@ async def api_invite_user(req: InviteUserRequest, request: Request, session: dic
         raise HTTPException(status_code=500, detail="Failed to create invitation token")
 
     # Build invitation URL
-    base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
+    base_url = _public_base_url(request)
     invite_url = f"{base_url}/set-password?token={invite_token}"
 
     # Send email
@@ -889,8 +912,8 @@ async def api_bulk_invite_users(
     """
     filename = (file.filename or "").lower()
     content = await file.read()
-    if len(content) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File too large (max 10 MB)")
+    if len(content) > MAX_REQUEST_BYTES:
+        raise HTTPException(status_code=413, detail=f"File too large (max {MAX_REQUEST_MB} MB)")
 
     rows: list[list[str]] = []
 
@@ -942,7 +965,7 @@ async def api_bulk_invite_users(
         raise HTTPException(status_code=400, detail="No data rows found after header")
 
     smtp = _get_smtp_config()
-    base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
+    base_url = _public_base_url(request)
     valid_roles = set(ROLES.keys())
 
     invited = []
@@ -1026,7 +1049,7 @@ async def api_resend_invite(username: str, request: Request, session: dict = Dep
     if not invite_token:
         raise HTTPException(status_code=500, detail="Failed to create invitation token")
 
-    base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
+    base_url = _public_base_url(request)
     invite_url = f"{base_url}/set-password?token={invite_token}"
 
     ok = send_invite_email(
@@ -1125,7 +1148,7 @@ async def api_request_access(req: AccessRequestBody, request: Request):
             if invite_token:
                 smtp = _get_smtp_config()
                 if smtp["configured"]:
-                    base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
+                    base_url = _public_base_url(request)
                     invite_url = f"{base_url}/set-password?token={invite_token}"
                     try:
                         send_invite_email(
@@ -1195,7 +1218,7 @@ async def api_forgot_password(request: Request, body: dict = None):
     if exists and invite_token:
         smtp = _get_smtp_config()
         if smtp["configured"]:
-            base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
+            base_url = _public_base_url(request)
             reset_url = f"{base_url}/set-password?token={invite_token}"
             try:
                 send_invite_email(
@@ -1247,7 +1270,7 @@ async def api_approve_request(
     if smtp["configured"]:
         invite_token = create_invite_token(email)
         if invite_token:
-            base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
+            base_url = _public_base_url(request)
             invite_url = f"{base_url}/set-password?token={invite_token}"
             email_sent = send_invite_email(
                 username=email,
@@ -2608,7 +2631,7 @@ async def lali_project_chat(project_id: str, request: Request):
     if not agent:
         raise HTTPException(status_code=500, detail="Agente no disponible")
 
-    agent_instance = runner._load_agent_module("eulalia")
+    agent_instance = (await run_in_threadpool(runner._load_agent_module, "eulalia"))
     model = agent_instance.model
 
     fase_nombres = {"introduccion": "Introducción", "metodologia": "Metodología",
@@ -2617,8 +2640,8 @@ async def lali_project_chat(project_id: str, request: Request):
 
     # Retrieve RAG context from the knowledge base
     if not agent_instance._chromadb_initialized:
-        agent_instance._init_chromadb()
-    rag_context = agent_instance._retrieve_context(mensaje)
+        (await run_in_threadpool(agent_instance._init_chromadb))
+    rag_context = (await run_in_threadpool(agent_instance._retrieve_context, mensaje))
 
     system_prompt = (
         "Eres Eulalia, tutora de Lingüística Aplicada a la Logopedia. "
@@ -2685,7 +2708,7 @@ async def lali_project_chat(project_id: str, request: Request):
     messages.append({"role": "user", "content": mensaje})
 
     try:
-        response = agent_instance.client.chat.complete(model=model, messages=messages)
+        response = (await run_in_threadpool(agent_instance.client.chat.complete, model=model, messages=messages))
         respuesta = response.choices[0].message.content
     except Exception as e:
         respuesta = f"Error al consultar la IA: {str(e)}"
@@ -2802,17 +2825,16 @@ async def lali_project_autoscore(project_id: str, request: Request):
         "NO incluyas explicaciones, solo el JSON."
     )
 
-    agent_instance = runner._load_agent_module("eulalia")
+    agent_instance = (await run_in_threadpool(runner._load_agent_module, "eulalia"))
     model = agent_instance.model
 
     try:
-        response = agent_instance.client.chat.complete(
-            model=model,
+        response = (await run_in_threadpool(agent_instance.client.chat.complete, model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Puntúa estas interacciones:\n{items_text}"},
             ],
-        )
+        ))
         raw = response.choices[0].message.content.strip()
         # Parse JSON from response
         import re as _re
@@ -2895,17 +2917,16 @@ async def lali_project_precorreccion(project_id: str, request: Request):
     user_prompt += f"INTERACCIONES CON LA IA Y DECISIONES ({len(decisiones)} interacciones):\n"
     user_prompt += decisiones_texto if decisiones_texto else "(Sin interacciones registradas)\n"
 
-    agent_instance = runner._load_agent_module("eulalia")
+    agent_instance = (await run_in_threadpool(runner._load_agent_module, "eulalia"))
     model = agent_instance.model
 
     try:
-        response = agent_instance.client.chat.complete(
-            model=model,
+        response = (await run_in_threadpool(agent_instance.client.chat.complete, model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-        )
+        ))
         respuesta_raw = response.choices[0].message.content
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al consultar la IA: {e}")
@@ -3426,10 +3447,9 @@ INSTRUCCIONES:
 
     try:
         client = LLMClient()
-        response = client.chat.complete(
-            messages=[{"role": "user", "content": prompt}],
+        response = (await run_in_threadpool(client.chat.complete, messages=[{"role": "user", "content": prompt}],
             max_tokens=1024,
-        )
+        ))
         llm_text = response.choices[0].message.content.strip()
         # Extract JSON from response (handle markdown code blocks)
         if "```" in llm_text:
@@ -4174,7 +4194,7 @@ async def eulalia_convertir_audio(file: UploadFile = FastFile(...)):
     if len(audio_data) == 0:
         raise HTTPException(status_code=400, detail="El archivo está vacío.")
     if len(audio_data) > _MAX_AUDIO_SIZE:
-        raise HTTPException(status_code=400, detail="Archivo demasiado grande (máximo 10 MB).")
+        raise HTTPException(status_code=400, detail=f"Archivo demasiado grande (máximo {MAX_REQUEST_MB} MB).")
 
     ffmpeg_bin = shutil.which("ffmpeg") or imageio_ffmpeg.get_ffmpeg_exe()
 
@@ -4185,11 +4205,10 @@ async def eulalia_convertir_audio(file: UploadFile = FastFile(...)):
 
     try:
         tmp_in.write_bytes(audio_data)
-        result = subprocess.run(
-            [ffmpeg_bin, "-y", "-i", str(tmp_in),
+        result = (await run_in_threadpool(subprocess.run, [ffmpeg_bin, "-y", "-i", str(tmp_in),
              "-ar", "44100", "-ac", "1", "-sample_fmt", "s16", str(tmp_out)],
             capture_output=True, timeout=60,
-        )
+        ))
         if result.returncode != 0 or not tmp_out.exists():
             stderr = result.stderr.decode(errors="replace")[:300] if result.stderr else ""
             raise HTTPException(status_code=500, detail=f"Error al convertir el audio. {stderr}".strip())
@@ -4219,8 +4238,13 @@ async def eulalia_convertir_audio(file: UploadFile = FastFile(...)):
 _PRAAT_OUTPUT_DIR = SCRIPT_DIR / "temp" / "praat"
 _PRAAT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# Max audio file size: 10 MB
-_MAX_AUDIO_SIZE = 10 * 1024 * 1024
+# Praat analyses run in worker threads; their matplotlib plots aren't
+# thread-safe, so one analysis runs at a time (see analyze_audio).
+import threading as _threading
+_PRAAT_LOCK = _threading.Lock()
+
+# Max audio file size: the global request limit (request_limits.py)
+_MAX_AUDIO_SIZE = MAX_REQUEST_BYTES
 _ALLOWED_AUDIO_TYPES = {
     "audio/wav", "audio/wave", "audio/x-wav",
     "audio/mpeg", "audio/mp3",
@@ -4258,7 +4282,7 @@ async def analyze_audio(
     # Read and validate size
     audio_data = await file.read()
     if len(audio_data) > _MAX_AUDIO_SIZE:
-        raise HTTPException(status_code=400, detail="El archivo es demasiado grande (máximo 10 MB).")
+        raise HTTPException(status_code=400, detail=f"El archivo es demasiado grande (máximo {MAX_REQUEST_MB} MB).")
     if len(audio_data) == 0:
         raise HTTPException(status_code=400, detail="El archivo está vacío.")
 
@@ -4285,25 +4309,34 @@ async def analyze_audio(
             raise HTTPException(status_code=503, detail="parselmouth no está disponible en el servidor.")
 
         import parselmouth
-        snd = parselmouth.Sound(str(temp_input))
 
-        # Save as WAV for consistent processing
-        snd.save(str(temp_wav), "WAV")
+        def _run_praat():
+            # Runs in a worker thread (it can take seconds). The plots use
+            # matplotlib, which isn't safe to use from several threads at
+            # once, so analyses run one at a time.
+            with _PRAAT_LOCK:
+                snd = parselmouth.Sound(str(temp_input))
 
-        # Generate spectrogram
-        spec_path = generar_espectrograma(
-            str(temp_wav), str(_PRAAT_OUTPUT_DIR),
-            mostrar_formantes=mostrar_formantes,
-            mostrar_pitch=mostrar_pitch,
-            titulo=safe_name or "Audio",
-        )
+                # Save as WAV for consistent processing
+                snd.save(str(temp_wav), "WAV")
 
-        # Generate oscillogram
-        osc_path = generar_oscilograma(str(temp_wav), str(_PRAAT_OUTPUT_DIR))
+                # Generate spectrogram
+                spec_path = generar_espectrograma(
+                    str(temp_wav), str(_PRAAT_OUTPUT_DIR),
+                    mostrar_formantes=mostrar_formantes,
+                    mostrar_pitch=mostrar_pitch,
+                    titulo=safe_name or "Audio",
+                )
 
-        # Acoustic analysis
-        pitch_data = praat_pitch(str(temp_wav))
-        formant_data = resumen_formantes(str(temp_wav))
+                # Generate oscillogram
+                osc_path = generar_oscilograma(str(temp_wav), str(_PRAAT_OUTPUT_DIR))
+
+                # Acoustic analysis
+                pitch_data = praat_pitch(str(temp_wav))
+                formant_data = resumen_formantes(str(temp_wav))
+                return snd, spec_path, osc_path, pitch_data, formant_data
+
+        snd, spec_path, osc_path, pitch_data, formant_data = await run_in_threadpool(_run_praat)
 
         # Build response with relative URLs
         spec_url = "/temp/praat/" + Path(spec_path).name
@@ -4909,7 +4942,7 @@ async def get_history(
 @app.get("/api/agents", response_model=list[AgentResponse])
 async def list_agents(request: Request, mode: Optional[str] = Query(None), prefix: Optional[str] = Query(None)):
     """Lista todos los agentes disponibles (filtered by visibility, mode, role, and prefix)"""
-    agents = runner.discover_agents()
+    agents = (await run_in_threadpool(runner.discover_agents))
 
     # Determine user role and username from session
     token = _get_token(request)
@@ -4950,7 +4983,7 @@ async def list_agents(request: Request, mode: Optional[str] = Query(None), prefi
 @app.get("/api/agents/visibility")
 async def get_agents_visibility(session: dict = Depends(require_role("superuser"))):
     """Get visibility config of all agents (superuser only)."""
-    all_agents = runner.discover_agents()
+    all_agents = (await run_in_threadpool(runner.discover_agents))
     vis = _load_visibility()
     return [
         {
@@ -4981,7 +5014,7 @@ async def set_agent_visibility(
         raise HTTPException(status_code=400, detail=f"Invalid level. Must be one of: {', '.join(VISIBILITY_LEVELS)}")
     agent = runner.get_agent(agent_id)
     if not agent:
-        all_agents = runner.discover_agents()
+        all_agents = (await run_in_threadpool(runner.discover_agents))
         if not any(a.id == agent_id for a in all_agents):
             raise HTTPException(status_code=404, detail="Agent not found")
     vis = _load_visibility()
@@ -6201,7 +6234,7 @@ async def init_agent(agent_id: str):
     Initialize an agent, forcing ChromaDB indexing for RAG agents.
     Call this when selecting a RAG agent to ensure the database is ready.
     """
-    result = runner.init_agent(agent_id)
+    result = (await run_in_threadpool(runner.init_agent, agent_id))
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=result.get("error", "Unknown error"))
     return result
@@ -6271,7 +6304,7 @@ async def reindex_agent(agent_id: str):
     Force reindex of a RAG agent's documents.
     Use this after adding, removing, or modifying documents in data/docs/.
     """
-    result = runner.reindex_agent(agent_id)
+    result = (await run_in_threadpool(runner.reindex_agent, agent_id))
     if not result.get("success"):
         raise HTTPException(status_code=400, detail=result.get("error", "Unknown error"))
     return result
@@ -6478,7 +6511,7 @@ async def chat_stream(
 @app.get("/api/agents/{agent_id}/publications-search")
 async def agent_publications_search(agent_id: str, year: Optional[int] = Query(None)):
     """Return all papers grouped by university as JSON data."""
-    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or (await run_in_threadpool(runner._load_agent_module, agent_id))
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "get_all_papers_by_university"):
@@ -6494,7 +6527,7 @@ async def agent_publications_map(agent_id: str, year: Optional[int] = Query(None
     from fastapi.responses import HTMLResponse
     import json as json_module
 
-    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or (await run_in_threadpool(runner._load_agent_module, agent_id))
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "get_all_papers_by_university"):
@@ -6515,7 +6548,7 @@ async def agent_publications_map(agent_id: str, year: Optional[int] = Query(None
 async def agent_collaboration_search(agent_id: str, topic: str = Query(None),
                                      year: int = Query(None)):
     """Return collaboration data (universities + connections) as JSON."""
-    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or (await run_in_threadpool(runner._load_agent_module, agent_id))
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "get_collaboration_map_data"):
@@ -6526,7 +6559,7 @@ async def agent_collaboration_search(agent_id: str, topic: str = Query(None),
 @app.get("/api/agents/{agent_id}/topic-search")
 async def agent_topic_search(agent_id: str, topic: str = Query(...)):
     """Search papers by topic across universities. Returns JSON data."""
-    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or (await run_in_threadpool(runner._load_agent_module, agent_id))
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "search_papers_by_topic"):
@@ -6541,7 +6574,7 @@ async def agent_topic_map(agent_id: str, topic: str = Query(...)):
     from fastapi.responses import HTMLResponse
     import json as json_module
 
-    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or (await run_in_threadpool(runner._load_agent_module, agent_id))
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "search_papers_by_topic"):
@@ -6563,7 +6596,7 @@ async def agent_topic_map(agent_id: str, topic: str = Query(...)):
 @app.get("/api/agents/{agent_id}/projects-search")
 async def agent_projects_search(agent_id: str, year: Optional[int] = Query(None)):
     """Return all projects grouped by university as JSON data, optionally filtered by year."""
-    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or (await run_in_threadpool(runner._load_agent_module, agent_id))
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "get_all_projects_by_university"):
@@ -6576,7 +6609,7 @@ async def agent_projects_search(agent_id: str, year: Optional[int] = Query(None)
 async def agent_project_topic_search(agent_id: str, topic: str = Query(...),
                                      year: Optional[int] = Query(None)):
     """Search projects by topic across universities, optionally filtered by year. Returns JSON data."""
-    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or (await run_in_threadpool(runner._load_agent_module, agent_id))
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "search_projects_by_topic"):
@@ -6591,7 +6624,7 @@ async def agent_projects_map(agent_id: str, year: Optional[int] = Query(None)):
     from fastapi.responses import HTMLResponse
     import json as json_module
 
-    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or (await run_in_threadpool(runner._load_agent_module, agent_id))
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "get_all_projects_by_university"):
@@ -6670,7 +6703,7 @@ async def agent_agreements_search(
     session_id: Optional[str] = Query(None),
 ):
     """Returns JSON data for the agreements map (markers, center, zoom)."""
-    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or (await run_in_threadpool(runner._load_agent_module, agent_id))
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not found")
     if not hasattr(agent_instance, "get_map_data"):
@@ -6931,7 +6964,7 @@ async def explorer_search(
 
     # --- Project search ---
     if pub_type == "Project":
-        agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
+        agent_instance = runner.get_agent_instance(agent_id) or (await run_in_threadpool(runner._load_agent_module, agent_id))
         projects_by_uni = getattr(agent_instance, '_all_uni_projects', {}) if agent_instance else {}
         results = []
         seen_titles = set()
@@ -7263,8 +7296,8 @@ async def create_agent(
         if agent_type == "oneshot" and data_file and data_file.filename:
             # Save uploaded data.md file
             content = await data_file.read()
-            if len(content) > 50 * 1024 * 1024:
-                raise HTTPException(400, "File too large (max 50 MB)")
+            if len(content) > MAX_REQUEST_BYTES:
+                raise HTTPException(413, f"File too large (max {MAX_REQUEST_MB} MB)")
             with open(data_dir / "data.md", "wb") as f:
                 f.write(content)
 
@@ -7344,7 +7377,7 @@ async def create_agent(
                     f.write(content)
 
         # Reload agents
-        runner.discover_agents()
+        (await run_in_threadpool(runner.discover_agents))
 
         return {
             "success": True,
