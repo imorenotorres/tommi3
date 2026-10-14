@@ -30,6 +30,8 @@ LEARNER_ALLOWED = {
     ("GET", f"{BASE}/api/attempts/{{attempt_id}}"),          # own result
     ("GET", f"{BASE}/api/figures/{{doc_id}}/{{figure_id}}"), # a figure, only while a published question shows it
     ("GET", f"{BASE}/api/practice/topics"),                 # practice: the topics that are on, and the levels
+    ("POST", f"{BASE}/api/practice/exercise"),              # one exercise, without its solution
+    ("POST", f"{BASE}/api/practice/exercises/{{exercise_id}}/report"),   # "report a problem"
 }
 
 

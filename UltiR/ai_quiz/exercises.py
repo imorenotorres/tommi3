@@ -235,7 +235,7 @@ async def write(course_id: str, topic: dict, chunks: list[dict], level: str, kin
         return stored
     record_run(course_id, "exercise", calls, time.monotonic() - started, "failed", reasons)
     if reasons and all(r == "timeout" for r in reasons):
-        raise ExerciseFailed(504, "model_timeout")
+        raise ExerciseFailed(504, "practice_timeout")
     raise ExerciseFailed(502, "exercise_failed")
 
 

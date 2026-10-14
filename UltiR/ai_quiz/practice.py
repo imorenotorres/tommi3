@@ -10,12 +10,14 @@ every exercise, the student's "Report a problem", and the instructor's list of e
 Layout inside a course folder:
 
     practice/settings.json      {"enabled": bool, "topics": {topic_id: {"enabled": bool, "name": str}}}
+    practice/exercises/ ...     the exercises and what is recorded about them (exercises.py)
+    practice/students/ ...      each student's own record, under a keyed hash (progress.py)
 
 Practice exists on a server only when config.practice_enabled(), and in a course only once its
 instructor switches it on.
 """
 
-from UltiR.ai_quiz import config, schema, storage, topics
+from UltiR.ai_quiz import config, exercises, progress, schema, storage, topics
 
 MAX_TOPIC_NAME_CHARS = 80
 LEVELS = ("basico", "intermedio", "avanzado")
@@ -123,3 +125,148 @@ def student_topics(course_id: str) -> list[dict]:
 
 def server_offers_practice() -> bool:
     return config.practice_enabled()
+
+
+# ── One exercise for a student ────────────────────────────────────────────────
+
+def _lookup(course_id: str):
+    """exercise id -> the stored exercise of this course, read once per request."""
+    cache = {}
+
+    def find(exercise_id):
+        if exercise_id not in cache:
+            cache[exercise_id] = exercises.load(course_id, exercise_id)
+        return cache[exercise_id]
+    return find
+
+
+def _language(body: dict) -> str:
+    language = body.get("language", "es")
+    if not isinstance(language, str) or language not in exercises.LANGUAGES:
+        raise PracticeError(400, "bad_request", field="language")
+    return language
+
+
+def _owner(course_id: str, user_id: str) -> str:
+    if not user_id:
+        raise PracticeError(400, "no_user")
+    return progress.owner(course_id, user_id)
+
+
+def _reserve(course_id: str, owner: str, preview: bool) -> None:
+    """Count one exercise against the student's daily limit, or PracticeError. Given back if none is served."""
+    with storage.locked(course_id):
+        record = progress.load(course_id, owner)
+        day, limit = progress.today(), config.practice_daily_limit()
+        if record["days"].get(day, 0) >= limit:
+            raise PracticeError(429, "daily_limit", limit=limit)
+        record["days"] = {day: record["days"].get(day, 0) + 1}      # only today's count is kept
+        record["preview"] = record["preview"] or preview
+        progress.save(course_id, owner, record)
+
+
+def _give_back(course_id: str, owner: str) -> None:
+    with storage.locked(course_id):
+        record = progress.load(course_id, owner)
+        day = progress.today()
+        record["days"][day] = max(0, record["days"].get(day, 0) - 1)
+        progress.save(course_id, owner, record)
+
+
+def _hand_out(course_id: str, owner: str, exercise: dict) -> None:
+    """Note in the student's record that they were given this exercise, and count it as served once more."""
+    with storage.locked(course_id):
+        record = progress.load(course_id, owner)
+        record["exercises"][exercise["exercise_id"]] = {
+            "exercise_id": exercise["exercise_id"], "topic_id": exercise["topic_id"], "level": exercise["level"],
+            "type": exercise["type"], "served_at": exercises.now(), "tries": [], "solution": False, "reported": False}
+        progress.save(course_id, owner, record)
+        exercises.count_served(course_id, exercise["exercise_id"])
+
+
+async def next_exercise(course_id: str, user_id: str, preview: bool, body: dict) -> dict:
+    """One exercise for the student, of the topic and level they chose or chosen for them: from the pool
+    when it has one they have not had, otherwise written now. Reads `topic_id`, `level` and `language` only."""
+    require_open(course_id)
+    owner = _owner(course_id, user_id)
+    language = _language(body)
+    topic_id, level = body.get("topic_id"), body.get("level")
+    if topic_id is not None and not isinstance(topic_id, str):
+        raise PracticeError(400, "bad_request", field="topic_id")
+    if level is not None and level not in LEVELS:
+        raise PracticeError(400, "bad_request", field="level")
+    offered = open_topics(course_id)
+    if not offered:
+        raise PracticeError(409, "no_topics")
+    record, lookup = progress.load(course_id, owner), _lookup(course_id)
+    chosen = {"topic": "yours" if topic_id is not None else "for_you", "level": "yours" if level is not None else "for_you"}
+    if topic_id is None:
+        topic = progress.choose_topic(record, offered, lookup)
+    else:
+        topic = next((t for t in offered if t["topic_id"] == topic_id), None)
+        if topic is None:
+            raise PracticeError(404, "unknown_topic")
+    if level is None:
+        level = progress.choose_level(record, topic["topic_id"])
+    aim = progress.target(record, topic["topic_id"], lookup)
+    aimed = aim["text"] if aim else None
+    seen = set(record["exercises"])
+
+    _reserve(course_id, owner, preview)
+    try:
+        exercise = exercises.from_pool(course_id, topic["topic_id"], level, language, seen, aimed)
+        if exercise is not None:
+            exercises.record_run(course_id, "exercise", 0, 0.0, "pool")
+        else:
+            wait = exercises.take_run(course_id)
+            if wait:
+                raise PracticeError(429, "practice_busy", retry_after_seconds=wait)
+            chunks = topics.topic_chunks(course_id, topic)
+            if not chunks:
+                raise PracticeError(409, "no_text_in_topic")
+            try:
+                exercise = await exercises.write(course_id, topic, chunks, level, progress.kind_for(record, topic["topic_id"]),
+                                                 language, aimed, exercises.statements(course_id, topic["topic_id"]))
+            except exercises.ExerciseFailed as failed:
+                # Nothing new could be written. One of the pool that does not aim at the point is better than none.
+                exercise = exercises.from_pool(course_id, topic["topic_id"], level, language, seen, None) if aimed else None
+                if exercise is None:
+                    raise PracticeError(failed.status, failed.code) from None
+                aim = None
+    except BaseException:
+        _give_back(course_id, owner)
+        raise
+    _hand_out(course_id, owner, exercise)
+    return {"exercise": exercises.learner_view(exercise), "topic": {"topic_id": topic["topic_id"], "name": topic["name"],
+                                                                     "pages": topic["pages"]},
+            "chosen": chosen, "aim": aim["kind"] if aim else None}
+
+
+# ── Reporting ─────────────────────────────────────────────────────────────────
+
+def _entry(course_id: str, owner: str, exercise_id: str) -> tuple[dict, dict]:
+    """The exercise and the student's own line for it, or 404: an exercise the student was not given is not theirs."""
+    exercise = exercises.load(course_id, exercise_id)
+    entry = progress.load(course_id, owner)["exercises"].get(exercise_id) if exercise else None
+    if entry is None:
+        raise PracticeError(404, "exercise_not_found")
+    return exercise, entry
+
+
+def report(course_id: str, user_id: str, exercise_id: str, body: dict) -> dict:
+    """"Report a problem": the exercise is withdrawn from the pool until the instructor has looked at it."""
+    require_open(course_id)
+    owner = _owner(course_id, user_id)
+    reason = body.get("reason")
+    if reason not in exercises.REPORT_REASONS:
+        raise PracticeError(400, "bad_request", field="reason")
+    with storage.locked(course_id):
+        exercise, entry = _entry(course_id, owner, exercise_id)
+        if entry["reported"]:
+            return {"ok": True}
+        exercises.set_status(course_id, exercise_id, "retirado" if exercise["status"] == "retirado" else "reportado",
+                             report=reason)
+        record = progress.load(course_id, owner)
+        record["exercises"][exercise_id]["reported"] = True
+        progress.save(course_id, owner, record)
+    return {"ok": True}

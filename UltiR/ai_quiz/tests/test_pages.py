@@ -345,7 +345,7 @@ def test_every_error_code_the_server_can_send_has_a_text_in_both_languages(clien
     codes = set()
     for path in sorted(MODULE_DIR.glob("*.py")):
         source = path.read_text(encoding="utf-8")
-        codes |= set(re.findall(r'(?:_refuse|UploadRejected|QuizError|GenerationFailed|AttemptError)\(\s*\d+,\s*"([a-z_]+)"', source))
+        codes |= set(re.findall(r'(?:_refuse|UploadRejected|QuizError|GenerationFailed|AttemptError|PracticeError|ExerciseFailed|AnswerRefused)\(\s*\d+,\s*"([a-z_]+)"', source))
         codes |= set(re.findall(r'Unreadable\("([a-z_]+)"\)', source))
         codes |= set(re.findall(r'_fail\(course_id, doc_id, "([a-z_]+)"\)', source))    # why a reading failed
         codes |= set(re.findall(r'error="([a-z_]+)"', source))

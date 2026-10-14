@@ -183,7 +183,7 @@ def test_a_model_that_times_out_every_time_is_a_timeout(course, fake_llm):
     with pytest.raises(exercises.ExerciseFailed) as failed:
         write(course)
 
-    assert (failed.value.status, failed.value.code) == (504, "model_timeout")
+    assert (failed.value.status, failed.value.code) == (504, "practice_timeout")
 
 
 def test_a_model_that_is_not_configured_stops_at_once(course, fake_llm):

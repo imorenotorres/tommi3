@@ -728,3 +728,29 @@ async def ai_quiz_practice_topics(request: Request):
     """The topics a student can choose, and the levels. 409 while the course has practice off."""
     session = _practice_session(request, require_session)
     return {"topics": _practised(practice.student_topics, session["course_id"]), "levels": list(practice.LEVELS)}
+
+
+async def _practised_async(action, *args):
+    try:
+        return await action(*args)
+    except practice.PracticeError as error:
+        _refuse(error.status, error.code, **error.extra)
+
+
+@router.post(f"{BASE}/api/practice/exercise")
+async def ai_quiz_practice_exercise(request: Request):
+    """One exercise for the student: of the topic and level they chose, or chosen for them. From the pool, or
+    written now and checked. The answer to it, its key points and its passage are not in the response."""
+    session = _practice_session(request, require_session)
+    body = await _json_object(request)
+    got = await _practised_async(practice.next_exercise, session["course_id"], session.get("user_id", ""),
+                                 is_instructor(session), body)
+    return JSONResponse(got, status_code=201)
+
+
+@router.post(f"{BASE}/api/practice/exercises/{{exercise_id}}/report")
+async def ai_quiz_practice_report(exercise_id: str, request: Request):
+    """"Report a problem": the exercise leaves the pool until the instructor has looked at it."""
+    session = _practice_session(request, require_session)
+    body = await _json_object(request)
+    return _practised(practice.report, session["course_id"], session.get("user_id", ""), exercise_id, body)
