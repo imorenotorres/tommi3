@@ -1,0 +1,78 @@
+category	std_tier	original_query	spanish_query
+meta	1	What topics do you cover?	¿Qué temas cubres?
+meta	1	Explain your purpose	Explique su propósito
+meta	2	what databases do you use	¿Qué bases de datos utilizan?
+meta	1	Are you an AI assistant?	¿Eres un asistente de IA?
+meta	2	so what exactly is this thing for?	¿Entonces, exactamente, para qué sirve esto?
+meta	1	What is the purpose of this tool?	¿Cuál es el propósito de esta herramienta?
+organization	1	How many universities participate in UNINOVIS?	¿Cuántas universidades participan en UNINOVIS?
+organization	1	Which countries are represented in UNINOVIS?	¿Qué países están representados en UNINOVIS?
+organization	3	UNINOVIS — how many partners and from where?	UNINOVIS — ¿cuántos socios y de dónde?
+organization	2	tell me everything about uninovis and the universities involved	Dime todo sobre UNINOVIS y las universidades involucradas.
+organization	3	Give me something visual about the partnerships	Dame algo visual sobre las alianzas.
+out_of_scope	1	Write a paragraph about machine learning	Escriba un párrafo sobre el aprendizaje automático.
+out_of_scope	1	Schedule a meeting about responsible AI	Programa una reunión sobre inteligencia artificial responsable.
+out_of_scope	1	Best restaurants in Málaga	Mejores restaurantes en Málaga
+out_of_scope	1	Hi there!	¡Hola!
+out_of_scope	1	Create a table comparing AI frameworks	Cree una tabla comparando los marcos de trabajo de IA.
+out_of_scope	1	Do you think AI will replace human workers?	¿Crees que la IA reemplazará a los trabajadores humanos?
+out_of_scope	1	Should AI have rights?	¿Debería la IA tener derechos?
+out_of_scope	2	how do I cook pasta?	¿Cómo cocino pasta?
+general	1	What is blockchain technology?	¿Qué es la tecnología blockchain?
+general	1	Explain the theory of relativity	Explique la teoría de la relatividad.
+general	1	How do vaccines work?	¿Cómo funcionan las vacunas?
+general	3	What are the latest developments in quantum error correction?	¿Cuáles son los últimos avances en corrección de errores cuánticos?
+general	2	Tell me about IoT and smart homes	Dime sobre IoT y hogares inteligentes.
+general	2	Explain how a neural network is trained — the math part	Explica cómo se entrena una red neuronal — la parte matemática
+general	1	Papers about deep learning architectures	Artículos sobre arquitecturas de aprendizaje profundo
+general	2	Research on autonomous vehicles	Investigación sobre vehículos autónomos
+papers	1	Show me a visualisation of publications per year	Muéstrame una visualización de las publicaciones por año.
+papers	1	Papers from the Italian partner	Artículos del socio italiano
+papers	1	List USPN publications	Lista las publicaciones de USPN.
+papers	1	All publications from The Hague	Todas las publicaciones de The Hague
+papers	1	Generate a bar chart of research output by partner	Genere un gráfico de barras del rendimiento de investigación por socio.
+papers	1	Display a timeline of publications	Muestra una línea de tiempo de las publicaciones.
+papers	2	publications by year as a line chart	Publicaciones por año en un gráfico de líneas
+papers	2	give me a pie chart of papers per country	Déjame un gráfico de pastel de los artículos por país.
+papers	2	what's UDCLV been working on?	¿En qué ha estado trabajando UDCLV?
+papers	2	anything from the German university?	¿Algo de la universidad alemana?
+researcher	1	What work has Lucia Ferrario done?	¿Qué trabajo ha realizado Lucia Ferrario?
+researcher	1	Publications from Professor Ferrante Neri	Publicaciones del profesor Ferrante Neri
+researcher	1	Which topics does Ángel Mora research?	¿En qué temas investiga Ángel Mora?
+researcher	1	Find publications authored by Sebastián Ventura	Encuentra publicaciones escritas por Sebastián Ventura.
+researcher	1	Show me TAMK researchers	Muéstreme investigadores de TAMK.
+researcher	1	Who are the active researchers at Sorbonne Paris Nord?	¿Quiénes son los investigadores activos en la Universidad Sorbonne Paris Nord?
+researcher	2	anything by Ferrario?	¿Algo de Ferrario?
+researcher	2	what does Schleif work on	¿En qué trabaja Schleif?
+researcher	2	I want to know what Esposito has been publishing lately	Quiero saber qué ha estado publicando Esposito últimamente.
+researcher	3	Does Rubén González collaborate with anyone at THWS?	¿Colabora Rubén González con alguien en THWS?
+project	1	Tell me about the CRYSTAL project	Dime sobre el proyecto CRYSTAL.
+project	1	List all Horizon Europe projects	Liste todos los proyectos de Horizon Europe.
+project	1	Describe the AIAS project and its objectives	Describa el proyecto AIAS y sus objetivos.
+project	1	Which projects focus on healthcare and AI?	¿Qué proyectos se centran en la atención médica y la IA?
+project	1	What is the budget of the TAILOR project?	¿Cuál es el presupuesto del proyecto TAILOR?
+project	1	Give me details about the EMPATHIC project	Dame los detalles sobre el proyecto EMPATHIC.
+project	2	any funded projects related to elderly care?	¿Algún proyecto financiado relacionado con el cuidado de personas mayores?
+project	2	TAILOR — when did it start and end?	TAILOR — ¿cuándo comenzó y terminó?
+project	2	give me the full list of research projects	Dame la lista completa de proyectos de investigación.
+project	3	Are any of the UNINOVIS projects still running?	¿Alguno de los proyectos de UNINOVIS sigue en marcha?
+topic	1	What research exists on AI transparency?	¿Qué investigación existe sobre la transparencia en IA?
+topic	1	Publications related to federated learning	Publicaciones relacionadas con el aprendizaje federado
+topic	1	Papers on natural language processing and ethics	Artículos sobre procesamiento del lenguaje natural y ética
+topic	1	Studies about trustworthy AI systems	Estudios sobre sistemas de IA confiables
+topic	1	Which areas of responsible AI are underrepresented in the database?	¿Qué áreas de la IA responsable están subrepresentadas en la base de datos?
+topic	3	Show me recent work on the intersection of AI governance and healthcare	Muestrame trabajos recientes sobre la intersección entre gobernanza de IA y salud.
+topic	3	Is there a trade-off between explainability and performance in ML models?	¿Existe un compromiso entre la explicabilidad y el rendimiento en los modelos de aprendizaje automático (ML)?
+topic	1	Are current AI models biased?	¿Los modelos de IA actuales están sesgados?
+topic	2	anything published on fairness-aware machine learning?	¿Hay algo publicado sobre aprendizaje automático consciente de la equidad (fairness-aware machine learning)?
+topic	1	Where are the opportunities for new research?	¿Dónde están las oportunidades para nuevas investigaciones?
+glossary	1	What is sustainable AI?	¿Qué es la IA sostenible?
+glossary	1	Explain the concept of AI governance	Explique el concepto de gobernanza de IA.
+glossary	1	What does AI accountability mean?	¿Qué significa la rendición de cuentas de la IA?
+glossary	3	What's the difference between AI safety and AI alignment?	¿Cuál es la diferencia entre la seguridad de la IA (AI safety) y el alineamiento de la IA (AI alignment)?
+glossary	1	How is AI bias defined?	¿Cómo se define el sesgo en la IA?
+glossary	1	What makes an AI system trustworthy?	¿Qué hace que un sistema de IA sea confiable?
+glossary	2	explain XAI in simple terms	Explique XAI en términos simples.
+glossary	2	give me a definition of trustworthy AI	Déjame una definición de *trustworthy AI*.
+glossary	2	I keep hearing about the EU AI Act — what is it exactly?	¿Sigo escuchando hablar sobre el EU AI Act? ¿Qué es exactamente?
+glossary	2	break down the concept of explainability for me	Desglosa el concepto de explicabilidad para mí.

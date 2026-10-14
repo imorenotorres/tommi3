@@ -1,0 +1,78 @@
+category	std_tier	standard_query	typo_query	grammar_query	match_score
+meta	1	What topics do you cover?	Waht can yu do?	What things you can do?	0.45
+meta	1	Explain your purpose	Explein your perpose	You purpose explain	0.90
+meta	2	what databases do you use	Wich topics do yu cover?	How this tool, it work?	0.53
+meta	1	Are you an AI assistant?	Are you an IA asistant?	Me need know what you do	0.94
+meta	2	so what exactly is this thing for?	so waht exacly is tis thng for?	What topic you covers?	0.92
+meta	1	What is the purpose of this tool?	Waht is the scop of this asistant?	Useful you be for research student?	0.69
+organization	1	How many universities participate in UNINOVIS?	Hw meny univeristis paticipate in UNINOVIS?	How many universities they are in UNINOVIS?	0.92
+organization	1	Which countries are represented in UNINOVIS?	Whic cauntries are represetned in UNINOVIS?	The countries of UNINOVIS, which ones?	0.94
+organization	3	UNINOVIS — how many partners and from where?	UNINOVIS — how meny parners and from where?	UNINOVIS — how much partners and where they from?	0.97
+organization	2	tell me everything about uninovis and the universities involved	tel me everything abaut uninovis and the universties inbolved	Tell me the universities that they are in UNINOVIS	0.95
+organization	3	Give me something visual about the partnerships	Give me soething visal abot the partnerships	UNINOVIS, it has how many members?	0.97
+out_of_scope	1	Write a paragraph about machine learning	Wrtie a paragrph abot machin lernng	You write paragraph about machine learning?	0.91
+out_of_scope	1	Schedule a meeting about responsible AI	Shedule a miting abaot responsble IA	I want you schedule meeting about responsible AI	0.88
+out_of_scope	1	Best restaurants in Málaga	Best restaurantes in Malaga	Restaurant good in Málaga?	0.94
+out_of_scope	1	Hi there!	Helo!	Hi you, hello!	0.43
+out_of_scope	1	Create a table comparing AI frameworks	Creat a tabel comparing AI framworks	Table comparing AI frameworks create please	0.95
+out_of_scope	1	Do you think AI will replace human workers?	Do you thnik AI wil replace human workers?	AI will replace humans you think?	0.96
+out_of_scope	1	Should AI have rights?	Shold AI hve raights?	Cook pasta how?	0.93
+out_of_scope	2	how do I cook pasta?	haw do I cuk pasta?	Cover letter AI skills, write one please	0.87
+general	1	What is blockchain technology?	Waht is blokchain tecnology?	blockchain technology, it is what?	0.93
+general	1	Explain the theory of relativity	Explein theory of relatyvity	How vaccines they work?	0.87
+general	1	How do vaccines work?	How do vaccins work?	Neural network trained, the math, explain me	0.98
+general	3	What are the latest developments in quantum error correction?	What are the latest devlopments in quantm error korrection?	autonomous vehicles research show me	0.97
+general	2	Tell me about IoT and smart homes	Tel me abaut IoT aad smar homes	deep learning architectures papers find	0.91
+general	2	Explain how a neural network is trained — the math part	Explein how a neural network is trained	IoT and smart homes, tell me something	0.81
+general	1	Papers about deep learning architectures	Paers abot dip learnig architecutres	5G and 6G difference what is?	0.89
+general	2	Research on autonomous vehicles	reserch on autonmous vehicles	quantum error correction latest what?	0.97
+papers	1	Show me a visualisation of publications per year	show me a visulisaton of publicasions per yer	Show visualisation of publications per year a me	0.95
+papers	1	Papers from the Italian partner	papaers from THUAS on AI ethcs	THUAS papers, AI ethics, have it?	0.62
+papers	1	List USPN publications	Lst paprs publised by UMA	UMA the papers, list all	0.51
+papers	1	All publications from The Hague	Any publicatins from THWS?	THWS from publications any you have?	0.74
+papers	1	Generate a bar chart of research output by partner	genereit bar chart of reserch outpt by partenr	Bar chart research output by partner generate	0.90
+papers	1	Display a timeline of publications	displey a taimline of publicatons	Timeline of publications display a me	0.93
+papers	2	publications by year as a line chart	publicatons by yer as a lin chrt	Papers per country pie chart give me	0.94
+papers	2	give me a pie chart of papers per country	Giv me a pai chart of peipers per cauntry	UDCLV what they been working on?	0.90
+papers	2	what's UDCLV been working on?	whats UDCLV been workng on?	German university papers from anything?	0.96
+papers	2	anything from the German university?	anithing frm the German unversty?	Finland papers show me	0.93
+researcher	1	What work has Lucia Ferrario done?	Wht wrok has Luica Ferario dne?	Lucia Ferrario the work she done what?	0.89
+researcher	1	Publications from Professor Ferrante Neri	pubicatons of Jose Maria Lna	José María Luna publications of show	0.52
+researcher	1	Which topics does Ángel Mora research?	Wch topics does Agel Mora rserch?	Ángel Mora topics research which ones?	0.90
+researcher	1	Find publications authored by Sebastián Ventura	Find pubicatons by Sebastan Ventura	Find publications Sebastián Ventura by	0.83
+researcher	1	Show me TAMK researchers	Lst rserchrers from THUAS	Researchers THUAS list all	0.49
+researcher	1	Who are the active researchers at Sorbonne Paris Nord?	Who ar the activ reserchers at Sorbone?	Sorbonne Paris Nord active researchers who are?	0.84
+researcher	2	anything by Ferrario?	anthing by Ferario?	Ferrario anything by him?	0.95
+researcher	2	what does Schleif work on	wat das Schelf work on	Schleif on what he work?	0.85
+researcher	2	I want to know what Esposito has been publishing lately	I wont to know what Esposto has bin pubishing ltely	Esposito lately what publish?	0.92
+researcher	3	Does Rubén González collaborate with anyone at THWS?	Das Rubén Gonzlez colaborate wth anione at THWS?	Rubén González with THWS collaborate he does?	0.92
+project	1	Tell me about the CRYSTAL project	Tel me abaut the CRYSTL projct	CRYSTAL project about it tell me	0.92
+project	1	List all Horizon Europe projects	Lst al EU-funded projcts	EU-funded projects list all of them	0.64
+project	1	Describe the AIAS project and its objectives	Dscribe the AIAS projct and its objctves	AIAS project describe and objectives	0.95
+project	1	Which projects focus on healthcare and AI?	Wich proyects focs on helthcre and AI?	Healthcare and AI projects which focus?	0.93
+project	1	What is the budget of the TAILOR project?	Wht is the bugdet of the TAILR proyect?	TAILOR project budget what is?	0.93
+project	1	Give me details about the EMPATHIC project	Giv details abaut the EMPATHC proiect	EMPATHIC project details give	0.89
+project	2	any funded projects related to elderly care?	any fanded projcts related to eldery?	Elderly care funded projects any?	0.89
+project	2	TAILOR — when did it start and end?	TAILR — wen did it start and end?	TAILOR start end when did?	0.97
+project	2	give me the full list of research projects	giv me ful list of reserch projcts	Research projects full list give	0.89
+project	3	Are any of the UNINOVIS projects still running?	Are any of the UNINIVOS projects stll runing?	UNINOVIS projects still running are any?	0.93
+topic	1	What research exists on AI transparency?	Waht reserch exists on AI transprency?	AI transparency research what exists?	0.95
+topic	1	Publications related to federated learning	Publicatons releted to federated lerning	Federated learning publications related	0.95
+topic	1	Papers on natural language processing and ethics	Papr on naturl languge procesing and ethics	NLP and ethics papers about?	0.95
+topic	1	Studies about trustworthy AI systems	Studis abt trustworthy AI sistems	Trustworthy AI studies about?	0.93
+topic	1	Which areas of responsible AI are underrepresented in the database?	Whch araas of responsble AI ar underpresented?	Responsible AI gaps where are they?	0.80
+topic	3	Show me recent work on the intersection of AI governance and healthcare	Work on the interssection of AI goberanance and helthcare	AI governance and healthcare intersection work show	0.84
+topic	3	Is there a trade-off between explainability and performance in ML models?	Is thear a traid-off betwen explainblty and perfomance?	Explainability performance trade-off is there?	0.83
+topic	1	Are current AI models biased?	Are carrent AI models good?	AI models bias current are they?	0.82
+topic	2	anything published on fairness-aware machine learning?	anything publshd on farness-aware machin lerning?	Fairness-aware machine learning anything published?	0.95
+topic	1	Where are the opportunities for new research?	Whre are the opportunitis for new reserch?	New research opportunities where they are?	0.97
+glossary	1	What is sustainable AI?	What is explanable AI?	Explainable AI what it is?	0.80
+glossary	1	Explain the concept of AI governance	Defain fearness in the context of AI	Fairness in AI context define	0.56
+glossary	1	What does AI accountability mean?	Wat does EU AI Act min?	EU AI Act mean what?	0.68
+glossary	3	What's the difference between AI safety and AI alignment?	Diference betwen interpretability and explanability?	Interpretability explainability difference?	0.59
+glossary	1	How is AI bias defined?	Wht is AI gobernance?	AI governance what is exactly?	0.59
+glossary	1	What makes an AI system trustworthy?	Wht makes an AI systm trustworthy?	Trustworthy AI what makes one?	0.97
+glossary	2	explain XAI in simple terms	explain XAI in simpel terms	XAI simple terms explain	0.96
+glossary	2	give me a definition of trustworthy AI	giv me a definiton of trustwrthy AI	Trustworthy AI definition give me	0.96
+glossary	2	I keep hearing about the EU AI Act — what is it exactly?	I kep hering abaot the EU AI Act — what is it exactely?	EU AI Act people say what it is?	0.95
+glossary	2	break down the concept of explainability for me	break dwn the concpt of explainabilty for me	Explainability concept breakdown for me	0.97

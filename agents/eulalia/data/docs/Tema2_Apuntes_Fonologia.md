@@ -537,14 +537,14 @@ Este hecho lo tendremos en cuenta cuando hagamos la transcripción fonológica (
 - Adverbio 
 - Formas interrogativas 
 
-**Palabras átonas** 
-  - Artículos: el, la, los, las, un, una, unos, unas
-  - Preposiciones: a, de, en, con, por, para, sin, sobre, entre, hasta, desde, hacia, según...
-  - Conjunciones: y, o, que, si, ni, pero, como, aunque...
+**Palabras átonas** (solo monosílabas)
+  - Artículos: el, la, los, las, un
+  - Preposiciones: a, de, en, con, por, sin
+  - Conjunciones: y, o, que, si, ni
   - Pronombres átonos: me, te, se, lo, la, le, nos, os, los, las, les
   - Posesivos átonos: mi, tu, su, mis, tus, sus
-  - Verbos auxiliares: he, has, ha, hemos, habéis, han (en tiempos compuestos); es, fue... (en pasivas)
-  - Pronombres relativos átonos: que, donde, como, cuando (en uso no interrogativo)
+  - Verbos auxiliares: he, has, ha, han (en tiempos compuestos); es, fue... (en pasivas)
+  - Pronombres relativos átonos: que (en uso no interrogativo)
  
 
 ### 2.3.3. Frecuencia de las sílabas del español 
