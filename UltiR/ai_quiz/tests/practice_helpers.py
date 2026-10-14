@@ -1,5 +1,8 @@
 """Shared pieces of the practice tests: a sectioned handout and a course with practice switched on."""
 
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+
 from .conftest import BASE
 from .pdfs import make_pdf
 
@@ -33,6 +36,13 @@ SECTION_TITLES = ["Sampling a model", "Counting iterations", "Scoring a model"]
 
 def sectioned_pdf() -> bytes:
     return make_pdf(SECTIONED)
+
+
+def run(coroutine):
+    """Run a coroutine to its end on a thread of its own. The browser tests leave an event loop running in the
+    main thread (Playwright's synchronous API), and asyncio.run refuses to start inside one."""
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, coroutine).result()
 
 
 class PracticeCourse:

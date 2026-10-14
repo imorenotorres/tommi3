@@ -86,6 +86,11 @@ class FakeLLM:
             return reply(messages) if callable(reply) else reply
         if questions_in(messages):
             return analysis_reply(messages)             # a request to analyse a class summary
+        from . import fake_practice                     # imported here: it builds on this module
+        practised = fake_practice.reply(messages, self._serial + 1)
+        if practised is not None:                       # an exercise, a check of its value, or feedback
+            self._serial += 1
+            return practised
         # Default: exactly what was asked for, numbered so that no two calls repeat a question.
         count = asked_for(messages)
         self._serial += count
