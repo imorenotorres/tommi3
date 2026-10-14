@@ -451,8 +451,6 @@ from UltiR.circuits.lti_provider import router as lti_circuits_router
 app.include_router(lti_circuits_router)
 from UltiR.molecules.lti_provider import router as lti_molecules_router
 app.include_router(lti_molecules_router)
-from UltiR.python_practice.lti_provider import router as lti_python_router
-app.include_router(lti_python_router)
 from UltiR.anatomy.lti_provider import router as lti_anatomy_router
 app.include_router(lti_anatomy_router)
 from UltiR.stats.lti_provider import router as lti_stats_router
