@@ -144,6 +144,24 @@ def log_conversation(
     except Exception:
         pass
 
+def _log_eulalia_event(event_type: str, data: dict):
+    """Append a structured event to eulalia_stats.jsonl.
+
+    event_type: 'visit' | 'exercise_start' | 'exercise_complete'
+    data: arbitrary dict with event details.
+    """
+    if not ENABLE_LOGGING:
+        return
+    entry = {"timestamp": datetime.now().isoformat(), "event": event_type}
+    entry.update(data)
+    try:
+        stats_log = LOGS_DIR / "eulalia_stats.jsonl"
+        with open(stats_log, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
 # Configuración
 SCRIPT_DIR = Path(__file__).parent
 AGENTS_PATH = SCRIPT_DIR.parent / "agents"  # tommi/agents/
@@ -1664,6 +1682,12 @@ async def help_eulalia():
 @app.get("/tutores-virtuales/eulalia-completa")
 async def tutores_lali_completa(request: Request, moodle_token: str = Query(None)):
     """Serve the full (complete) LALI tutor page."""
+    _log_eulalia_event("visit", {
+        "page": "eulalia-completa",
+        "client_ip": request.client.host if request.client else "unknown",
+        "referer": request.headers.get("referer", ""),
+        "user_agent": request.headers.get("user-agent", "")[:120],
+    })
     return FileResponse(SCRIPT_DIR / "static" / "eulalia-completa.html")
 
 
@@ -1675,6 +1699,12 @@ async def tutores_lali(request: Request, moodle_token: str = Query(None)):
     and redirects to login if needed. The API endpoints verify auth independently.
     If moodle_token is present, it's passed through so the frontend can store it.
     """
+    _log_eulalia_event("visit", {
+        "page": "eulalia",
+        "client_ip": request.client.host if request.client else "unknown",
+        "referer": request.headers.get("referer", ""),
+        "user_agent": request.headers.get("user-agent", "")[:120],
+    })
     return FileResponse(SCRIPT_DIR / "static" / "eulalia.html")
 
 
@@ -2080,6 +2110,13 @@ async def lali_save_progreso(request: Request):
         }
         _save_progreso(all_progress)
 
+    _log_eulalia_event("exercise_complete", {
+        "exercise": ejercicio,
+        "username": username,
+        "score": pct,
+        "completed": pct >= 75,
+        "client_ip": request.client.host if request.client else "unknown",
+    })
     return {"ok": True, "score": pct}
 
 
@@ -3541,7 +3578,7 @@ async def lali_get_silabas_frecuencia():
 # ── LALI tutor: transcription exercises (programmatic) ───────────────
 
 @app.get("/api/public-agent/eulalia/ejercicio-transcripcion")
-async def lali_ejercicio_transcripcion(nivel: int = Query(1, ge=1, le=5), items: int = Query(5, ge=1, le=15)):
+async def lali_ejercicio_transcripcion(request: Request, nivel: int = Query(1, ge=1, le=5), items: int = Query(5, ge=1, le=15)):
     """Generate a transcription exercise with random words/phrases for levels 1-5."""
     import random
     import sys
@@ -3588,6 +3625,12 @@ async def lali_ejercicio_transcripcion(nivel: int = Query(1, ge=1, le=5), items:
                 pass
             ejercicios.append(ej)
 
+    _log_eulalia_event("exercise_start", {
+        "exercise": "transcripcion",
+        "nivel": nivel,
+        "items": items,
+        "client_ip": request.client.host if request.client else "unknown",
+    })
     return {
         "nivel": nivel,
         "nombre": nivel_data["nombre"],
@@ -3599,6 +3642,7 @@ async def lali_ejercicio_transcripcion(nivel: int = Query(1, ge=1, le=5), items:
 
 @app.get("/api/public-agent/eulalia/ejercicio-informe-errores")
 async def lali_ejercicio_informe_errores(
+    request: Request,
     num_errores: int = Query(8, ge=3, le=12),
     seed: int = Query(None),
     categorias: str = Query(""),
@@ -3726,8 +3770,11 @@ async def lali_ejercicio_informe_errores(
     palabras_con_error = set()
 
     # Function words that can be omitted in lenition profile
-    _PALABRAS_ATONAS = {'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas',
-                        'de', 'en', 'con', 'por', 'a', 'y', 'que', 'del', 'al'}
+    _PALABRAS_ATONAS = {'el', 'la', 'los', 'las', 'un',
+                        'de', 'en', 'con', 'por', 'sin', 'a', 'y', 'que', 'del', 'al',
+                        'me', 'te', 'se', 'lo', 'le', 'nos', 'os', 'les',
+                        'mi', 'tu', 'su', 'mis', 'tus', 'sus',
+                        'he', 'has', 'ha', 'han', 'es', 'fue'}
 
     for idx, pf in enumerate(palabras_fon):
         pf_clean = pf.strip()
@@ -3853,6 +3900,12 @@ async def lali_ejercicio_informe_errores(
             'detalle': e.get('descripcion', '') + " en '" + e.get('palabra', '') + "'"
         })
 
+    _log_eulalia_event("exercise_start", {
+        "exercise": "informe_errores",
+        "num_errores": num_errores,
+        "categorias": categorias or "todas",
+        "client_ip": request.client.host if request.client else "unknown",
+    })
     return {
         'ortografia': oracion,
         'producido': producido_str,
@@ -3876,6 +3929,7 @@ async def lali_evaluacion_config():
 
 @app.get("/api/public-agent/eulalia/ejercicio-transcripcion-fonetica")
 async def lali_ejercicio_transcripcion_fonetica(
+    request: Request,
     nivel: int = Query(1, ge=1, le=7),
     items: int = Query(5, ge=1, le=15),
     exclude: str = Query("", description="Comma-separated list of words to exclude"),
@@ -3953,12 +4007,78 @@ async def lali_ejercicio_transcripcion_fonetica(
                 "solucion": "[" + ".".join(partes_fonet) + "]"
             })
 
+    _log_eulalia_event("exercise_start", {
+        "exercise": "transcripcion_fonetica",
+        "nivel": nivel,
+        "items": items,
+        "client_ip": request.client.host if request.client else "unknown",
+    })
     return {
         "nivel": nivel,
         "nombre": nivel_data["nombre"],
         "descripcion": nivel_data["descripcion"],
         "pista": nivel_data.get("pista", ""),
         "ejercicios": ejercicios
+    }
+
+
+@app.get("/api/public-agent/eulalia/stats")
+async def lali_stats(request: Request):
+    """Return usage statistics for Eulalia (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado puede ver las estadísticas")
+
+    stats_log = LOGS_DIR / "eulalia_stats.jsonl"
+    events = []
+    if stats_log.exists():
+        for line in stats_log.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line:
+                try:
+                    events.append(json.loads(line))
+                except Exception:
+                    pass
+
+    visits = [e for e in events if e.get("event") == "visit"]
+    starts = [e for e in events if e.get("event") == "exercise_start"]
+    completes = [e for e in events if e.get("event") == "exercise_complete"]
+
+    # Per-exercise counts
+    exercise_counts: dict = {}
+    for e in starts:
+        ex = e.get("exercise", "unknown")
+        exercise_counts[ex] = exercise_counts.get(ex, 0) + 1
+
+    # Per-user completion summary from progreso_practica.json
+    progreso = _load_progreso()
+    user_summary = {
+        user: {
+            "total": len(exs),
+            "completed": sum(1 for v in exs.values() if v.get("completed")),
+        }
+        for user, exs in progreso.items()
+    }
+
+    # Conversation count from JSONL
+    conv_log = LOGS_DIR / "eulalia_conversations.jsonl"
+    conversation_count = 0
+    if conv_log.exists():
+        conversation_count = sum(1 for line in conv_log.read_text(encoding="utf-8").splitlines() if line.strip())
+
+    return {
+        "visits": {
+            "total": len(visits),
+            "by_page": {p: sum(1 for v in visits if v.get("page") == p)
+                        for p in {v.get("page") for v in visits}},
+        },
+        "exercises": {
+            "starts_total": len(starts),
+            "completions_total": len(completes),
+            "by_exercise": exercise_counts,
+        },
+        "conversations": {"total": conversation_count},
+        "students": user_summary,
     }
 
 

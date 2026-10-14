@@ -19,6 +19,7 @@ import os
 import random
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 _PALABRAS_INAPROPIADAS = {
@@ -65,6 +66,9 @@ _STATIC_DIR = _APP_DIR / "static"
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _TUTOR_BASE = _PROJECT_ROOT / "agents" / "tutor_fonetica_base"
 _EULALIA_DATA = _PROJECT_ROOT / "agents" / "eulalia" / "data"
+_LOGS_DIR = _PROJECT_ROOT / "web" / "logs"
+_LOGS_DIR.mkdir(exist_ok=True)
+_PROGRESO_PATH = _LOGS_DIR / "fonesp_progreso.json"
 
 # -- LTI config -------------------------------------------------------------
 
@@ -72,6 +76,41 @@ LTI_KEY = os.environ.get("FONESP_LTI_KEY", "fonesp_uma")
 LTI_SECRET = os.environ.get("FONESP_LTI_SECRET", "change_this_secret_in_env")
 
 sessions = LTISessionStore()
+
+
+# -- Stats helpers ------------------------------------------------------------
+
+def _log_fonesp_event(session: dict, event_type: str, data: dict):
+    """Append a structured event to fonesp_stats.jsonl."""
+    entry = {
+        "timestamp": datetime.now().isoformat(),
+        "event": event_type,
+        "user_id": session.get("user_id", ""),
+        "name": session.get("name", ""),
+        "course_id": session.get("course_id", ""),
+        "course_name": session.get("course_name", ""),
+    }
+    entry.update(data)
+    try:
+        stats_log = _LOGS_DIR / "fonesp_stats.jsonl"
+        with open(stats_log, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
+def _load_progreso() -> dict:
+    try:
+        if _PROGRESO_PATH.exists():
+            return json.loads(_PROGRESO_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    return {}
+
+
+def _save_progreso(data: dict):
+    _PROGRESO_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
 
 # -- Transcription helpers ---------------------------------------------------
 
@@ -127,7 +166,8 @@ async def fonesp_info():
 
 @router.get("/lti/fonesp/practicar")
 async def fonesp_practicar(request: Request):
-    sessions.require(request)
+    session = sessions.require(request)
+    _log_fonesp_event(session, "visit", {"page": "practicar"})
     return HTMLResponse((_STATIC_DIR / "practicar.html").read_text(encoding="utf-8"))
 
 
@@ -153,7 +193,8 @@ async def api_ejercicio_fonologica(
     items: int = Query(5, ge=1, le=15),
     exclude: str = Query(""),
 ):
-    sessions.require(request)
+    session = sessions.require(request)
+    _log_fonesp_event(session, "exercise_start", {"exercise": "transcripcion", "nivel": nivel, "items": items})
     _ensure_transcriptor()
     from transcriptor import transcribir_palabra, transcripcion_fonetica_palabra
 
@@ -211,7 +252,8 @@ async def api_ejercicio_fonetica(
     items: int = Query(5, ge=1, le=15),
     exclude: str = Query(""),
 ):
-    sessions.require(request)
+    session = sessions.require(request)
+    _log_fonesp_event(session, "exercise_start", {"exercise": "transcripcion_fonetica", "nivel": nivel, "items": items})
     _ensure_transcriptor()
     from transcriptor import transcripcion_fonetica_palabra, transcribir_palabra
 
@@ -315,3 +357,99 @@ async def api_transcribir(
             detalle.append({"palabra": p, "transcripcion": t})
 
     return {"ok": True, "texto": texto, "transcripcion": resultado, "fonetica": result_fone, "detalle": detalle}
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Progress tracking
+# ═══════════════════════════════════════════════════════════════════════
+
+@router.post("/lti/fonesp/api/progreso")
+async def api_save_progreso(request: Request):
+    """Record exercise completion with score (called by frontend after each exercise)."""
+    session = sessions.require(request)
+    body = await request.json()
+    ejercicio = body.get("ejercicio", "")
+    score = body.get("score", 0)
+    max_score = body.get("max_score", 0)
+
+    if not ejercicio:
+        raise HTTPException(400, "Falta el ID del ejercicio")
+
+    pct = round(score / max_score * 100) if max_score > 0 else 0
+    user_id = session.get("user_id") or session.get("name", "anónimo")
+
+    all_progress = _load_progreso()
+    user_data = all_progress.setdefault(user_id, {"name": session.get("name", ""), "exercises": {}})
+    prev = user_data["exercises"].get(ejercicio, {})
+    if not prev or pct > prev.get("score", 0):
+        user_data["exercises"][ejercicio] = {
+            "score": pct,
+            "completed": pct >= 75,
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        }
+        _save_progreso(all_progress)
+
+    _log_fonesp_event(session, "exercise_complete", {
+        "exercise": ejercicio,
+        "score": pct,
+        "completed": pct >= 75,
+    })
+    return {"ok": True, "score": pct}
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Stats endpoint (instructor only)
+# ═══════════════════════════════════════════════════════════════════════
+
+@router.get("/lti/fonesp/api/stats")
+async def api_stats(request: Request):
+    """Usage statistics for FonESP (instructor only)."""
+    session = sessions.require(request)
+    if not is_instructor(session):
+        raise HTTPException(403, "Solo los instructores pueden ver las estadísticas")
+
+    stats_log = _LOGS_DIR / "fonesp_stats.jsonl"
+    events = []
+    if stats_log.exists():
+        for line in stats_log.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line:
+                try:
+                    events.append(json.loads(line))
+                except Exception:
+                    pass
+
+    visits = [e for e in events if e.get("event") == "visit"]
+    starts = [e for e in events if e.get("event") == "exercise_start"]
+    completes = [e for e in events if e.get("event") == "exercise_complete"]
+
+    exercise_counts: dict = {}
+    for e in starts:
+        ex = e.get("exercise", "unknown")
+        exercise_counts[ex] = exercise_counts.get(ex, 0) + 1
+
+    # Unique students seen
+    students_seen = {e.get("user_id") for e in events if e.get("user_id")}
+
+    progreso = _load_progreso()
+    student_summary = {
+        uid: {
+            "name": data.get("name", ""),
+            "total": len(data.get("exercises", {})),
+            "completed": sum(1 for v in data.get("exercises", {}).values() if v.get("completed")),
+        }
+        for uid, data in progreso.items()
+    }
+
+    return {
+        "visits": {"total": len(visits)},
+        "exercises": {
+            "starts_total": len(starts),
+            "completions_total": len(completes),
+            "by_exercise": exercise_counts,
+        },
+        "students": {
+            "unique_seen": len(students_seen),
+            "progress": student_summary,
+        },
+    }
