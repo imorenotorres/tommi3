@@ -29,7 +29,14 @@ LEARNER_ALLOWED = {
     ("POST", f"{BASE}/api/quizzes/{{quiz_id}}/attempts"),    # submit answers; the server grades
     ("GET", f"{BASE}/api/attempts/{{attempt_id}}"),          # own result
     ("GET", f"{BASE}/api/figures/{{doc_id}}/{{figure_id}}"), # a figure, only while a published question shows it
+    ("GET", f"{BASE}/api/practice/topics"),                 # practice: the topics that are on, and the levels
 }
+
+
+@pytest.fixture(autouse=True)
+def practice_offered(monkeypatch):
+    """The server offers practice, so that its routes are walked with everything else. (Without it they answer 404.)"""
+    monkeypatch.setenv("AI_QUIZ_PRACTICE_ENABLED", "1")
 
 
 def registered_routes():

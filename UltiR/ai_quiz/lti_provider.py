@@ -3,8 +3,11 @@ AI Quiz Generator — LTI 1.1 Tool
 
 An instructor uploads course material, the LLM drafts multiple-choice
 questions, the instructor reviews and publishes them, students practise from
-Moodle and the server grades. Nothing the model writes reaches students
-before an instructor approves it.
+Moodle and the server grades. No question the model writes reaches students
+before an instructor approves it. Practice ("Practicar", practice.py) is
+formative and has a rule of its own: exercises and feedback reach students
+live, behind checks in code, labelled as written by AI, with a way to report
+them and an instructor's list to retire them.
 
 Configuration (web/.env):
     AI_QUIZ_LTI_SECRET=<shared_secret>    required, no default
@@ -18,6 +21,12 @@ Configuration (web/.env):
     AI_QUIZ_MIN_GROUP=3                   optional, this is the default: how many
                                           students must have answered a question
                                           before the instructor sees totals for it
+    AI_QUIZ_PRACTICE_ENABLED=1            optional, off unless exactly "1": offers
+                                          practice; each course then has its own switch
+    AI_QUIZ_PRACTICE_DAILY=30             optional, this is the default: exercises per
+                                          student and day
+    AI_QUIZ_PRACTICE_TIMEOUT=60           optional, this is the default: seconds per
+                                          model call of practice
 
 One consumer key and secret per Moodle installation, never shared: the key is
 part of the id under which a course and its users are kept, because every
@@ -47,7 +56,7 @@ from starlette.concurrency import run_in_threadpool
 from starlette.datastructures import UploadFile
 
 from UltiR.ai_quiz import (
-    analysis, attempts, config, documents, generation, ingestion, limits, moodle_xml, review, storage,
+    analysis, attempts, config, documents, generation, ingestion, limits, moodle_xml, practice, review, storage,
 )
 from UltiR.lti_common import (
     LTISessionStore, is_instructor, lti_launch, lti_test_launch,
@@ -681,3 +690,41 @@ async def ai_quiz_get_attempt(attempt_id: str, request: Request):
     if result is None:
         _refuse(404, "attempt_not_found")
     return result
+
+
+# ── Practice ("Practicar") ────────────────────────────────────────────────────
+# A server that does not offer practice answers 404 on every route below, as if it had none.
+
+def _practice_session(request: Request, guard) -> dict:
+    session = guard(request)
+    if not practice.server_offers_practice():
+        _refuse(404, "not_found")
+    return session
+
+
+def _practised(action, *args):
+    try:
+        return action(*args)
+    except practice.PracticeError as error:
+        _refuse(error.status, error.code, **error.extra)
+
+
+@router.get(f"{BASE}/api/practice/settings")
+async def ai_quiz_practice_settings(request: Request):
+    session = _practice_session(request, require_instructor)
+    return practice.instructor_settings(session["course_id"])
+
+
+@router.put(f"{BASE}/api/practice/settings")
+async def ai_quiz_practice_change_settings(request: Request):
+    """Practice on or off for the course; topics on or off, and their names."""
+    session = _practice_session(request, require_instructor)
+    body = await _json_object(request)
+    return _practised(practice.change_settings, session["course_id"], body)
+
+
+@router.get(f"{BASE}/api/practice/topics")
+async def ai_quiz_practice_topics(request: Request):
+    """The topics a student can choose, and the levels. 409 while the course has practice off."""
+    session = _practice_session(request, require_session)
+    return {"topics": _practised(practice.student_topics, session["course_id"]), "levels": list(practice.LEVELS)}

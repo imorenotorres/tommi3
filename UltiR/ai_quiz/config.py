@@ -98,6 +98,35 @@ def min_group() -> int:
     return int(value) if re.fullmatch(r"[1-9][0-9]{0,3}", value) else DEFAULT_MIN_GROUP
 
 
+# ── Practice ("Practicar") ────────────────────────────────────────────────────
+
+def practice_enabled() -> bool:
+    """Whether this server offers practice at all. AI_QUIZ_PRACTICE_ENABLED, exactly "1"; off otherwise.
+
+    Each course has a switch of its own besides (practice.py), off until its instructor turns it on.
+    """
+    return os.environ.get("AI_QUIZ_PRACTICE_ENABLED", "") == "1"
+
+
+DEFAULT_PRACTICE_DAILY = 30
+DEFAULT_PRACTICE_TIMEOUT = 60
+
+
+def _whole(name: str, default: int, most: int) -> int:
+    value = os.environ.get(name, "").strip()
+    return int(value) if re.fullmatch(r"[1-9][0-9]{0,4}", value) and int(value) <= most else default
+
+
+def practice_daily_limit() -> int:
+    """How many exercises one student is given per day (UTC). AI_QUIZ_PRACTICE_DAILY, 1 to 1000; default 30."""
+    return _whole("AI_QUIZ_PRACTICE_DAILY", DEFAULT_PRACTICE_DAILY, 1000)
+
+
+def practice_timeout() -> int:
+    """Seconds to wait for one model call of practice. AI_QUIZ_PRACTICE_TIMEOUT, 1 to 300; default 60."""
+    return _whole("AI_QUIZ_PRACTICE_TIMEOUT", DEFAULT_PRACTICE_TIMEOUT, 300)
+
+
 def docling_python() -> str:
     """The interpreter of a Python environment that has Docling. Unset means: no full reading."""
     return os.environ.get("AI_QUIZ_DOCLING_PYTHON", "").strip()
