@@ -208,7 +208,11 @@
           el('td', { text: A.formatDateTime(r.at) }),
           el('td', { text: (r.topic || '') + ' · ' + t('practice_level_' + r.level) }),
           el('td', { text: reasonText(r) }),
-          el('td', { class: 'content', text: r.statement || '–' })
+          el('td', {}, [
+            el('span', { class: 'content', text: r.statement || '–' }),
+            // what the model said it quoted, when the server did not find it in the topic
+            r.claimed_excerpt ? el('p', { class: 'hint' }, [t('admin_claimed') + ' ', el('q', { text: r.claimed_excerpt })]) : null
+          ])
         ]);
       }))
     ]));

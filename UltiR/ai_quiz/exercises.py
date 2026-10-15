@@ -112,10 +112,13 @@ Rules:
 - "key_points" are 2 to 4 short statements, each one thing a complete answer must contain. They are the rubric.
 - "typical_mistakes" are 2 or 3 short statements, each a mistake students typically make with this content.
 - "source" is the id of the one source the exercise rests on. "excerpt" is 10 to 40 consecutive words copied \
-exactly from that source, the passage that supports the solution. Copy ordinary prose, not a formula.
+character for character from that source, in the language of the source: never translated, reworded or shortened \
+in the middle. Choose a sentence of ordinary prose that supports the solution, not a formula, a row of a table or a \
+heading. The server looks for it in the source and discards the exercise if it is not there.
 - Do not ask about page numbers, headers, figures or the document itself.
 - Write formulas in plain text, for example w^s or sqrt(n)/2. Do not use LaTeX.
-- Write the exercise in {language}; the excerpt stays in the words of the source.
+- Write the exercise in {language}: the statement, the solution, the key points and the mistakes. Only the excerpt \
+keeps the words and the language of the source.
 - {type_rules}
 
 Answer with JSON only, no code fence, no commentary, in exactly this shape:
@@ -211,7 +214,7 @@ async def write(course_id: str, topic: dict, chunks: list[dict], level: str, kin
             continue
         located = _locate(raw, sources)
         if located is None:
-            reasons.append(_reject(course_id, topic, level, kind, "passage_not_found", exercise))
+            reasons.append(_reject(course_id, topic, level, kind, "passage_not_found", exercise, raw.get("excerpt")))
             continue
         chunk, excerpt = located
         exercise.update(type=kind, level=level, language=language, topic_id=topic["topic_id"], source={
@@ -239,11 +242,16 @@ async def write(course_id: str, topic: dict, chunks: list[dict], level: str, kin
     raise ExerciseFailed(502, "exercise_failed")
 
 
-def _reject(course_id: str, topic: dict, level: str, kind: str, reason: str, exercise=None) -> str:
-    """Record one discarded exercise with its reason, for the instructor. Returns the reason."""
+def _reject(course_id: str, topic: dict, level: str, kind: str, reason: str, exercise=None, claimed=None) -> str:
+    """Record one discarded exercise with its reason, for the instructor. Returns the reason.
+
+    `claimed` is the passage the model said it quoted, when it was not found in the topic: kept so one can see why.
+    """
     path = _dir(course_id) / "rejections.json"
     entry = {"at": now(), "topic_id": topic["topic_id"], "level": level, "type": kind, "reason": reason,
              "statement": (exercise or {}).get("statement")}
+    if isinstance(claimed, str):
+        entry["claimed_excerpt"] = " ".join(claimed.split())[: limits.MAX_EXCERPT_CHARS]
     if exercise and "answer" in exercise:
         entry["answer"] = exercise["answer"]
     with storage.locked(course_id):

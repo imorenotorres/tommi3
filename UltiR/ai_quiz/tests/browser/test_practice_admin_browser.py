@@ -104,6 +104,7 @@ def test_the_exercises_and_the_discards_are_listed_and_an_exercise_can_be_retire
     expect(sheets.nth(1)).to_contain_text("Solución de referencia")
     expect(sheets.nth(1)).to_contain_text("dado 1 veces")
     expect(page.locator("#practice-rejections")).to_contain_text("Un segundo cálculo dio otro valor: 5 frente a 17")
+    expect(page.locator("#practice-rejections")).not_to_contain_text("Pasaje que el modelo dijo citar")
 
     sheets.nth(1).get_by_role("button", name="Retirar").click()
 
@@ -112,6 +113,21 @@ def test_the_exercises_and_the_discards_are_listed_and_an_exercise_can_be_retire
     expect(retired.locator("summary")).to_contain_text("Retirado")
     retired.locator("summary").click()
     expect(retired.get_by_role("button")).to_have_count(0)               # nothing more to do with a retired one
+
+
+def test_a_discard_for_a_passage_not_found_shows_the_passage_the_model_claimed(site, fake_llm):
+    token = with_document(site)
+    httpx.put(f"{site.url}{API}/settings", params={"token": token}, json={"enabled": True})
+    fake_llm.queue(lambda m: exercise_reply(m, excerpt="Una frase traducida que el apunte no contiene en ninguna parte"))
+    httpx.post(f"{site.url}{API}/exercise", params={"token": site.token("Learner", user="s-1")},
+               json={"topic_id": topic_ids(site)[1], "level": "intermedio", "language": "es"})
+
+    page = practice_tab(site)
+
+    row = page.locator("#practice-rejections tbody tr").first
+    expect(row).to_contain_text("El pasaje que cita no está en el tema")
+    expect(row).to_contain_text("Pasaje que el modelo dijo citar y que no está en el tema:")
+    expect(row.locator("q")).to_have_text("Una frase traducida que el apunte no contiene en ninguna parte")
 
 
 def test_a_reported_exercise_can_be_put_back(site):

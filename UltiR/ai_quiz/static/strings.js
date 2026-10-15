@@ -466,7 +466,8 @@ window.AI_QUIZ_STRINGS = {
     "admin_none_yet": "None shown yet: each needs at least {n} students. ({hidden} below that.)",
     "admin_item_where": "{n} students · {topic} · {level}",
     "info_how_5": "Where the instructor switches it on, students can also practise on their own: they choose a topic or a level, get one exercise at a time written by the model from the course material, and get feedback on their own answer.",
-    "info_students_practice": "Where practice is on, “Practise” gives you one exercise at a time on a topic or at a level you choose, with feedback on what your answer covers and what it misses, one more try, then the solution. It does not count towards your grade."
+    "info_students_practice": "Where practice is on, “Practise” gives you one exercise at a time on a topic or at a level you choose, with feedback on what your answer covers and what it misses, one more try, then the solution. It does not count towards your grade.",
+    "admin_claimed": "Passage the model said it quoted, not found in the topic:"
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -932,6 +933,7 @@ window.AI_QUIZ_STRINGS = {
     "admin_none_yet": "Todavía no se muestra ninguno: cada uno necesita al menos {n} estudiantes. ({hidden} por debajo de ese mínimo.)",
     "admin_item_where": "{n} estudiantes · {topic} · {level}",
     "info_how_5": "Si el docente la activa, el alumnado también puede practicar por su cuenta: elige un tema o un nivel, recibe de uno en uno ejercicios que el modelo redacta a partir del material del curso y recibe comentarios sobre su propia respuesta.",
-    "info_students_practice": "Si la práctica está activada, «Practicar» te da ejercicios de uno en uno sobre el tema o en el nivel que elijas, con comentarios sobre lo que tu respuesta cubre y lo que le falta, un intento más y después la solución. No cuenta para la nota."
+    "info_students_practice": "Si la práctica está activada, «Practicar» te da ejercicios de uno en uno sobre el tema o en el nivel que elijas, con comentarios sobre lo que tu respuesta cubre y lo que le falta, un intento más y después la solución. No cuenta para la nota.",
+    "admin_claimed": "Pasaje que el modelo dijo citar y que no está en el tema:"
   }
 };
