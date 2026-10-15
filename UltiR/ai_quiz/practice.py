@@ -529,6 +529,13 @@ def approve(course_id: str, exercise_id: str) -> dict:
     return {"ok": True}
 
 
+def tutors_review(course_id: str) -> dict:
+    """Each programmed tutor as the instructor reviews it: its spec, where it rests in the handout, what it found."""
+    return {"min_group": config.min_group(),
+            "tutors": programmed.review(course_id, progress.tutor_detections(course_id, _lookup(course_id)),
+                                       _topic_names(course_id))}
+
+
 def class_summary(course_id: str) -> dict:
     names = _topic_names(course_id)
     order = {topic_id: number for number, topic_id in enumerate(names)}

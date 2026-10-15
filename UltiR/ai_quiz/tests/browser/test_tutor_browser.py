@@ -84,3 +84,37 @@ def test_a_swap_is_named_with_its_page_the_right_value_is_said_and_the_next_exer
 
     expect(page.locator("#practice-aim")).to_have_text("Este ejercicio vuelve sobre el error de tu último intento.")
     assert shown_exercise(page)["params"]["asks"] in ("P", "R")
+
+
+def test_the_instructor_reviews_each_tutor_and_sees_how_often_a_mistake_was_found(site):
+    tutor_course(site)
+    for user, mistake in (("s1", "swapped"), ("s2", "swapped"), ("s3", "swapped"), ("s4", "complement"), ("s5", "complement")):
+        token = site.token("Learner", user=user)
+        topic = next(t["topic_id"] for t in httpx.get(f"{site.url}{BASE}/api/practice/topics", params={"token": token}).json()["topics"]
+                     if t["name"] == "Evaluation with precision and recall")
+        got = httpx.post(f"{site.url}{BASE}/api/practice/exercise", params={"token": token},
+                         json={"topic_id": topic, "level": "basico", "language": "es"}).json()["exercise"]
+        wrong = exercises.load(cid("course-A"), got["exercise_id"])["wrong"][mistake]
+        assert httpx.post(f"{site.url}{BASE}/api/practice/exercises/{got['exercise_id']}/answer", params={"token": token},
+                          json={"value": tutors.number(wrong, "es", 3)}).status_code == 201
+    page = site.open("/instructor", site.token("Instructor", user="teacher-1"), locale="es-ES")
+    page.get_by_role("tab", name="Práctica").click()
+
+    pr = page.get_by_role("article", name="Precisión, exhaustividad (recall) y F1")
+    expect(pr).to_be_visible()
+    expect(pr).to_contain_text("Sirve el tema «Evaluation with precision and recall». Especificación: tutors/precision_recall.toml.")
+    expect(pr).to_contain_text("Se apoya en handout.pdf, pág. 4:")
+    expect(pr).to_contain_text("5 ejercicios respondidos por 5 estudiantes.")
+    swapped_row = pr.get_by_role("row", name="Intercambiar precisión y exhaustividad")
+    expect(swapped_row).to_contain_text("(pág. {page})")
+    expect(swapped_row).to_contain_text("página 4")
+    expect(swapped_row).to_contain_text("3 veces, 3 estudiantes")
+    expect(pr.get_by_role("row", name="Calcular la parte que falla")).to_contain_text("Todavía hay muy pocas respuestas.")
+    expect(pr.get_by_role("row", name="Dividir aciertos entre fallos")).to_contain_text("Todavía no")
+    expect(pr.get_by_role("row", name="Incorrecta, sin error catalogado")).to_contain_text("Revisa las definiciones")
+    ransac = page.get_by_role("article", name="Número de iteraciones de RANSAC")
+    expect(ransac.get_by_role("row", name="Redondear hacia abajo")).to_contain_text("página 3")
+    assert unlabelled_controls(page) == [] and hard_to_read(page) == []
+
+    page.locator("#lang-switch").click()
+    expect(page.get_by_role("article", name="Precision, recall and F1")).to_contain_text("Swapping precision and recall")

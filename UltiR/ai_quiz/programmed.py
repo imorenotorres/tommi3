@@ -66,6 +66,48 @@ def new_exercise(course_id: str, topic: dict, name: str, level: str, language: s
     return exercises.store(course_id, exercise, aim)
 
 
+LANGUAGES = ("es", "en")
+
+
+def _both(table: dict, key: str) -> dict[str, str]:
+    """A text of the spec in both languages: key "es" is the field `es` (or `{key}_es`)."""
+    return {lang: table[f"{key}_{lang}" if key else lang] for lang in LANGUAGES}
+
+
+def review(course_id: str, detections: dict, topic_names: dict[str, str]) -> list[dict]:
+    """What the instructor reviews of each tutor: the texts of its spec, where the sentences they rest on are in
+    this course's handout (None where they are not found), and how often each mistake was recognised.
+
+    `detections` is progress.tutor_detections(): counts that already leave out groups below the minimum.
+    """
+    placed = places(course_id)
+    shown = []
+    for name in tutors.NAMES:
+        spec, place = tutors.spec(name), placed.get(name)
+        chunks = _document_chunks(course_id, place["found"]["doc_id"]) if place else []
+
+        def where(anchor):
+            found = tutors.locate(anchor, chunks) if chunks else None
+            return {"doc_label": found["doc_label"], "page": found["page"], "excerpt": found["excerpt"]} if found else None
+
+        counted = detections.get(name, {})
+        shown.append({
+            "tutor": name, "file": f"tutors/{name}.toml", "title": _both(spec["skill"], "title"),
+            "formula": spec["skill"]["formula"], "handout": spec["skill"]["handout"],
+            "topic": topic_names.get(place["topic_id"]) if place else None, "where": where(spec["skill"]["anchor"]),
+            "levels": [{"level": level, "about": _both(about, "about")} for level, about in spec["levels"].items()],
+            "right": {"text": _both(spec["right"], ""), "next": _both(spec["right"], "next"),
+                      "detected": counted.get("correcto")},
+            "unknown": {"text": _both(spec["unknown"], ""), "next": _both(spec["unknown"], "next"),
+                        "detected": counted.get("unknown")},
+            "mistakes": [{"id": m["id"], "title": _both(m, "title"), "what": _both(m, "what"), "why": _both(m, "why"),
+                          "next": _both(m, "next"), "where": where(m["anchor"]), "detected": counted.get(m["id"])}
+                         for m in spec["mistakes"]],
+            "answered": counted.get("exercises"),
+        })
+    return shown
+
+
 def read_value(exercise: dict, body: dict) -> tuple[float | None, str]:
     """The value the student typed, read as the tutor reads it, and as they typed it. ValueError if it is not one."""
     raw = body.get("value")

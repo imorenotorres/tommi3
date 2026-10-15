@@ -163,6 +163,33 @@ def _records(course_id: str) -> list[dict]:
     return [r for r in found if r and not r.get("preview")]
 
 
+def tutor_detections(course_id: str, lookup) -> dict[str, dict]:
+    """How often each programmed tutor recognised each of its mistakes, over every try in the course.
+
+    tutor -> key -> {"tries", "students"}, or {"too_few": True} when fewer than min_group students are in it. The
+    keys are the mistake ids, "correcto", "unknown" (a wrong value no catalogued mistake gives) and "exercises"
+    (exercises answered at least once; "tries" counts them).
+    """
+    minimum = config.min_group()
+    tries, students = defaultdict(Counter), defaultdict(lambda: defaultdict(set))
+    for number, record in enumerate(_records(course_id)):
+        for entry in record.get("exercises", {}).values():
+            done = [t for t in entry.get("tries") or [] if t.get("programmed")]
+            exercise = lookup(entry["exercise_id"]) if done else None
+            if exercise is None or not exercise.get("tutor"):
+                continue
+            name = exercise["tutor"]
+            tries[name]["exercises"] += 1
+            students[name]["exercises"].add(number)
+            for made in done:
+                key = "correcto" if made["verdict"] == "correcto" else made.get("mistake") or "unknown"
+                tries[name][key] += 1
+                students[name][key].add(number)
+    return {name: {key: {"tries": tries[name][key], "students": len(who)} if len(who) >= minimum else {"too_few": True}
+                   for key, who in groups.items()}
+            for name, groups in students.items()}
+
+
 def summary(course_id: str, topic_names: dict[str, str], lookup) -> dict:
     """Totals of practice in the course. A row is shown only when at least min_group students are in it.
 
@@ -181,7 +208,7 @@ def summary(course_id: str, topic_names: dict[str, str], lookup) -> dict:
             row["exercises"] += 1
             row["verdicts"][last.get("verdict") or "sin_valorar"] += 1
             first = unaided(entry)                      # what was missed or mistaken: the try made without help
-            if first.get("mistake"):
+            if first.get("mistake") and not first.get("programmed"):      # a tutor's mistakes: tutor_detections
                 mistakes[(entry["exercise_id"], first["mistake"])].add(number)
             for kid, status in (first.get("statuses") or {}).items():
                 if status in ("falta", "parcial"):

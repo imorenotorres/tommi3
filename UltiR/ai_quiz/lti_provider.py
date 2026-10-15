@@ -805,6 +805,14 @@ async def ai_quiz_practice_approve(exercise_id: str, request: Request):
     return _practised(practice.approve, session["course_id"], exercise_id)
 
 
+@router.get(f"{BASE}/api/practice/tutors")
+async def ai_quiz_practice_tutors(request: Request):
+    """The programmed tutors: each spec to review, where its sentences are in the handout, and how often each
+    mistake was recognised (totals only, nothing for fewer than the minimum group)."""
+    session = _practice_session(request, require_instructor)
+    return practice.tutors_review(session["course_id"])
+
+
 @router.get(f"{BASE}/api/practice/summary")
 async def ai_quiz_practice_summary(request: Request):
     """Totals of practice in the course. No names, no single answer, nothing for fewer than the minimum group."""

@@ -1,12 +1,13 @@
 /* Instructor page, "Practice" tab: practice on or off for the course, topics on or off and their
-   names, every exercise the model wrote with its status, the exercises the checks discarded, and
-   totals of how students practise (no names, no single answer, nothing below the minimum group).
+   names, the programmed tutors with their specs to review and how often each mistake was found, every
+   exercise the model wrote with its status, the exercises the checks discarded, and totals of how
+   students practise (no names, no single answer, nothing below the minimum group).
    All content is placed as text; see the rule at the top of app.js. */
 (function () {
   'use strict';
 
   var A = window.AiQuiz, t = A.t, el = A.el, clear = A.clear;
-  var state = { settings: null, pool: null, summary: null, offered: false };
+  var state = { settings: null, pool: null, summary: null, tutors: null, offered: false };
 
   function byId(id) { return document.getElementById(id); }
 
@@ -51,11 +52,13 @@
   }
 
   function loadAll() {
-    return Promise.all([A.api('/api/practice/settings'), A.api('/api/practice/pool'), A.api('/api/practice/summary')])
+    return Promise.all([A.api('/api/practice/settings'), A.api('/api/practice/pool'), A.api('/api/practice/summary'),
+      A.api('/api/practice/tutors')])
       .then(function (got) {
         state.settings = got[0];
         state.pool = got[1];
         state.summary = got[2];
+        state.tutors = got[3];
         render();
       });
   }
@@ -65,6 +68,7 @@
     byId('practice-switch').checked = state.settings.enabled;
     byId('practice-state').textContent = t(state.settings.enabled ? 'admin_practice_on' : 'admin_practice_off');
     renderTopics();
+    renderTutors();
     renderPool();
     renderRejections();
     renderSummary();
@@ -223,6 +227,67 @@
     if (mismatch) { return t('reject_numeric_mismatch', { first: mismatch[1], second: mismatch[2] }); }
     var key = 'reject_' + r.reason.split(':')[0];
     return t(key);
+  }
+
+  // ── Programmed tutors ───────────────────────────────────────────────────
+
+  /* How often a text was given: a count, "fewer than N students", or nothing yet. */
+  function detected(d) {
+    if (!d) { return t('admin_tutor_never'); }
+    if (d.too_few) { return t('class_too_few'); }
+    return t('admin_tutor_detected', { tries: d.tries, n: d.students });
+  }
+
+  function placeText(where) {
+    return where ? el('p', { class: 'cite' }, [t('admin_tutor_where', { doc: where.doc_label, n: where.page }) + ' ',
+      el('q', { text: where.excerpt })])
+      : el('p', { class: 'notice plain', text: t('admin_tutor_not_found') });
+  }
+
+  function renderTutors() {
+    var s = state.tutors, box = clear(byId('practice-tutors')), lang = A.language();
+    if (!s) { return; }
+    byId('practice-tutors-hint').textContent = t('admin_tutors_hint', { n: s.min_group });
+    s.tutors.forEach(function (tutor) {
+      var rows = [
+        [t('admin_tutor_right'), tutor.right.text[lang], tutor.right.next[lang], null, tutor.right.detected]
+      ].concat(tutor.mistakes.map(function (m) {
+        return [m.title[lang], m.what[lang] + ' ' + m.why[lang], m.next[lang], m.where, m.detected];
+      })).concat([[t('admin_tutor_unknown'), tutor.unknown.text[lang], tutor.unknown.next[lang], null, tutor.unknown.detected]]);
+      box.appendChild(el('article', { class: 'panel space-below', 'aria-label': tutor.title[lang] }, [
+        el('h3', { text: tutor.title[lang] }),
+        el('p', {}, [el('code', { text: tutor.formula })]),
+        el('p', { class: 'hint', text: tutor.topic ? t('admin_tutor_topic', { topic: tutor.topic, file: tutor.file })
+          : t('admin_tutor_no_topic', { file: tutor.file }) }),
+        placeText(tutor.where),
+        el('p', { text: tutor.answered && !tutor.answered.too_few
+          ? t('admin_tutor_answered', { tries: tutor.answered.tries, n: tutor.answered.students })
+          : (tutor.answered ? t('class_too_few') : t('admin_tutor_none_yet')) }),
+        el('h4', { text: t('admin_tutor_levels') }),
+        el('ul', {}, tutor.levels.map(function (level) {
+          return el('li', {}, [el('strong', { text: t('practice_level_' + level.level) + ': ' }), level.about[lang]]);
+        })),
+        el('h4', { text: t('admin_tutor_texts') }),
+        el('table', { class: 'list' }, [
+          el('thead', {}, [el('tr', {}, [
+            el('th', { scope: 'col', text: t('admin_col_case') }),
+            el('th', { scope: 'col', text: t('admin_col_said') }),
+            el('th', { scope: 'col', text: t('admin_col_next') }),
+            el('th', { scope: 'col', text: t('admin_col_page') }),
+            el('th', { scope: 'col', text: t('admin_col_detected') })
+          ])]),
+          el('tbody', {}, rows.map(function (row) {
+            return el('tr', {}, [
+              el('th', { scope: 'row', text: row[0] }),
+              el('td', { class: 'content', text: row[1] }),
+              el('td', { class: 'content', text: row[2] }),
+              el('td', { text: row[3] ? t('source_page', { n: row[3].page }) : '–' }),
+              el('td', { text: detected(row[4]) })
+            ]);
+          }))
+        ])
+      ]));
+    });
   }
 
   // ── Totals ──────────────────────────────────────────────────────────────
