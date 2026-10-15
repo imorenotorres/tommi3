@@ -38,6 +38,36 @@ def sectioned_pdf() -> bytes:
     return make_pdf(SECTIONED)
 
 
+# A handout with the sentences the two programmed tutors rest on, written as the text reading of sample.pdf has
+# them (a hyphen for its minus sign): RANSAC on pages 2 and 3, precision and recall on page 4.
+TUTOR_HANDOUT = [
+    ["Handout for the tutor tests",
+     "1 Matching",
+     "Matching links the points of two images that show the same point of a scene."],
+    ["2 RANSAC and its iteration count",
+     "The sample size is the smallest number of matches that determines the model:",
+     "four for a homography and seven or eight for a fundamental matrix.",
+     "How many samples are needed? Let nin of the n matches be inliers, so that the inlier",
+     "fraction is w = nin/n. The probability that a sample of s different matches contains only",
+     "inliers is Pgood. The probability that N independent samples all contain at least one",
+     "outlier is (1 - ws)N. Requiring that this failure probability is at most 1 - p gives"],
+    ["the bound on the number of samples N.",
+     "Rounding up gives 72 iterations for the homography."],
+    ["3 Evaluation with precision and recall",
+     "Let T Pbe the number of correct matches that are returned.",
+     "Precision is the fraction of returned matches that are correct, and recall is the fraction",
+     "of all true correspondences that are returned. Precision answers how trustworthy the",
+     "output is, while recall answers how complete it is. The harmonic mean is dominated by the",
+     "smaller of the two values. As an example, a matcher that returns 200 matches of which 150",
+     "are correct, for an image pair with 250 true correspondences, has a precision of 0.75 and",
+     "a recall of 0.60."],
+]
+
+
+def tutor_pdf() -> bytes:
+    return make_pdf(TUTOR_HANDOUT)
+
+
 def run(coroutine):
     """Run a coroutine to its end on a thread of its own. The browser tests leave an event loop running in the
     main thread (Playwright's synchronous API), and asyncio.run refuses to start inside one."""

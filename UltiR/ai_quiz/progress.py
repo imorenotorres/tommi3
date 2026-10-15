@@ -54,8 +54,9 @@ def final(entry: dict) -> dict | None:
 
 
 def unaided(entry: dict) -> dict:
-    """The first try of an exercise that the feedback assessed (it has key point statuses), else {}."""
-    return next((t for t in entry.get("tries") or [] if t.get("statuses")), {})
+    """The first try of an exercise that the feedback assessed (it has key point statuses, or a programmed tutor
+    diagnosed it), else {}."""
+    return next((t for t in entry.get("tries") or [] if t.get("statuses") or t.get("programmed")), {})
 
 
 def _on_topic(record: dict, topic_id: str, level: str | None = None) -> list[dict]:
@@ -108,6 +109,12 @@ def target(record: dict, topic_id: str, lookup) -> dict | None:
                 if statuses.get(point["id"]) == wanted:
                     return {"kind": "key_point", "text": point["text"]}
     return None
+
+
+def last_mistake(record: dict, topic_id: str) -> str | None:
+    """The catalogued mistake of the student's last answered exercise on the topic, made without help, or None."""
+    done = _on_topic(record, topic_id)
+    return unaided(done[-1]).get("mistake") if done else None
 
 
 def level_suggestion(record: dict, topic_id: str, level: str) -> str | None:

@@ -110,19 +110,24 @@
     byId('practice-exercise').hidden = !exercise;
     byId('practice-feedback').hidden = true;
     if (!exercise) { return; }
+    // An exercise a program made says so; one a model wrote says that (programmed tutors: no model at all).
+    var programmed = exercise.type === 'programado';
     byId('practice-ai-label').textContent = exercise.page
-      ? t('practice_ai_label_page', { n: exercise.page }) : t('practice_ai_label');
+      ? t(programmed ? 'practice_program_label_page' : 'practice_ai_label_page', { n: exercise.page })
+      : t(programmed ? 'practice_program_label' : 'practice_ai_label');
+    byId('practice-note').textContent = t(programmed ? 'practice_program_note' : 'practice_ai_note');
     byId('practice-meta').textContent = [state.topic ? state.topic.name || topicName(state.topic) : '',
       t('practice_level_' + exercise.level), t('practice_type_' + exercise.type)].filter(Boolean).join(' · ');
     byId('practice-aim').hidden = !state.aim;
     if (state.aim) { byId('practice-aim').textContent = t('practice_aim_' + state.aim); }
     byId('practice-statement').textContent = exercise.statement;
-    var numeric = exercise.type === 'numerica';
+    var numeric = exercise.type === 'numerica' || programmed;
+    byId('practice-answer-field').hidden = programmed;   // a programmed tutor reads the value only
     byId('practice-value-field').hidden = !numeric;
     byId('practice-unit').textContent = numeric && exercise.unit ? exercise.unit : '';
     byId('practice-answer').value = '';
     byId('practice-value').value = '';
-    byId('practice-answer').required = !numeric;
+    byId('practice-answer').required = !numeric && !programmed;
     byId('practice-value').required = numeric;
     counted();
     closeReport();
@@ -138,7 +143,8 @@
     event.preventDefault();
     var button = byId('practice-send');
     var body = { answer: byId('practice-answer').value, language: A.language() };
-    if (state.exercise.type === 'numerica') { body.value = byId('practice-value').value; }
+    if (state.exercise.type === 'numerica' || state.exercise.type === 'programado') { body.value = byId('practice-value').value; }
+    if (state.exercise.type === 'programado') { delete body.answer; }    // only the value: nothing else is sent
     busy(button, true);
     A.say(t('practice_checking'), 'plain');
     A.send('POST', '/api/practice/exercises/' + state.exercise.exercise_id + '/answer', body).then(function (got) {
@@ -162,7 +168,7 @@
     verdict.className = 'verdict ' + (got.verdict || 'unknown');
     verdict.textContent = got.verdict ? t('practice_verdict_' + got.verdict) : t('practice_verdict_none');
     byId('practice-try').textContent = t('practice_try', { n: got.try });
-    byId('practice-fallback').hidden = got.ai;
+    byId('practice-fallback').hidden = got.ai || Boolean(got.programmed);
     byId('practice-uncertain').hidden = !(got.ai && got.uncertain);
     byId('practice-numeric').hidden = !got.numeric;
     if (got.numeric) {
@@ -187,6 +193,8 @@
 
   function renderPoints(got) {
     var box = clear(byId('practice-points'));
+    box.hidden = !got.key_points.length;               // a programmed tutor has no key points to grade
+    if (!got.key_points.length) { return; }
     var rows = got.key_points.map(function (point) {
       return el('tr', { 'data-status': point.status || 'none' }, [
         el('td', { class: 'content', text: point.text }),

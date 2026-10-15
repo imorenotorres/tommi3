@@ -19,7 +19,9 @@ instructor switches it on.
 
 import time
 
-from UltiR.ai_quiz import config, documents, exercise_types, exercises, feedback, limits, progress, schema, storage, topics
+from UltiR.ai_quiz import (
+    config, documents, exercise_types, exercises, feedback, limits, programmed, progress, schema, storage, topics, tutors,
+)
 from UltiR.ai_quiz.mathflag import has_math_notation
 
 MAX_TOPIC_NAME_CHARS = 80
@@ -130,8 +132,8 @@ def open_topics(course_id: str) -> list[dict]:
 
 
 def programmed_topics(course_id: str) -> set[str]:
-    """The ids of the topics a programmed tutor serves in this course. None so far."""
-    return set()
+    """The ids of the topics a programmed tutor serves in this course (programmed.py)."""
+    return set(programmed.topic_tutors(course_id))
 
 
 def _require_model(exercise: dict) -> None:
@@ -234,6 +236,22 @@ async def next_exercise(course_id: str, user_id: str, preview: bool, body: dict)
     aimed = aim["text"] if aim else None
     seen = set(record["exercises"])
 
+    served_by = programmed.topic_tutors(course_id).get(topic["topic_id"])
+    if served_by:
+        # A programmed tutor: an exercise made from a seed, aimed at the mistake of the student's last exercise on
+        # the topic. No model, no pool.
+        last = progress.last_mistake(record, topic["topic_id"])
+        _reserve(course_id, owner, preview)
+        try:
+            exercise = programmed.new_exercise(course_id, topic, served_by, level, language, last)
+        except BaseException:
+            _give_back(course_id, owner)
+            raise
+        _hand_out(course_id, owner, exercise)
+        return {"exercise": exercises.learner_view(exercise),
+                "topic": {"topic_id": topic["topic_id"], "name": topic["name"], "pages": topic["pages"]},
+                "chosen": chosen, "aim": "mistake_last" if last and last in exercise["wrong"] else None}
+
     _reserve(course_id, owner, preview)
     try:
         if not config.practice_model_enabled():
@@ -297,6 +315,8 @@ async def answer(course_id: str, user_id: str, exercise_id: str, body: dict) -> 
     _require_model(exercise)
     if len(entry["tries"]) >= limits.MAX_PRACTICE_TRIES or (entry["tries"] and entry["tries"][-1]["verdict"] == "correcto"):
         raise PracticeError(409, "no_more_tries")
+    if exercise["type"] == programmed.KIND:
+        return _answer_programmed(course_id, owner, exercise, entry, body, language)
     try:
         text = feedback.clean_answer(body.get("answer"))
         given = exercise_types.TYPES[exercise["type"]].given(body, exercise)
@@ -354,6 +374,40 @@ async def answer(course_id: str, user_id: str, exercise_id: str, body: dict) -> 
     return result
 
 
+def _answer_programmed(course_id: str, owner: str, exercise: dict, entry: dict, body: dict, language: str) -> dict:
+    """A try at a programmed tutor's exercise: read the value, diagnose it, compose the feedback from the spec.
+
+    Only `value` is read; a text the page may send is not read, kept or sent anywhere. No model is asked.
+    """
+    try:
+        value, typed = programmed.read_value(exercise, body)
+    except ValueError:
+        raise PracticeError(400, "bad_value") from None
+    if value is None:
+        raise PracticeError(400, "value_missing")
+    got = programmed.feedback(course_id, exercise, value, typed, language)
+    number = len(entry["tries"]) + 1
+    kept = {"verdict": got["verdict"], "ai": False, "programmed": True, "mistake": got["mistake"], "at": exercises.now(),
+            "statuses": {}, "checks": []}
+    with storage.locked(course_id):
+        record = progress.load(course_id, owner)
+        mine = record["exercises"].get(exercise["exercise_id"])
+        if mine is None or len(mine["tries"]) != number - 1:
+            raise PracticeError(409, "answered_meanwhile")
+        mine["tries"].append(kept)
+        progress.save(course_id, owner, record)
+    return {
+        "exercise_id": exercise["exercise_id"], "try": number, "verdict": got["verdict"], "ai": False,
+        "programmed": True, "uncertain": False, "key_points": [],
+        "mistake": {"id": got["mistake"], "text": got["mistake_title"]} if got["mistake"] else None,
+        "feedback": got["feedback"], "next_step": got["next_step"], "review": got["review"],
+        "can_retry": got["verdict"] != "correcto" and number < limits.MAX_PRACTICE_TRIES,
+        "can_see_solution": _may_see_solution(mine),
+        "level_suggestion": progress.level_suggestion(record, exercise["topic_id"], exercise["level"]),
+        "numeric": {"given": value, "given_text": typed, "right": got["verdict"] == "correcto"},
+    }
+
+
 def solution(course_id: str, user_id: str, exercise_id: str) -> dict:
     """The reference solution, once the student got it right or used every try. Not before."""
     require_open(course_id)
@@ -370,6 +424,10 @@ def solution(course_id: str, user_id: str, exercise_id: str) -> dict:
     if exercise["type"] == "numerica":
         value = exercise["answer"].get("checked_value", exercise["answer"]["value"])
         shown.update(value=value, value_text=exercise_types.shown(value), unit=exercise["answer"].get("unit") or "")
+    if exercise["type"] == programmed.KIND:
+        value = exercise["solution_value"]
+        places = 3 if exercise["form"] == "fraction3" else None
+        shown.update(value=value, value_text=tutors.number(value, exercise.get("language", "es"), places), unit="")
     return shown
 
 
@@ -441,6 +499,8 @@ def pool(course_id: str) -> dict:
     names = _topic_names(course_id)
     listed = []
     for exercise in reversed(exercises.all_exercises(course_id)):
+        if exercise["type"] == programmed.KIND:
+            continue                            # made by a program for one student: see the tutors instead
         view = {**exercise, "topic": names.get(exercise["topic_id"])}
         if exercise["type"] == "numerica":
             answer = exercise["answer"]

@@ -346,6 +346,11 @@ def _reject(course_id: str, topic: dict, level: str, kind: str, reason: str, exe
     return reason
 
 
+def store(course_id: str, exercise: dict, target=None) -> dict:
+    """Keep an exercise that a program made (programmed.py): no model call, nothing discarded."""
+    return _store(course_id, exercise, target, 0, 0.0, 0)
+
+
 def _store(course_id: str, exercise: dict, target, calls: int, seconds: float, discarded: int) -> dict:
     stored = {"exercise_id": storage.new_id("e"), **_tidied(exercise), "status": "servido", "created_at": now(), "created_ns": time.time_ns(),
               "target": target, "calls": calls, "seconds": round(seconds, 2), "discarded_before": discarded,
@@ -446,4 +451,6 @@ def learner_view(exercise: dict) -> dict:
             "doc_label": exercise["source"].get("doc_label"), "topic_id": exercise["topic_id"]}
     if exercise["type"] == "numerica":
         view["unit"] = exercise["answer"].get("unit") or ""
+    if exercise["type"] == "programado":
+        view["unit"] = ""                       # the statement says in which form the value is given
     return view

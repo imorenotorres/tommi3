@@ -479,7 +479,12 @@ window.AI_QUIZ_STRINGS = {
     "reject_claim_check_error": "The check against the handout failed",
     "practice_resumed": "You had not finished this exercise: here it is again.",
     "practice_resumed_retry": "You had not finished this exercise: you have one more try.",
-    "err_model_practice_off": "This exercise was written by a language model, and model-written practice is switched off on this server."
+    "err_model_practice_off": "This exercise was written by a language model, and model-written practice is switched off on this server.",
+    "practice_program_label": "Exercise made by a program from the handout",
+    "practice_program_label_page": "Exercise made by a program from the handout · p. {n}",
+    "practice_program_note": "This exercise is made by a program from the handout: the result and the comments are computed, with no language model.",
+    "practice_type_programado": "Computed",
+    "practice_aim_mistake_last": "This exercise comes back to the mistake of your last try."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -958,6 +963,11 @@ window.AI_QUIZ_STRINGS = {
     "reject_claim_check_error": "Falló la comprobación contra el apunte",
     "practice_resumed": "No habías terminado este ejercicio: aquí lo tienes de nuevo.",
     "practice_resumed_retry": "No habías terminado este ejercicio: te queda un intento.",
-    "err_model_practice_off": "Este ejercicio lo escribió un modelo de lenguaje, y la práctica escrita por un modelo está desactivada en este servidor."
+    "err_model_practice_off": "Este ejercicio lo escribió un modelo de lenguaje, y la práctica escrita por un modelo está desactivada en este servidor.",
+    "practice_program_label": "Ejercicio programado a partir del apunte",
+    "practice_program_label_page": "Ejercicio programado a partir del apunte · pág. {n}",
+    "practice_program_note": "Este ejercicio lo genera un programa a partir del apunte: el resultado y los comentarios se calculan, sin modelo de lenguaje.",
+    "practice_type_programado": "Calculado",
+    "practice_aim_mistake_last": "Este ejercicio vuelve sobre el error de tu último intento."
   }
 };
