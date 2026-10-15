@@ -254,7 +254,7 @@ def _reject(course_id: str, topic: dict, level: str, kind: str, reason: str, exe
 
 
 def _store(course_id: str, exercise: dict, target, calls: int, seconds: float, discarded: int) -> dict:
-    stored = {"exercise_id": storage.new_id("e"), **exercise, "status": "servido", "created_at": now(),
+    stored = {"exercise_id": storage.new_id("e"), **exercise, "status": "servido", "created_at": now(), "created_ns": time.time_ns(),
               "target": target, "calls": calls, "seconds": round(seconds, 2), "discarded_before": discarded,
               "reports": [], "served": 0}
     with storage.locked(course_id):
@@ -273,7 +273,8 @@ def load(course_id: str, exercise_id) -> dict | None:
 def all_exercises(course_id: str) -> list[dict]:
     folder = _dir(course_id) / "exercises"
     found = (storage.read_json(p) for p in sorted(folder.glob("e_*.json"))) if folder.is_dir() else ()
-    return sorted((e for e in found if e), key=lambda e: e["created_at"])
+    # in the order they were written: two written within one second are told apart by the nanoseconds
+    return sorted((e for e in found if e), key=lambda e: (e["created_at"], e.get("created_ns", 0)))
 
 
 def _words(text: str) -> set[str]:

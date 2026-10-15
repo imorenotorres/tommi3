@@ -371,3 +371,54 @@ def report(course_id: str, user_id: str, exercise_id: str, body: dict) -> dict:
         record["exercises"][exercise_id]["reported"] = True
         progress.save(course_id, owner, record)
     return {"ok": True}
+
+
+# ── The instructor's view of practice ─────────────────────────────────────────
+
+def _topic_names(course_id: str) -> dict[str, str]:
+    return {topic["topic_id"]: topic["name"] or _pages_name(topic) for topic in _merged(course_id)}
+
+
+def _pages_name(topic: dict) -> str:
+    return f"pp. {topic['pages'][0]}-{topic['pages'][1]}" if topic.get("pages") else topic["topic_id"]
+
+
+def pool(course_id: str) -> dict:
+    """Every exercise of the course, newest first, with everything it holds, and every discarded one."""
+    names = _topic_names(course_id)
+    listed = []
+    for exercise in reversed(exercises.all_exercises(course_id)):
+        view = {**exercise, "topic": names.get(exercise["topic_id"])}
+        if exercise["type"] == "numerica":
+            answer = exercise["answer"]
+            view["answer"] = {**answer, "value_text": exercise_types.shown(answer["value"]),
+                              "checked_text": exercise_types.shown(answer.get("checked_value", answer["value"]))}
+        listed.append(view)
+    rejected = [{**entry, "topic": names.get(entry["topic_id"])} for entry in reversed(exercises.rejections(course_id))]
+    return {"exercises": listed, "rejections": rejected}
+
+
+def retire(course_id: str, exercise_id: str) -> dict:
+    if exercises.set_status(course_id, exercise_id, "retirado") is None:
+        raise PracticeError(404, "exercise_not_found")
+    return {"ok": True}
+
+
+def approve(course_id: str, exercise_id: str) -> dict:
+    """A reported exercise goes back into service. Only a reported one: a retired exercise stays retired."""
+    with storage.locked(course_id):
+        exercise = exercises.load(course_id, exercise_id)
+        if exercise is None:
+            raise PracticeError(404, "exercise_not_found")
+        if exercise["status"] != "reportado":
+            raise PracticeError(409, "not_reported")
+        exercises.set_status(course_id, exercise_id, "servido")
+    return {"ok": True}
+
+
+def class_summary(course_id: str) -> dict:
+    names = _topic_names(course_id)
+    order = {topic_id: number for number, topic_id in enumerate(names)}
+    found = progress.summary(course_id, names, _lookup(course_id))
+    found["rows"].sort(key=lambda row: (order.get(row["topic_id"], len(order)), LEVELS.index(row["level"])))
+    return found

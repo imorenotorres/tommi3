@@ -771,3 +771,30 @@ async def ai_quiz_practice_solution(exercise_id: str, request: Request):
     """The reference solution, once the answer was right or both tries are used."""
     session = _practice_session(request, require_session)
     return _practised(practice.solution, session["course_id"], session.get("user_id", ""), exercise_id)
+
+
+@router.get(f"{BASE}/api/practice/pool")
+async def ai_quiz_practice_pool(request: Request):
+    """Every exercise of the course with everything it holds, and every exercise the checks discarded."""
+    session = _practice_session(request, require_instructor)
+    return practice.pool(session["course_id"])
+
+
+@router.post(f"{BASE}/api/practice/pool/{{exercise_id}}/retire")
+async def ai_quiz_practice_retire(exercise_id: str, request: Request):
+    session = _practice_session(request, require_instructor)
+    return _practised(practice.retire, session["course_id"], exercise_id)
+
+
+@router.post(f"{BASE}/api/practice/pool/{{exercise_id}}/approve")
+async def ai_quiz_practice_approve(exercise_id: str, request: Request):
+    """A reported exercise goes back into use."""
+    session = _practice_session(request, require_instructor)
+    return _practised(practice.approve, session["course_id"], exercise_id)
+
+
+@router.get(f"{BASE}/api/practice/summary")
+async def ai_quiz_practice_summary(request: Request):
+    """Totals of practice in the course. No names, no single answer, nothing for fewer than the minimum group."""
+    session = _practice_session(request, require_instructor)
+    return practice.class_summary(session["course_id"])
