@@ -1,0 +1,116 @@
+# Tutor: number of RANSAC iterations. Reviewed by the instructor in the Práctica tab.
+#
+# Every page shown to a student comes from finding an "anchor" sentence of this file in the course's own copy
+# of the handout; nothing here names a page. Placeholders in braces are filled by the program: {w} {s} {p} {n}
+# {n_in} {ws} {log1p} {log1ws} {x} {N} {model}, {value} (the value of the answer being commented on),
+# {s_wrong}, {w_out}, and {page} (the page of the anchor of that text).
+
+[skill]
+title_es = "Número de iteraciones de RANSAC"
+title_en = "Number of RANSAC iterations"
+handout = "sample.pdf, sección 9"
+anchor = "The probability that N independent samples all contain at least one outlier"
+formula = "N = ⌈log(1 − p) / log(1 − w^s)⌉,  w = n_in / n"
+
+[labels.model]
+param = "model"
+line = { es = "una recta", en = "a line" }
+homography = { es = "una homografía", en = "a homography" }
+fundamental7 = { es = "una matriz fundamental con el solucionador de 7 puntos", en = "a fundamental matrix with the seven-point solver" }
+fundamental8 = { es = "una matriz fundamental con el algoritmo lineal de 8 puntos", en = "a fundamental matrix with the linear eight-point algorithm" }
+
+[levels.basico]
+about_es = "Se dan w, s y p; p = 0,99."
+about_en = "w, s and p are given; p = 0.99."
+statement_es = "Se quiere estimar con RANSAC {model}, a partir de muestras mínimas de s = {s} correspondencias. La fracción de inliers es w = {w} y se pide una confianza p = {p}. ¿Cuántas iteraciones N hacen falta como mínimo? Da un número entero."
+statement_en = "We want to estimate {model} with RANSAC from minimal samples of s = {s} correspondences. The inlier fraction is w = {w} and the confidence asked for is p = {p}. How many iterations N are needed at least? Give a whole number."
+
+[levels.intermedio]
+about_es = "Se dan los recuentos de correspondencias y de correctas, y se nombra el modelo: hay que saber su tamaño de muestra; p = 0,99."
+about_en = "The counts of matches and of correct ones are given and the model is named: its sample size has to be known; p = 0.99."
+statement_es = "Entre dos imágenes hay {n} correspondencias putativas, de las que {n_in} son correctas. Se quiere estimar con RANSAC {model}, con una confianza p = {p}. ¿Cuántas iteraciones N hacen falta como mínimo? Da un número entero."
+statement_en = "Two images have {n} putative matches, {n_in} of which are correct. We want to estimate {model} with RANSAC and a confidence p = {p}. How many iterations N are needed at least? Give a whole number."
+
+[levels.avanzado]
+about_es = "Como el intermedio, con p = 0,95 o 0,999 y más a menudo los dos solucionadores de la matriz fundamental."
+about_en = "As intermediate, with p = 0.95 or 0.999 and more often the two fundamental-matrix solvers."
+statement_es = "Entre dos imágenes hay {n} correspondencias putativas, de las que {n_in} son correctas. Se quiere estimar con RANSAC {model}, con una confianza p = {p}. ¿Cuántas iteraciones N hacen falta como mínimo? Da un número entero."
+statement_en = "Two images have {n} putative matches, {n_in} of which are correct. We want to estimate {model} with RANSAC and a confidence p = {p}. How many iterations N are needed at least? Give a whole number."
+
+[solution]
+counts_es = "La fracción de inliers es w = n_in / n = {n_in} / {n} = {w}. "
+counts_en = "The inlier fraction is w = n_in / n = {n_in} / {n} = {w}. "
+es = "Una muestra de s = {s} correspondencias es toda de inliers con probabilidad w^s = {ws}. Hace falta que (1 − w^s)^N ≤ 1 − p, es decir N ≥ log(1 − p) / log(1 − w^s) = {log1p} / {log1ws} = {x}. Redondeando hacia arriba, N = {N}."
+en = "A sample of s = {s} correspondences is all inliers with probability w^s = {ws}. It takes (1 − w^s)^N ≤ 1 − p, that is N ≥ log(1 − p) / log(1 − w^s) = {log1p} / {log1ws} = {x}. Rounding up, N = {N}."
+
+[right]
+es = "Correcto: hacen falta N = {N} iteraciones para una confianza p = {p}."
+en = "Correct: N = {N} iterations are needed for a confidence p = {p}."
+next_es = "Prueba el nivel siguiente, o el mismo cálculo con otro modelo."
+next_en = "Try the next level, or the same calculation for another model."
+
+[unknown]
+es = "Incorrecto. Tu resultado no corresponde a ninguno de los errores típicos de este cálculo, así que no se puede decir dónde está el fallo. Revisa la fórmula de la pág. {page}: N = ⌈log(1 − p) / log(1 − w^s)⌉."
+en = "Incorrect. Your result matches none of the typical mistakes of this calculation, so where it went wrong cannot be said. Go over the formula on p. {page}: N = ⌈log(1 − p) / log(1 − w^s)⌉."
+next_es = "Vuelve a intentarlo paso a paso: w, después w^s, después el cociente de logaritmos, y redondea hacia arriba."
+next_en = "Try again step by step: w, then w^s, then the quotient of the logarithms, and round up."
+
+[[mistakes]]
+id = "w_not_ws"
+anchor = "The probability that a sample of s different matches contains only inliers"
+title_es = "Usar w en lugar de w^s"
+title_en = "Using w instead of w^s"
+what_es = "Con {value} iteraciones has usado la fracción de inliers w donde va w^s."
+what_en = "With {value} iterations you used the inlier fraction w where w^s belongs."
+why_es = "Una muestra solo sirve si sus s correspondencias son todas inliers, y eso ocurre con probabilidad w^s, no w (pág. {page})."
+why_en = "A sample is only useful if all s of its correspondences are inliers, which happens with probability w^s, not w (p. {page})."
+next_es = "El siguiente ejercicio vuelve sobre la probabilidad de una muestra limpia."
+next_en = "The next exercise comes back to the probability of a clean sample."
+
+[[mistakes]]
+id = "round_down"
+anchor = "Rounding up gives 72 iterations for the homography"
+title_es = "Redondear hacia abajo"
+title_en = "Rounding down"
+what_es = "{value} es el cociente redondeado hacia abajo: con {value} iteraciones la confianza queda por debajo de p."
+what_en = "{value} is the quotient rounded down: with {value} iterations the confidence stays below p."
+why_es = "N tiene que cumplir N ≥ log(1 − p) / log(1 − w^s), así que se toma el siguiente número entero, como en el ejemplo de la homografía (pág. {page})."
+why_en = "N has to satisfy N ≥ log(1 − p) / log(1 − w^s), so the next whole number up is taken, as in the homography example (p. {page})."
+next_es = "En el siguiente ejercicio, fíjate en el sentido de la desigualdad antes de redondear."
+next_en = "In the next exercise, look at the direction of the inequality before rounding."
+
+[[mistakes]]
+id = "sample_size"
+anchor = "The sample size is the smallest number of matches that determines the model"
+title_es = "Confundir el tamaño de la muestra"
+title_en = "Using the wrong sample size"
+what_es = "{value} es lo que sale con s = {s_wrong}, pero para {model} la muestra mínima es de s = {s} correspondencias."
+what_en = "{value} is what s = {s_wrong} gives, but for {model} the minimal sample is s = {s} correspondences."
+why_es = "El tamaño de la muestra es el menor número de correspondencias que determina el modelo: cuatro para una homografía y siete u ocho para una matriz fundamental (pág. {page})."
+why_en = "The sample size is the smallest number of matches that determines the model: four for a homography and seven or eight for a fundamental matrix (p. {page})."
+next_es = "El siguiente ejercicio te pide de nuevo reconocer el tamaño de muestra del modelo."
+next_en = "The next exercise asks you again to know the sample size of the model."
+
+[[mistakes]]
+id = "outlier_fraction"
+anchor = "Let nin of the n matches be inliers, so that the inlier fraction"
+title_es = "Tomar la fracción de outliers como w"
+title_en = "Taking the outlier fraction for w"
+what_es = "{value} es lo que sale con w = {w_out}, la fracción de correspondencias incorrectas."
+what_en = "{value} is what w = {w_out}, the fraction of incorrect matches, gives."
+why_es = "w es la fracción de inliers: las correctas entre todas, w = n_in / n (pág. {page})."
+why_en = "w is the inlier fraction: the correct matches among all, w = n_in / n (p. {page})."
+next_es = "En el siguiente ejercicio, calcula primero w a partir de los recuentos."
+next_en = "In the next exercise, work out w from the counts first."
+
+[[mistakes]]
+id = "log_p"
+anchor = "Requiring that this failure probability is at most 1 − p gives"
+title_es = "Usar log p en lugar de log(1 − p)"
+title_en = "Using log p instead of log(1 − p)"
+what_es = "{value} sale de poner log p en el numerador."
+what_en = "{value} comes from putting log p in the numerator."
+why_es = "Lo que se acota es la probabilidad de fallar en las N muestras, (1 − w^s)^N, que tiene que ser como mucho 1 − p (pág. {page})."
+why_en = "What is bounded is the probability of failing in all N samples, (1 − w^s)^N, which must be at most 1 − p (p. {page})."
+next_es = "El siguiente ejercicio vuelve sobre de dónde sale la desigualdad."
+next_en = "The next exercise comes back to where the inequality comes from."
