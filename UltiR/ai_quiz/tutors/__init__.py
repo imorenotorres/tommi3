@@ -36,7 +36,7 @@ from pathlib import Path
 from UltiR.ai_quiz import exercise_types
 
 _HERE = Path(__file__).parent
-NAMES = ("ransac_iterations",)
+NAMES = ("ransac_iterations", "precision_recall")
 LEVELS = ("basico", "intermedio", "avanzado")
 MAX_DRAWS = 500                 # parameter draws before a tutor gives up on telling every mistake apart
 FORMS = ("integer", "fraction3")
@@ -72,6 +72,7 @@ class Instance:
     answer: float
     form: str                   # "integer" (a whole number) or "fraction3" (a decimal, three places)
     wrong: dict                 # mistake id -> the value it gives, for the mistakes that apply
+    scales: dict | None = None  # mistake id -> how much larger than the answer its value is written (a percentage: 100)
 
 
 def tolerance(form: str) -> float:
@@ -79,18 +80,21 @@ def tolerance(form: str) -> float:
     return 0.0 if form == "integer" else 0.0005 + 1e-9
 
 
-def _same(a: float, b: float, form: str) -> bool:
+def _same(a: float, b: float, form: str, scale: float = 1) -> bool:
     if form == "integer":
         return round(a) == round(b)
-    return abs(a - b) <= 2 * tolerance(form)       # two values this close could not be told apart
+    return abs(a - b) <= 2 * tolerance(form) * scale    # two values this close could not be told apart
 
 
-def distinct(answer: float, wrong: dict, form: str) -> bool:
-    """Whether the answer and every mistake's value are told apart from one another at the stated precision."""
-    values = [answer, *wrong.values()]
-    if any(not math.isfinite(v) for v in values):
+def distinct(answer: float, wrong: dict, form: str, scales: dict | None = None) -> bool:
+    """Whether the answer and every mistake's value are told apart from one another at the precision each is
+    written with (a mistake whose value is a percentage is written with a hundred times less precision)."""
+    scales = scales or {}
+    named = [(None, answer), *wrong.items()]
+    if any(not math.isfinite(v) for _, v in named):
         return False
-    return all(not _same(a, b, form) for i, a in enumerate(values) for b in values[i + 1:])
+    return all(not _same(a, b, form, max(scales.get(i, 1), scales.get(j, 1)))
+               for n, (i, a) in enumerate(named) for j, b in named[n + 1:])
 
 
 def make(name: str, level: str, seed: int, aim: str | None = None) -> Instance:
@@ -102,8 +106,9 @@ def make(name: str, level: str, seed: int, aim: str | None = None) -> Instance:
         params = tutor.draw(level, rng, aim)
         answer, form = tutor.solve(params), tutor.form(params)
         wrong = {mid: value for mid, value in tutor.mistakes(params).items() if value is not None}
-        if distinct(answer, wrong, form):
-            return Instance(name, level, seed, params, answer, form, wrong)
+        scales = {mid: scale for mid, scale in getattr(tutor, "SCALE", {}).items() if mid in wrong}
+        if distinct(answer, wrong, form, scales):
+            return Instance(name, level, seed, params, answer, form, wrong, scales)
     raise TutorError(f"{name}: no unambiguous parameters in {MAX_DRAWS} draws")
 
 
@@ -141,8 +146,11 @@ def parse(raw, form: str) -> float:
 
 # ── Diagnosis ─────────────────────────────────────────────────────────────────
 
-def diagnose(instance_answer: float, wrong: dict, form: str, value: float) -> tuple[str, str | None]:
-    """("correcto", None), ("incorrecto", mistake id) or ("incorrecto", None) for a mistake the catalogue does not know."""
+def diagnose(instance_answer: float, wrong: dict, form: str, value: float,
+             scales: dict | None = None) -> tuple[str, str | None]:
+    """("correcto", None), ("incorrecto", mistake id) or ("incorrecto", None) for a mistake the catalogue does not
+    know. `scales`: a mistake whose value is written with less precision is compared at that precision."""
+    scales = scales or {}
     if form == "integer":
         if round(value) == round(instance_answer) and value == int(value):
             return "correcto", None
@@ -150,7 +158,7 @@ def diagnose(instance_answer: float, wrong: dict, form: str, value: float) -> tu
     else:
         if abs(value - instance_answer) <= tolerance(form):
             return "correcto", None
-        matches = [mid for mid, v in wrong.items() if abs(v - value) <= tolerance(form)]
+        matches = [mid for mid, v in wrong.items() if abs(v - value) <= tolerance(form) * scales.get(mid, 1)]
     return "incorrecto", matches[0] if len(matches) == 1 else None
 
 

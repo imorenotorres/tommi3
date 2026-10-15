@@ -1,0 +1,127 @@
+# Tutor: precision, recall and F1 from matching counts. Reviewed by the instructor in the Práctica tab.
+#
+# Every page shown to a student comes from finding an "anchor" sentence of this file in the course's own copy
+# of the handout; nothing here names a page. Placeholders in braces are filled by the program: {tp} {fp} {fn}
+# {tp_fp} {tp_fn} {returned} {correct} {true} {P} {R} {F1} {PR} {answer} {measure}, {value} (the value of the
+# answer being commented on) and {page} (the page of the anchor of that text).
+
+[skill]
+title_es = "Precisión, exhaustividad (recall) y F1"
+title_en = "Precision, recall and F1"
+handout = "sample.pdf, sección 10"
+anchor = "Precision is the fraction of returned matches that are correct, and recall is the fraction of all true correspondences that are returned"
+formula = "P = TP / (TP + FP),  R = TP / (TP + FN),  F1 = 2PR / (P + R)"
+
+[labels.measure]
+param = "asks"
+P = { es = "la precisión P", en = "the precision P" }
+R = { es = "la exhaustividad (recall) R", en = "the recall R" }
+F1 = { es = "la medida F1", en = "the F1 score" }
+
+[levels.basico]
+about_es = "Se dan TP, FP y FN; se pide la precisión o la exhaustividad."
+about_en = "TP, FP and FN are given; precision or recall is asked."
+statement_es = "Un emparejador devuelve TP = {tp} correspondencias correctas y FP = {fp} incorrectas, y deja sin devolver FN = {fn} correspondencias verdaderas. Calcula {measure} como un decimal entre 0 y 1, con tres decimales."
+statement_en = "A matcher returns TP = {tp} correct matches and FP = {fp} incorrect ones, and misses FN = {fn} true correspondences. Compute {measure} as a decimal between 0 and 1, with three decimal places."
+
+[levels.intermedio]
+about_es = "Como en el ejemplo del apunte: correspondencias devueltas, correctas entre ellas y verdaderas del par; se pide la precisión o la exhaustividad."
+about_en = "As in the handout's example: matches returned, correct ones among them and true correspondences of the pair; precision or recall is asked."
+statement_es = "Un emparejador devuelve {returned} correspondencias, de las que {correct} son correctas. El par de imágenes tiene {true} correspondencias verdaderas. Calcula {measure} como un decimal entre 0 y 1, con tres decimales."
+statement_en = "A matcher returns {returned} matches, {correct} of which are correct. The image pair has {true} true correspondences. Compute {measure} as a decimal between 0 and 1, with three decimal places."
+
+[levels.avanzado]
+about_es = "Los mismos recuentos; se pide F1."
+about_en = "The same counts; F1 is asked."
+statement_es = "Un emparejador devuelve {returned} correspondencias, de las que {correct} son correctas. El par de imágenes tiene {true} correspondencias verdaderas. Calcula {measure} como un decimal entre 0 y 1, con tres decimales."
+statement_en = "A matcher returns {returned} matches, {correct} of which are correct. The image pair has {true} true correspondences. Compute {measure} as a decimal between 0 and 1, with three decimal places."
+
+[solution]
+counts_es = "Las correctas devueltas son TP = {correct}; las incorrectas devueltas, FP = {returned} − {correct} = {fp}; las verdaderas que faltan, FN = {true} − {correct} = {fn}. "
+counts_en = "The correct matches returned are TP = {correct}; the incorrect ones returned, FP = {returned} − {correct} = {fp}; the true ones missed, FN = {true} − {correct} = {fn}. "
+es = "P = TP / (TP + FP) = {tp} / {tp_fp} = {P}. R = TP / (TP + FN) = {tp} / {tp_fn} = {R}. F1 = 2PR / (P + R) = 2 · {P} · {R} / {PR} = {F1}. Lo que se pide, {measure}, es {answer}."
+en = "P = TP / (TP + FP) = {tp} / {tp_fp} = {P}. R = TP / (TP + FN) = {tp} / {tp_fn} = {R}. F1 = 2PR / (P + R) = 2 · {P} · {R} / {PR} = {F1}. What is asked, {measure}, is {answer}."
+
+[right]
+es = "Correcto: {measure} es {answer}."
+en = "Correct: {measure} is {answer}."
+next_es = "Prueba el nivel siguiente, o la otra medida con los mismos datos."
+next_en = "Try the next level, or the other measure with the same data."
+
+[unknown]
+es = "Incorrecto. Tu resultado no corresponde a ninguno de los errores típicos de este cálculo, así que no se puede decir dónde está el fallo. Revisa las definiciones de la pág. {page}: P = TP / (TP + FP), R = TP / (TP + FN), F1 = 2PR / (P + R)."
+en = "Incorrect. Your result matches none of the typical mistakes of this calculation, so where it went wrong cannot be said. Go over the definitions on p. {page}: P = TP / (TP + FP), R = TP / (TP + FN), F1 = 2PR / (P + R)."
+next_es = "Vuelve a intentarlo: escribe primero TP, FP y FN, y después la fórmula de lo que se pide."
+next_en = "Try again: write down TP, FP and FN first, then the formula of what is asked."
+
+[[mistakes]]
+id = "swapped"
+anchor = "Precision answers how trustworthy the output is, while recall answers how complete it is"
+title_es = "Intercambiar precisión y exhaustividad"
+title_en = "Swapping precision and recall"
+what_es = "{value} es la otra medida: has intercambiado la precisión y la exhaustividad."
+what_en = "{value} is the other measure: you swapped precision and recall."
+why_es = "La precisión mira las correspondencias devueltas, TP / (TP + FP); la exhaustividad mira todas las verdaderas, TP / (TP + FN). La precisión dice cuánto te puedes fiar de lo devuelto; la exhaustividad, lo completo que es (pág. {page})."
+why_en = "Precision looks at the matches returned, TP / (TP + FP); recall looks at all the true ones, TP / (TP + FN). Precision says how trustworthy the output is; recall, how complete it is (p. {page})."
+next_es = "El siguiente ejercicio te pide de nuevo distinguir las dos medidas."
+next_en = "The next exercise asks you again to tell the two measures apart."
+
+[[mistakes]]
+id = "complement"
+anchor = "Precision is the fraction of returned matches that are correct, and recall is the fraction of all true correspondences that are returned"
+title_es = "Calcular la parte que falla"
+title_en = "Computing the share that fails"
+what_es = "{value} es la parte que falla (las incorrectas entre las devueltas, o las que faltan entre las verdaderas), no la que acierta."
+what_en = "{value} is the share that fails (incorrect among returned, or missed among true), not the share that succeeds."
+why_es = "Las dos medidas cuentan aciertos: TP va siempre en el numerador (pág. {page})."
+why_en = "Both measures count successes: TP is always the numerator (p. {page})."
+next_es = "En el siguiente ejercicio, fíjate en qué va en el numerador."
+next_en = "In the next exercise, look at what goes in the numerator."
+
+[[mistakes]]
+id = "ratio"
+anchor = "Let TP be the number of correct matches that are returned"
+title_es = "Dividir aciertos entre fallos"
+title_en = "Dividing successes by failures"
+what_es = "{value} es TP entre FP (o entre FN), no entre el total."
+what_en = "{value} is TP divided by FP (or by FN), not by the total."
+why_es = "Una fracción compara una parte con el todo: el denominador es TP + FP para la precisión y TP + FN para la exhaustividad, y por eso el resultado está entre 0 y 1 (pág. {page})."
+why_en = "A fraction compares a part with the whole: the denominator is TP + FP for precision and TP + FN for recall, which is why the result lies between 0 and 1 (p. {page})."
+next_es = "En el siguiente ejercicio, comprueba que el denominador incluye al numerador."
+next_en = "In the next exercise, check that the denominator includes the numerator."
+
+[[mistakes]]
+id = "arithmetic_mean"
+anchor = "The harmonic mean is dominated by the smaller of the two values"
+title_es = "Usar la media aritmética"
+title_en = "Using the arithmetic mean"
+what_es = "{value} es la media aritmética (P + R) / 2, no la armónica."
+what_en = "{value} is the arithmetic mean (P + R) / 2, not the harmonic one."
+why_es = "F1 es la media armónica, 2PR / (P + R): la domina el menor de los dos valores, así que solo es alta si las dos medidas lo son (pág. {page})."
+why_en = "F1 is the harmonic mean, 2PR / (P + R): it is dominated by the smaller of the two values, so it is high only if both are (p. {page})."
+next_es = "El siguiente ejercicio te pide otra vez F1."
+next_en = "The next exercise asks for F1 again."
+
+[[mistakes]]
+id = "no_two"
+anchor = "The harmonic mean is dominated by the smaller of the two values"
+title_es = "Olvidar el factor 2 de F1"
+title_en = "Forgetting the factor 2 of F1"
+what_es = "{value} es PR / (P + R), la mitad de F1: falta el factor 2."
+what_en = "{value} is PR / (P + R), half of F1: the factor 2 is missing."
+why_es = "F1 = 2PR / (P + R); con P = R, F1 tiene que valer lo mismo que P (pág. {page})."
+why_en = "F1 = 2PR / (P + R); with P = R, F1 must equal P (p. {page})."
+next_es = "El siguiente ejercicio te pide otra vez F1."
+next_en = "The next exercise asks for F1 again."
+
+[[mistakes]]
+id = "percent"
+anchor = "has a precision of 0.75 and a recall of 0.60"
+title_es = "Dar un porcentaje donde se pide un decimal"
+title_en = "Giving a percentage where a decimal is asked"
+what_es = "{value} es el resultado multiplicado por 100. El enunciado pide un decimal entre 0 y 1."
+what_en = "{value} is the result times 100. The statement asks for a decimal between 0 and 1."
+why_es = "Las medidas son fracciones entre 0 y 1, como el 0,75 y el 0,60 del ejemplo (pág. {page}). Si quieres escribir un porcentaje, añade el signo %."
+why_en = "The measures are fractions between 0 and 1, like the 0.75 and 0.60 of the example (p. {page}). To write a percentage, add the % sign."
+next_es = "En el siguiente ejercicio, da el resultado en la forma que pide el enunciado."
+next_en = "In the next exercise, give the result in the form the statement asks for."
