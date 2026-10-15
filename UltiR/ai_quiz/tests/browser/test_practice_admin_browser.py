@@ -172,6 +172,16 @@ def test_the_totals_show_nothing_for_two_students_and_numbers_for_three(site, fa
         expect(page.locator("#practice-panel")).not_to_contain_text(private)
 
 
+def test_the_parts_of_the_tab_are_set_apart_like_the_rest_of_the_page(site):
+    with_document(site)
+    page = practice_tab(site)
+
+    gap = page.evaluate("""() => document.querySelector('#practice-pool-heading').getBoundingClientRect().top
+                                 - document.querySelector('#practice-summary').closest('section').getBoundingClientRect().bottom""")
+
+    assert gap >= 30                                                    # 2.25rem, as between the sections of the other tab
+
+
 def test_without_practice_on_the_server_there_is_no_tab(site, monkeypatch):
     monkeypatch.delenv("AI_QUIZ_PRACTICE_ENABLED")
 

@@ -148,7 +148,7 @@ main {
   padding: 1.25rem 1.25rem 4rem;
 }
 main.narrow { max-width: 50rem; padding-bottom: 1.5rem; }
-main > section, #content > section { margin-bottom: 2.25rem; }
+main > section, #content > section, #practice-panel > section { margin-bottom: 2.25rem; }
 h2 { font-size: 1.35rem; line-height: 1.25; margin: 0 0 0.6rem; color: var(--ink); }
 h3 { font-size: 1.1rem; margin: 1.5rem 0 0.4rem; color: var(--ink); }
 .lead { font-size: 1.1rem; max-width: 42rem; margin-top: 0; }
