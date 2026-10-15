@@ -32,6 +32,28 @@ def test_every_key_built_from_a_value_of_the_server_has_a_text(client, language)
     assert sorted(k for k in built_keys() if k not in strings) == []
 
 
+@pytest.mark.parametrize("language, words", [
+    ("en", {"info_ai_text": ("Practice is the exception", "without review", "labelled as written by AI", "report", "retire"),
+            "info_know_privacy": ("answer is sent to the language model", "without the name or any id", "not stored")}),
+    ("es", {"info_ai_text": ("La práctica es la excepción", "sin revisión", "marca", "reportar", "retirar"),
+            "info_know_privacy": ("se envía al modelo de lenguaje el texto de la respuesta",
+                                  "sin el nombre ni ningún identificador", "no se guarda")}),
+])
+def test_the_info_page_says_how_practice_differs_and_what_is_sent_to_the_model(client, language, words):
+    strings = load_strings(client)[language]
+
+    for key, phrases in words.items():
+        assert all(phrase in strings[key] for phrase in phrases), key
+
+
+def test_the_info_page_has_the_practice_texts():
+    from pathlib import Path
+
+    html = (Path(__file__).resolve().parents[1] / "static" / "info.html").read_text(encoding="utf-8")
+
+    assert 'data-i18n="info_how_5"' in html and 'data-i18n="info_students_practice"' in html
+
+
 def test_the_levels_are_the_same_in_practice_and_in_the_record():
     assert practice.LEVELS == progress.LEVELS
 

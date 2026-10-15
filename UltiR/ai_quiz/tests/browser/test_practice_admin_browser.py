@@ -58,7 +58,7 @@ def test_the_instructor_switches_practice_on_and_sees_the_topics_found(site):
     page = practice_tab(site)
 
     expect(page.locator("#practice-state")).to_have_text("La práctica está desactivada en este curso.")
-    page.get_by_label("El estudiantado puede practicar").check()
+    page.get_by_label("El alumnado puede practicar").check()
 
     expect(page.locator("#status")).to_have_text("La práctica queda activada en este curso.")
     expect(page.locator("#practice-state")).to_have_text("La práctica está activada en este curso.")

@@ -147,7 +147,7 @@ def test_a_student_reports_an_exercise_with_one_of_four_reasons(site):
     page.get_by_label("La respuesta esperada parece incorrecta").check()
     page.get_by_role("button", name="Enviar el aviso").click()
 
-    expect(page.locator("#status")).to_contain_text("queda retirado hasta que lo revise el profesorado")
+    expect(page.locator("#status")).to_contain_text("queda retirado hasta que lo revise el docente")
     expect(page.locator("#practice-exercise")).to_be_hidden()
 
 
