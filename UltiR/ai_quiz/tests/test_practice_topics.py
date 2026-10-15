@@ -20,6 +20,7 @@ def code(response) -> str:
 @pytest.fixture(autouse=True)
 def practice_on(monkeypatch):
     monkeypatch.setenv("AI_QUIZ_PRACTICE_ENABLED", "1")
+    monkeypatch.setenv("AI_QUIZ_PRACTICE_MODEL", "1")       # the model-written path, switched on
 
 
 @pytest.fixture

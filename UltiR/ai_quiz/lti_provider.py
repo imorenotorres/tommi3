@@ -27,6 +27,9 @@ Configuration (web/.env):
                                           student and day
     AI_QUIZ_PRACTICE_TIMEOUT=60           optional, this is the default: seconds per
                                           model call of practice
+    AI_QUIZ_PRACTICE_MODEL=1              optional, off unless exactly "1": practice may ask
+                                          a model at run time (write exercises, check them,
+                                          give feedback). Off: programmed tutors only
 
 One consumer key and secret per Moodle installation, never shared: the key is
 part of the id under which a course and its users are kept, because every

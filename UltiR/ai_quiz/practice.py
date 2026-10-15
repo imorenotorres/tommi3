@@ -117,8 +117,27 @@ def require_open(course_id: str) -> None:
 
 
 def open_topics(course_id: str) -> list[dict]:
-    """The topics a student can choose: those that are on, with their name, document and pages."""
-    return [topic for topic in _merged(course_id) if topic["enabled"]]
+    """The topics a student can choose: those that are on, with their name, document and pages.
+
+    Without run-time model use (config.practice_model_enabled), only a topic that a programmed tutor serves is
+    offered: nothing else could be practised without asking a model.
+    """
+    topics_on = [topic for topic in _merged(course_id) if topic["enabled"]]
+    if config.practice_model_enabled():
+        return topics_on
+    served = programmed_topics(course_id)
+    return [topic for topic in topics_on if topic["topic_id"] in served]
+
+
+def programmed_topics(course_id: str) -> set[str]:
+    """The ids of the topics a programmed tutor serves in this course. None so far."""
+    return set()
+
+
+def _require_model(exercise: dict) -> None:
+    """A model-written exercise can be practised only while run-time model use is on."""
+    if exercise.get("type") != "programado" and not config.practice_model_enabled():
+        raise PracticeError(409, "model_practice_off")
 
 
 def student_topics(course_id: str) -> list[dict]:
@@ -217,6 +236,8 @@ async def next_exercise(course_id: str, user_id: str, preview: bool, body: dict)
 
     _reserve(course_id, owner, preview)
     try:
+        if not config.practice_model_enabled():
+            raise PracticeError(409, "model_practice_off")
         exercise = exercises.from_pool(course_id, topic["topic_id"], level, language, seen, aimed)
         if exercise is not None:
             exercises.record_run(course_id, "exercise", 0, 0.0, "pool")
@@ -273,6 +294,7 @@ async def answer(course_id: str, user_id: str, exercise_id: str, body: dict) -> 
     owner = _owner(course_id, user_id)
     language = _language(body)
     exercise, entry = _entry(course_id, owner, exercise_id)
+    _require_model(exercise)
     if len(entry["tries"]) >= limits.MAX_PRACTICE_TRIES or (entry["tries"] and entry["tries"][-1]["verdict"] == "correcto"):
         raise PracticeError(409, "no_more_tries")
     try:
@@ -364,6 +386,8 @@ def open_exercise(course_id: str, user_id: str) -> dict:
             continue
         exercise = exercises.load(course_id, entry["exercise_id"])
         if exercise is None or exercise["status"] != "servido":
+            continue
+        if exercise["type"] != "programado" and not config.practice_model_enabled():
             continue
         topic = next((t for t in _merged(course_id) if t["topic_id"] == exercise["topic_id"]), None)
         return {"exercise": exercises.learner_view(exercise), "tries": len(tries),

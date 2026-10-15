@@ -478,7 +478,8 @@ window.AI_QUIZ_STRINGS = {
     "reject_claim_check_timeout": "The check against the handout took too long",
     "reject_claim_check_error": "The check against the handout failed",
     "practice_resumed": "You had not finished this exercise: here it is again.",
-    "practice_resumed_retry": "You had not finished this exercise: you have one more try."
+    "practice_resumed_retry": "You had not finished this exercise: you have one more try.",
+    "err_model_practice_off": "This exercise was written by a language model, and model-written practice is switched off on this server."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -956,6 +957,7 @@ window.AI_QUIZ_STRINGS = {
     "reject_claim_check_timeout": "La comprobación contra el apunte tardó demasiado",
     "reject_claim_check_error": "Falló la comprobación contra el apunte",
     "practice_resumed": "No habías terminado este ejercicio: aquí lo tienes de nuevo.",
-    "practice_resumed_retry": "No habías terminado este ejercicio: te queda un intento."
+    "practice_resumed_retry": "No habías terminado este ejercicio: te queda un intento.",
+    "err_model_practice_off": "Este ejercicio lo escribió un modelo de lenguaje, y la práctica escrita por un modelo está desactivada en este servidor."
   }
 };

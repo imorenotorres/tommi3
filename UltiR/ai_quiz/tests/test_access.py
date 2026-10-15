@@ -42,6 +42,7 @@ LEARNER_ALLOWED = {
 def practice_offered(monkeypatch):
     """The server offers practice, so that its routes are walked with everything else. (Without it they answer 404.)"""
     monkeypatch.setenv("AI_QUIZ_PRACTICE_ENABLED", "1")
+    monkeypatch.setenv("AI_QUIZ_PRACTICE_MODEL", "1")       # the model-written path, switched on
 
 
 def registered_routes():

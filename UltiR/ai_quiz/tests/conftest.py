@@ -45,6 +45,7 @@ def configured(monkeypatch, tmp_path):
     monkeypatch.setenv("AI_QUIZ_LTI_SECRET", SECRET)
     monkeypatch.setenv("AI_QUIZ_ID_KEY", ID_KEY)
     monkeypatch.delenv("AI_QUIZ_DEV_TEST", raising=False)
+    monkeypatch.delenv("AI_QUIZ_PRACTICE_MODEL", raising=False)     # off unless a test switches it on
     for name in [n for n in os.environ if n.startswith(("AI_QUIZ_LTI_KEY_", "AI_QUIZ_LTI_SECRET_"))]:
         monkeypatch.delenv(name)                     # one Moodle unless a test adds a second
     for name in ("AI_QUIZ_DOCLING_PYTHON", "AI_QUIZ_DOCLING_MODELS", "AI_QUIZ_DOCLING_DEVICE"):

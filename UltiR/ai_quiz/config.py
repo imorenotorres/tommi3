@@ -108,6 +108,17 @@ def practice_enabled() -> bool:
     return os.environ.get("AI_QUIZ_PRACTICE_ENABLED", "") == "1"
 
 
+def practice_model_enabled() -> bool:
+    """Whether practice may ask a language model at run time: to write an exercise, to check it, to give
+    feedback. AI_QUIZ_PRACTICE_MODEL, exactly "1"; off otherwise.
+
+    Off is the default (Ignacio, 2026-10-15): feedback comes from programs that a model helped to write once and
+    an instructor reviewed, and students practise with no model call at all. The model-written path stays in
+    the code for whoever switches it on.
+    """
+    return os.environ.get("AI_QUIZ_PRACTICE_MODEL", "") == "1"
+
+
 DEFAULT_PRACTICE_DAILY = 30
 DEFAULT_PRACTICE_TIMEOUT = 60
 
