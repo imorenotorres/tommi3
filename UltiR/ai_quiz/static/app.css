@@ -325,3 +325,48 @@ ol.to-review .why-listed { margin: 0.2rem 0 0; font-weight: 600; color: var(--wr
 ol.to-review .why-listed.skipped { color: var(--text-soft); }
 ol.to-review .cite { margin-top: 0.3rem; }
 .score { font-size: 1.6rem; font-weight: 600; line-height: 1.2; color: var(--ink); margin: 0 0 0.25rem; }
+
+/* Practice ("Practicar"), student page */
+#practice-entry h3 { margin-top: 0; }
+.inline-choices { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; }
+.choice.inline { display: inline-flex; }
+.ai-label { display: inline-block; margin: 0 0 0.5rem; padding: 0.15rem 0.6rem; border-radius: 999px; background: var(--page);
+  border: 1px solid var(--line); font-size: 0.85rem; font-weight: 600; color: var(--text-soft); }
+#practice-exercise .stem { white-space: pre-line; }
+#practice-answer { font-size: 1.05rem; line-height: 1.55; }
+.with-unit { display: inline-flex; gap: 0.5rem; align-items: center; }
+.with-unit input { width: 10rem; }
+#practice-feedback { margin-top: 1rem; padding-top: 0.6rem; border-top: 1px solid var(--line); }
+#practice-feedback h3 { margin-top: 0.4rem; }
+.verdict.correcto { color: var(--ok); }
+.verdict.parcial { color: var(--warn-ink); }
+.verdict.incorrecto { color: var(--wrong); }
+.verdict.unknown { color: var(--text-soft); }
+.verdict.correcto::before { content: "✓ "; }
+.verdict.parcial::before { content: "◐ "; }
+.verdict.incorrecto::before { content: "✕ "; }
+table.points { margin: 0.6rem 0; }
+table.points td.status { font-weight: 600; white-space: nowrap; }
+table.points tr[data-status="cumplido"] td.status { color: var(--ok); }
+table.points tr[data-status="parcial"] td.status { color: var(--warn-ink); }
+table.points tr[data-status="falta"] td.status { color: var(--wrong); }
+table.points q { background: var(--marker); quotes: none; }
+#practice-comment { margin: 0.6rem 0; }
+#practice-review h4 { margin: 0; color: var(--ink); }
+
+/* Practice, instructor page */
+.tabs { display: flex; gap: 0.25rem; border-bottom: 2px solid var(--line); margin-bottom: 1.5rem; }
+.tabs [role="tab"] { background: transparent; border-radius: 8px 8px 0 0; border-bottom: 3px solid transparent; margin-bottom: -2px;
+  color: var(--quiet-ink); font-weight: 600; }
+.tabs [role="tab"][aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+#practice-panel h3 { font-size: 1rem; }
+#practice-topics input[type="text"] { min-width: 16rem; }
+#practice-topics tr[data-enabled="no"] input[type="text"] { opacity: 0.6; }
+.sheet-mini { border: 1px solid var(--line); border-radius: 10px; padding: 0.6rem 0.9rem; margin-bottom: 0.5rem; background: var(--sheet); }
+.sheet-mini summary { font-weight: 400; color: var(--text); }
+.sheet-mini summary .mark { font-weight: 600; color: var(--ink); }
+.sheet-mini[data-status="reportado"] summary .mark { color: var(--warn-ink); }
+.sheet-mini[data-status="retirado"] summary .mark { color: var(--text-soft); text-decoration: line-through; }
+.sheet-mini h3 { margin: 0.8rem 0 0.2rem; font-size: 0.92rem; color: var(--text-soft); }
+.sheet-mini ol { margin: 0.2rem 0; padding-left: 1.4rem; }
+.sheet-mini .dropped { background: var(--warn-bg); color: var(--warn-ink); border-left: 4px solid var(--warn-ink); padding: 0.4rem 0.7rem; }

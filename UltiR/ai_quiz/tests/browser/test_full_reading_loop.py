@@ -16,7 +16,7 @@ from ..fake_llm import question, sources_in  # noqa: E402
 from ..readers import install_recorded_docling  # noqa: E402
 from .test_browser import (  # noqa: E402
     PAYLOAD, answer_all, approve_all_and_publish, choose_file, draft, eventually, focused, loaded_images, tab_to,
-    unlabelled_controls, upload_full,
+    only_its_own_scripts, unlabelled_controls, upload_full,
 )
 
 STEM = r"Which function does subtracting two neighbouring levels $L(x, y, k\sigma)$ and $L(x, y, \sigma)$ give?"
@@ -237,7 +237,7 @@ def test_markup_in_captions_formulas_and_text_of_a_full_reading_is_shown_as_text
         assert view.evaluate("window.__pwned") is None
         assert view.locator("a[href^='javascript'], [onerror], [onclick]").count() == 0
         assert view.locator("img").count() == figures                            # the figures, and no image from the payload
-        assert view.evaluate("document.scripts.length") == 5
+        assert only_its_own_scripts(view)
 
     expect(sheet.locator(".figure figcaption")).to_contain_text("<img src=x onerror=")
     expect(sheet.locator(".sheet-source blockquote")).to_contain_text("<script>window.__pwned=1</script>")

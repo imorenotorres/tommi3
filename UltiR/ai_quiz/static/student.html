@@ -29,6 +29,103 @@
       <h2 id="list-heading" tabindex="-1" data-i18n="student_heading"></h2>
       <p class="notice plain" data-i18n="practice_notice"></p>
       <div id="quizzes"></div>
+      <!-- Practice: shown only when the server offers it in this course and has topics. -->
+      <section class="panel space-above" id="practice-entry" aria-labelledby="practice-entry-heading" hidden>
+        <h3 id="practice-entry-heading" data-i18n="practice_entry_heading"></h3>
+        <p data-i18n="practice_entry_text"></p>
+        <div class="actions flush-above">
+          <button type="button" class="primary" id="practice-open" data-i18n="practice_open"></button>
+        </div>
+      </section>
+    </section>
+
+    <section id="practice-view" aria-labelledby="practice-heading" hidden>
+      <p><button type="button" class="quiet" data-back data-i18n="practice_back"></button></p>
+      <h2 id="practice-heading" tabindex="-1" data-i18n="practice_heading"></h2>
+      <form id="practice-choose" class="panel">
+        <p class="hint flush-above" data-i18n="practice_intro"></p>
+        <div class="row">
+          <div class="field grow">
+            <label for="practice-topic" data-i18n="practice_topic"></label>
+            <select id="practice-topic"></select>
+          </div>
+        </div>
+        <fieldset class="field">
+          <legend data-i18n="practice_level"></legend>
+          <div id="practice-levels" class="inline-choices"></div>
+        </fieldset>
+        <div class="actions">
+          <button type="submit" class="primary" id="practice-generate" data-i18n="practice_generate"></button>
+        </div>
+      </form>
+
+      <article class="paper" id="practice-exercise" aria-labelledby="practice-statement" hidden>
+        <p class="ai-label" id="practice-ai-label"></p>
+        <p class="hint" id="practice-meta"></p>
+        <p class="notice plain" id="practice-aim" hidden></p>
+        <p class="stem content" id="practice-statement" tabindex="-1"></p>
+
+        <form id="practice-answer-form">
+          <div class="field">
+            <label for="practice-answer" data-i18n="practice_answer"></label>
+            <textarea id="practice-answer" rows="6" maxlength="1500" aria-describedby="practice-answer-hint practice-count"></textarea>
+            <p class="hint" id="practice-answer-hint" data-i18n="practice_answer_hint"></p>
+            <p class="hint" id="practice-count" aria-live="polite"></p>
+          </div>
+          <div class="field" id="practice-value-field" hidden>
+            <label for="practice-value" data-i18n="practice_value"></label>
+            <span class="with-unit"><input type="text" id="practice-value" inputmode="decimal" maxlength="40" aria-describedby="practice-value-hint"> <span id="practice-unit"></span></span>
+            <p class="hint" id="practice-value-hint" data-i18n="practice_value_hint"></p>
+          </div>
+          <div class="actions">
+            <button type="submit" class="primary" id="practice-send" data-i18n="practice_send"></button>
+            <button type="button" class="quiet" id="practice-report" data-i18n="practice_report"></button>
+          </div>
+        </form>
+
+        <form id="practice-report-form" class="panel" hidden>
+          <fieldset class="field">
+            <legend data-i18n="practice_report_legend"></legend>
+            <label class="choice" for="report-enunciado"><input type="radio" name="practice-report-reason" id="report-enunciado" value="enunciado_confuso"> <span data-i18n="report_enunciado_confuso"></span></label>
+            <label class="choice" for="report-solucion"><input type="radio" name="practice-report-reason" id="report-solucion" value="solucion_incorrecta"> <span data-i18n="report_solucion_incorrecta"></span></label>
+            <label class="choice" for="report-apunte"><input type="radio" name="practice-report-reason" id="report-apunte" value="no_esta_en_el_apunte"> <span data-i18n="report_no_esta_en_el_apunte"></span></label>
+            <label class="choice" for="report-otro"><input type="radio" name="practice-report-reason" id="report-otro" value="otro"> <span data-i18n="report_otro"></span></label>
+          </fieldset>
+          <div class="actions">
+            <button type="submit" class="primary" id="practice-report-send" data-i18n="practice_report_send"></button>
+            <button type="button" class="quiet" id="practice-report-cancel" data-i18n="cancel"></button>
+          </div>
+        </form>
+
+        <section id="practice-feedback" aria-labelledby="practice-feedback-heading" hidden>
+          <h3 id="practice-feedback-heading" data-i18n="practice_feedback_heading"></h3>
+          <p class="verdict" id="practice-verdict" tabindex="-1"></p>
+          <p class="hint" id="practice-try"></p>
+          <p class="notice plain" id="practice-fallback" data-i18n="practice_fallback" hidden></p>
+          <p id="practice-numeric" hidden></p>
+          <div id="practice-points"></div>
+          <p id="practice-mistake" hidden><strong data-i18n="practice_mistake"></strong> <span class="content" id="practice-mistake-text"></span></p>
+          <p class="content" id="practice-comment" hidden></p>
+          <p id="practice-next-step" hidden><strong data-i18n="practice_next_step"></strong> <span class="content" id="practice-next-step-text"></span></p>
+          <p class="notice plain" id="practice-suggestion" hidden></p>
+          <div class="actions">
+            <button type="button" class="primary" id="practice-retry" data-i18n="practice_retry" hidden></button>
+            <button type="button" id="practice-show-solution" data-i18n="practice_show_solution" hidden></button>
+            <button type="button" class="quiet" id="practice-next" data-i18n="practice_next"></button>
+          </div>
+          <section class="suggestion" id="practice-solution" aria-labelledby="practice-solution-heading" hidden>
+            <h4 id="practice-solution-heading" tabindex="-1" data-i18n="practice_solution_heading"></h4>
+            <p class="content" id="practice-solution-text"></p>
+            <p id="practice-solution-value" hidden></p>
+          </section>
+          <!-- The same box as "What to review" after a quiz: the page of the handout and its passage. -->
+          <section class="panel roomy-below" id="practice-review" aria-labelledby="practice-review-heading" hidden>
+            <h4 id="practice-review-heading"></h4>
+            <ol class="to-review" id="practice-review-list"></ol>
+          </section>
+        </section>
+      </article>
+      <p class="hint" data-i18n="practice_ai_note"></p>
     </section>
 
     <section id="quiz-view" aria-labelledby="quiz-heading" hidden>
@@ -69,6 +166,7 @@
 <script src="/lti/ai-quiz/assets/app.js"></script>
 <script src="/lti/ai-quiz/assets/vendor/katex/katex.min.js"></script>
 <script src="/lti/ai-quiz/assets/math.js"></script>
+<script src="/lti/ai-quiz/assets/practice.js"></script>
 <script src="/lti/ai-quiz/assets/student.js"></script>
 </body>
 </html>

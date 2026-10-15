@@ -1,6 +1,8 @@
 """The pages in a real browser (rules A12 and A15), with the fake model behind the server."""
 
 import json
+import re
+from pathlib import Path
 
 import pytest
 
@@ -12,6 +14,7 @@ from ..pdfs import GARBLED_PASSAGE, evaluation_pdf, handout_pdf  # noqa: E402
 from ..readers import SlowReader, install, install_recorded_docling  # noqa: E402
 
 PAYLOAD = '<img src=x onerror="window.__pwned=1"><script>window.__pwned=1</script>'
+STATIC = Path(__file__).resolve().parents[2] / "static"
 
 
 # ── Steps shared by the tests ───────────────────────────────────────────────
@@ -56,7 +59,14 @@ def no_markup_was_created(page):
     """Nothing from the payload became an element or ran."""
     assert page.evaluate("window.__pwned") is None
     assert page.locator("img").count() == 0
-    assert page.evaluate("document.scripts.length") == 5          # the five script files of the page itself
+    assert only_its_own_scripts(page)
+
+
+def only_its_own_scripts(page) -> bool:
+    """Whether the scripts in the page are the script files its own HTML names, and nothing else."""
+    name = page.url.split("?")[0].rsplit("/", 1)[-1] + ".html"
+    listed = re.findall(r'<script src="([^"]+)"></script>', (STATIC / name).read_text(encoding="utf-8"))
+    return bool(listed) and page.evaluate("Array.from(document.scripts).map(s => s.getAttribute('src'))") == listed
 
 
 def unlabelled_controls(page) -> list[str]:

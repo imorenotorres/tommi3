@@ -80,6 +80,8 @@ _ASSETS = {
     "denied.js": "text/javascript",
     "instructor.js": "text/javascript",
     "student.js": "text/javascript",
+    "practice.js": "text/javascript",
+    "practice_admin.js": "text/javascript",
     "math.js": "text/javascript",
     "app.css": "text/css",
     # KaTeX 0.19.0 draws the formulas. It is shipped in static/vendor/katex with its licence, so

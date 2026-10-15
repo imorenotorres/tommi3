@@ -13,7 +13,7 @@
   function byId(id) { return document.getElementById(id); }
 
   function show(view) {
-    ['list-view', 'quiz-view', 'result-view'].forEach(function (id) { byId(id).hidden = id !== view; });
+    ['list-view', 'quiz-view', 'result-view', 'practice-view'].forEach(function (id) { byId(id).hidden = id !== view; });
     var heading = byId(view).querySelector('h2');
     if (heading) { heading.focus(); }
   }
@@ -21,6 +21,7 @@
   // ── List ────────────────────────────────────────────────────────────────
 
   function loadList() {
+    if (window.AiQuizPractice) { window.AiQuizPractice.load(); }      // the "Practise" entry, if the course has it
     return A.api('/api/published').then(function (body) {
       state.quizzes = body.quizzes;
       renderList();
@@ -272,6 +273,8 @@
       });
     }
   });
+
+  window.AiQuizStudent = { show: show };
 
   A.start(function () { loadList().catch(A.showError); });
 })();

@@ -179,7 +179,7 @@ def test_a_question_from_a_text_reading_shows_its_dollar_signs_as_they_are(site,
 
     student = student_at_the_quiz(site)
 
-    expect(student.locator("legend")).to_contain_text("Is $x^2$ what the licence costs, or $5?")
+    expect(student.locator("#quiz-view legend")).to_contain_text("Is $x^2$ what the licence costs, or $5?")
     expect(student.locator(".katex")).to_have_count(0)
 
 
@@ -192,7 +192,7 @@ def test_prices_are_not_taken_for_formulas(site, monkeypatch, fake_llm):
     student = student_at_the_quiz(site)
 
     expect(student.locator("legend .katex")).to_have_count(2)
-    expect(student.locator("legend")).to_contain_text("A seat costs $5-$10 and a site $70, so is")
+    expect(student.locator("#quiz-view legend")).to_contain_text("A seat costs $5-$10 and a site $70, so is")
     expect(student.locator("legend .formula-source")).to_have_count(0)
 
 
