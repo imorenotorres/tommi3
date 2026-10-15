@@ -91,6 +91,14 @@ Cuando producimos una consonante va a ocurrir que los articuladores bloquean tot
 - **Palatal**: el predorso de la lengua se coloca en el paladar duro. Fonemas: /ʧ/, /ʝ/, /ɲ/. Ejemplos: *ch*ino, *y*eso, *ñ*oño.
 - **Velar**: el postdorso de la lengua se aproxima al velo del paladar. Fonemas: /k/, /g/, /x/. Ejemplos: *c*asa, *g*ato, *j*amón.
 
+<div style="background:#e0e7ff; border-left:4px solid #4250b3; border-radius:6px; padding:10px 16px; margin:16px 0;">
+<strong style="font-size:16px; color:#3730a3;">Cuadro de fonemas consonánticos del español</strong>
+</div>
+
+<img src="/static/eulalia/tema2/img/Tema2_CuadroConsonantes.jpg" alt="Cuadro de fonemas consonánticos del español: modo de articulación (filas) y lugar de articulación (columnas), con distinción sorda/sonora" style="max-width:90%;">
+
+*Imagen: Los 18 fonemas consonánticos del español organizados por modo de articulación (filas: oclusiva, africada, fricativa, nasal, lateral, vibrante simple, vibrante múltiple) y lugar de articulación (columnas: bilabial, labiodental, interdental, dental, alveolar, palatal, velar). Cada celda distingue entre sorda (Sor) y sonora (Son).*
+
 ### 2.2.2. Rasgos de las vocales
    
 #### RASGO 1:  Sonoridad 
@@ -124,9 +132,9 @@ representación siguiente: el triángulo de las vocales.
 <strong style="font-size:16px; color:#3730a3;">Cuadro de fonemas consonánticos del español</strong>
 </div>
 
-<img src="/static/eulalia/tema2/img/Tema2_CuadroConsonantes.jpg" alt="Cuadro de fonemas consonánticos del español: modo de articulación (filas) y lugar de articulación (columnas), con distinción sorda/sonora" style="max-width:90%;">
+<img src="/static/eulalia/tema2/img/triangulo5_espanol_grid.jpg" alt="Triángulo de las vocales: modo de articulación (Vertical) y lugar de articulación (Horizontal)" style="max-width:40%;">
 
-*Imagen: Los 18 fonemas consonánticos del español organizados por modo de articulación (filas: oclusiva, africada, fricativa, nasal, lateral, vibrante simple, vibrante múltiple) y lugar de articulación (columnas: bilabial, labiodental, interdental, dental, alveolar, palatal, velar). Cada celda distingue entre sorda (Sor) y sonora (Son).*
+*Imagen: Triángulo de las vocales.*
 
 ### 2.2.3. Fonemas del español y relación con la ortografía
 
