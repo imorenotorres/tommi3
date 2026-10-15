@@ -412,6 +412,99 @@ def test_a_fraction_given_as_a_percentage_is_right(student, course, fake_llm):
     assert student.answer(numeric, "Table.", value="70 %")["verdict"] == "correcto"
 
 
+@pytest.mark.parametrize("typed", ["0,7", "0.70", "70 %"])
+def test_the_value_is_shown_back_as_the_student_typed_it(student, course, fake_llm, typed):
+    from .fake_practice import check_reply, exercise_reply
+    student.answer(open_exercise(student, course))
+    fake_llm.queue(lambda m: exercise_reply(m, value=0.7), lambda m: check_reply(m, value=0.7))
+    numeric = open_exercise(student, course)
+
+    assert student.answer(numeric, "Table.", value=typed)["numeric"]["given_text"] == typed
+
+
+def test_capitals_that_text_reading_split_are_joined_in_what_the_student_reads(student, course, fake_llm):
+    from .fake_practice import exercise_reply
+    fake_llm.queue(lambda m: exercise_reply(m, statement="Calcula T P y F P con P = T P / (T P + F P).",
+                                            key_points=["Calcular T P y F P", "Aplicar P = T P / (T P + F P)"]))
+    exercise = open_exercise(student, course)
+
+    got = student.answer(exercise)
+
+    assert exercise["statement"] == "Calcula TP y FP con P = TP / (TP + FP)."
+    assert [p["text"] for p in got["key_points"]] == ["Calcular TP y FP", "Aplicar P = TP / (TP + FP)"]
+
+
+def test_a_student_goes_on_with_the_exercise_they_left_unfinished(student, course, fake_llm):
+    opened = student.client.get(f"{PRACTICE}/open", params={"token": student.token}).json()
+    assert opened == {"exercise": None}
+    exercise = open_exercise(student, course)
+
+    opened = student.client.get(f"{PRACTICE}/open", params={"token": student.token}).json()
+    assert opened["exercise"]["exercise_id"] == exercise["exercise_id"] and opened["tries"] == 0
+    assert opened["topic"]["name"] == "Counting iterations"
+    assert "reference_solution" not in str(opened) and "Key point" not in str(opened)
+
+    fake_llm.queue(lambda m: feedback_reply(m, statuses={"K2": "falta"}))
+    student.answer(exercise)
+    assert student.client.get(f"{PRACTICE}/open", params={"token": student.token}).json()["tries"] == 1
+    student.answer(exercise)                                                # right on the second try: finished
+    assert student.client.get(f"{PRACTICE}/open", params={"token": student.token}).json() == {"exercise": None}
+
+
+def test_a_reported_or_retired_exercise_is_not_opened_again(student, course, fake_llm):
+    from UltiR.ai_quiz import exercises
+    exercise = open_exercise(student, course)
+    exercises.set_status(cid("course-A"), exercise["exercise_id"], "retirado")
+
+    assert student.client.get(f"{PRACTICE}/open", params={"token": student.token}).json() == {"exercise": None}
+    second = open_exercise(student, course)
+    student.client.post(f"{PRACTICE}/exercises/{second['exercise_id']}/report", params={"token": student.token},
+                        json={"reason": "otro"})
+    assert student.client.get(f"{PRACTICE}/open", params={"token": student.token}).json() == {"exercise": None}
+
+
+def test_an_exercise_reported_and_put_back_by_the_teacher_is_not_opened_again_for_who_reported_it(student, course, client):
+    exercise = open_exercise(student, course)
+    client.post(f"{PRACTICE}/exercises/{exercise['exercise_id']}/report", params={"token": student.token}, json={"reason": "otro"})
+    client.post(f"{PRACTICE}/pool/{exercise['exercise_id']}/approve", params={"token": course.instructor})
+
+    assert client.get(f"{PRACTICE}/open", params={"token": student.token}).json() == {"exercise": None}
+
+
+def test_of_two_unfinished_exercises_the_newer_is_opened(student, course):
+    open_exercise(student, course)
+    newer = open_exercise(student, course)
+
+    opened = student.client.get(f"{PRACTICE}/open", params={"token": student.token}).json()
+
+    assert opened["exercise"]["exercise_id"] == newer["exercise_id"]
+
+
+def test_an_exercise_stored_before_is_tidied_when_it_is_read(student, course):
+    import json as _json
+    from UltiR.ai_quiz import exercises, storage
+    exercise = open_exercise(student, course)
+    path = storage.course_dir(cid("course-A")) / "practice" / "exercises" / f"{exercise['exercise_id']}.json"
+    stored = _json.loads(path.read_text())
+    stored["key_points"][0]["text"] = "Calcular T P y F P"
+    path.write_text(_json.dumps(stored))
+
+    assert exercises.load(cid("course-A"), exercise["exercise_id"])["key_points"][0]["text"] == "Calcular TP y FP"
+
+
+def test_only_single_capitals_are_joined():
+    from UltiR.ai_quiz import exercise_types
+    assert exercise_types.tidy("El descriptor ORB B y el modelo A") == "El descriptor ORB B y el modelo A"
+    assert exercise_types.tidy("T P + F N") == "TP + FN"
+
+
+def test_another_student_does_not_get_my_unfinished_exercise(student, course):
+    open_exercise(student, course)
+    other = Student(course, "student-2")
+
+    assert other.client.get(f"{PRACTICE}/open", params={"token": other.token}).json() == {"exercise": None}
+
+
 def test_a_numerical_answer_needs_a_value(student, course, fake_llm):
     numeric = numeric_exercise(student, course, fake_llm)
 

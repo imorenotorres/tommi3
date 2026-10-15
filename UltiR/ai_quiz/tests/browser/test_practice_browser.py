@@ -156,6 +156,28 @@ def test_a_numerical_exercise_asks_for_the_value_and_says_whether_it_is_right(si
     expect(page.locator("#practice-numeric")).to_have_text("Tu resultado, 17, no es correcto.")
 
 
+def test_a_value_is_shown_as_typed_and_an_unfinished_exercise_comes_back(site, fake_llm):
+    from ..fake_practice import check_reply, exercise_reply
+    course_with_practice(site)
+    page = practice_page(site)
+    get_exercise(page)
+    send(page)
+    fake_llm.queue(lambda m: exercise_reply(m, value=0.7), lambda m: check_reply(m, value=0.7))
+    page.get_by_role("button", name="Siguiente ejercicio").click()
+    expect(page.locator("#practice-value-field")).to_be_visible()
+    statement = page.locator("#practice-statement").inner_text()
+
+    again = site.open("/student", page.url.split("token=")[1].split("&")[0], locale="es-ES")     # the window closed
+    again.get_by_role("button", name="Practicar").click()
+
+    expect(again.locator("#practice-statement")).to_have_text(statement)
+    expect(again.locator("#status")).to_have_text("No habías terminado este ejercicio: aquí lo tienes de nuevo.")
+    again.get_by_label("Tu resultado").fill("0,7")
+    again.get_by_label("Tu respuesta").fill("I read it in the table.")
+    again.get_by_role("button", name="Enviar respuesta").click()
+    expect(again.locator("#practice-numeric")).to_have_text("Tu resultado, 0,7, es correcto.")
+
+
 def test_a_student_reports_an_exercise_with_one_of_four_reasons(site):
     course_with_practice(site)
     page = practice_page(site)

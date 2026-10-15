@@ -327,7 +327,7 @@ async def answer(course_id: str, user_id: str, exercise_id: str, body: dict) -> 
         "level_suggestion": progress.level_suggestion(record, exercise["topic_id"], exercise["level"]),
     }
     if exercise["type"] == "numerica":
-        result["numeric"] = {"given": given["value"], "given_text": exercise_types.shown(given["value"]),
+        result["numeric"] = {"given": given["value"], "given_text": given["typed"],
                              "right": got["verdict"] == "correcto"}
     return result
 
@@ -349,6 +349,27 @@ def solution(course_id: str, user_id: str, exercise_id: str) -> dict:
         value = exercise["answer"].get("checked_value", exercise["answer"]["value"])
         shown.update(value=value, value_text=exercise_types.shown(value), unit=exercise["answer"].get("unit") or "")
     return shown
+
+
+def open_exercise(course_id: str, user_id: str) -> dict:
+    """The student's most recent exercise that is not finished, so that they can go on with it after closing the
+    window: not answered right, a try left, not reported, still in use. {"exercise": None} if there is none."""
+    require_open(course_id)
+    owner = _owner(course_id, user_id)
+    record = progress.load(course_id, owner)
+    # newest first; two given within the same second keep the order they were given in (the later one first)
+    for entry in sorted(list(record["exercises"].values())[::-1], key=lambda e: e["served_at"], reverse=True):
+        tries = entry["tries"]
+        if entry["reported"] or len(tries) >= limits.MAX_PRACTICE_TRIES or (tries and tries[-1]["verdict"] == "correcto"):
+            continue
+        exercise = exercises.load(course_id, entry["exercise_id"])
+        if exercise is None or exercise["status"] != "servido":
+            continue
+        topic = next((t for t in _merged(course_id) if t["topic_id"] == exercise["topic_id"]), None)
+        return {"exercise": exercises.learner_view(exercise), "tries": len(tries),
+                "topic": {"topic_id": exercise["topic_id"], "name": topic["name"] if topic else None,
+                          "pages": topic["pages"] if topic else None}}
+    return {"exercise": None}
 
 
 # ── Reporting ─────────────────────────────────────────────────────────────────

@@ -154,6 +154,14 @@ def agree(a: float, b: float, tolerance: float) -> bool:
     return abs(a - b) <= tolerance * max(abs(a), abs(b)) or a == b
 
 
+_SPLIT_CAPITALS = re.compile(r"\b([A-Z]) (?=[A-Z]\b)")
+
+
+def tidy(text: str) -> str:
+    """Join capitals that text reading split apart and a model copied: "T P / (T P + F P)" -> "TP / (TP + FP)"."""
+    return _SPLIT_CAPITALS.sub(r"\1", text)
+
+
 def shown(number: float) -> str:
     """A number as a person writes it: 17, not 17.0."""
     return str(int(number)) if number == int(number) and abs(number) < 1e15 else f"{number:.6g}"
@@ -278,7 +286,9 @@ class Numeric:
             raise InvalidExercise("value")
         if percent and exercise and abs(exercise["answer"].get("checked_value", exercise["answer"]["value"])) <= 1:
             value /= 100
-        return {"value": value}
+        # What the page shows back is what the student typed ("0,7", "70 %"), not the number as the server reads it.
+        typed = " ".join(raw.split()) if isinstance(raw, str) else shown(value)
+        return {"value": value, "typed": typed}
 
 
 TYPES = {kind.name: kind for kind in (Open(), Numeric())}

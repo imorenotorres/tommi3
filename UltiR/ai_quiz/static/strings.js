@@ -476,7 +476,9 @@ window.AI_QUIZ_STRINGS = {
     "reject_mistake_contradicts": "A typical mistake contradicts the solution or the handout",
     "reject_claim_check_invalid": "The check against the handout could not be read",
     "reject_claim_check_timeout": "The check against the handout took too long",
-    "reject_claim_check_error": "The check against the handout failed"
+    "reject_claim_check_error": "The check against the handout failed",
+    "practice_resumed": "You had not finished this exercise: here it is again.",
+    "practice_resumed_retry": "You had not finished this exercise: you have one more try."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -952,6 +954,8 @@ window.AI_QUIZ_STRINGS = {
     "reject_mistake_contradicts": "Un error típico contradice la solución o el apunte",
     "reject_claim_check_invalid": "No se pudo leer la comprobación contra el apunte",
     "reject_claim_check_timeout": "La comprobación contra el apunte tardó demasiado",
-    "reject_claim_check_error": "Falló la comprobación contra el apunte"
+    "reject_claim_check_error": "Falló la comprobación contra el apunte",
+    "practice_resumed": "No habías terminado este ejercicio: aquí lo tienes de nuevo.",
+    "practice_resumed_retry": "No habías terminado este ejercicio: te queda un intento."
   }
 };

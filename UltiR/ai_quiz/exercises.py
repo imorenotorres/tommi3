@@ -347,7 +347,7 @@ def _reject(course_id: str, topic: dict, level: str, kind: str, reason: str, exe
 
 
 def _store(course_id: str, exercise: dict, target, calls: int, seconds: float, discarded: int) -> dict:
-    stored = {"exercise_id": storage.new_id("e"), **exercise, "status": "servido", "created_at": now(), "created_ns": time.time_ns(),
+    stored = {"exercise_id": storage.new_id("e"), **_tidied(exercise), "status": "servido", "created_at": now(), "created_ns": time.time_ns(),
               "target": target, "calls": calls, "seconds": round(seconds, 2), "discarded_before": discarded,
               "reports": [], "served": 0}
     with storage.locked(course_id):
@@ -357,15 +357,26 @@ def _store(course_id: str, exercise: dict, target, calls: int, seconds: float, d
 
 # ── The pool ──────────────────────────────────────────────────────────────────
 
+def _tidied(exercise: dict | None) -> dict | None:
+    """The exercise with its own texts tidied (exercise_types.tidy). The passage stays the handout's wording."""
+    if not exercise:
+        return exercise
+    tidy = exercise_types.tidy
+    return {**exercise, "statement": tidy(exercise["statement"]),
+            "reference_solution": tidy(exercise["reference_solution"]),
+            "key_points": [{**p, "text": tidy(p["text"])} for p in exercise["key_points"]],
+            "typical_mistakes": [{**m, "text": tidy(m["text"])} for m in exercise["typical_mistakes"]]}
+
+
 def load(course_id: str, exercise_id) -> dict | None:
     if not storage.is_id(exercise_id, "e"):
         return None
-    return storage.read_json(_dir(course_id) / "exercises" / f"{exercise_id}.json")
+    return _tidied(storage.read_json(_dir(course_id) / "exercises" / f"{exercise_id}.json"))
 
 
 def all_exercises(course_id: str) -> list[dict]:
     folder = _dir(course_id) / "exercises"
-    found = (storage.read_json(p) for p in sorted(folder.glob("e_*.json"))) if folder.is_dir() else ()
+    found = (_tidied(storage.read_json(p)) for p in sorted(folder.glob("e_*.json"))) if folder.is_dir() else ()
     # in the order they were written: two written within one second are told apart by the nanoseconds
     return sorted((e for e in found if e), key=lambda e: (e["created_at"], e.get("created_ns", 0)))
 

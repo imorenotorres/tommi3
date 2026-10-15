@@ -46,6 +46,18 @@
     renderChoice();
     renderExercise();
     window.AiQuizStudent.show('practice-view');
+    // An exercise left unfinished, for instance when the window was closed, is opened again.
+    A.api('/api/practice/open').then(function (got) {
+      if (!got.exercise) { return; }
+      state.exercise = got.exercise;
+      state.topic = got.topic;
+      state.aim = null;
+      state.feedback = null;
+      state.solution = null;
+      state.tries = got.tries;
+      renderExercise();
+      A.say(t(got.tries ? 'practice_resumed_retry' : 'practice_resumed'), 'plain');
+    }).catch(function () { /* nothing to go on with */ });
   }
 
   // ── Choosing ────────────────────────────────────────────────────────────

@@ -750,6 +750,13 @@ async def ai_quiz_practice_exercise(request: Request):
     return JSONResponse(got, status_code=201)
 
 
+@router.get(f"{BASE}/api/practice/open")
+async def ai_quiz_practice_open(request: Request):
+    """The student's last unfinished exercise, to go on with it after the window was closed."""
+    session = _practice_session(request, require_session)
+    return _practised(practice.open_exercise, session["course_id"], session.get("user_id", ""))
+
+
 @router.post(f"{BASE}/api/practice/exercises/{{exercise_id}}/report")
 async def ai_quiz_practice_report(exercise_id: str, request: Request):
     """"Report a problem": the exercise leaves the pool until the instructor has looked at it."""
