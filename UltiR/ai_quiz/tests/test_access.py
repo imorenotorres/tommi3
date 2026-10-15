@@ -32,6 +32,8 @@ LEARNER_ALLOWED = {
     ("GET", f"{BASE}/api/practice/topics"),                 # practice: the topics that are on, and the levels
     ("POST", f"{BASE}/api/practice/exercise"),              # one exercise, without its solution
     ("POST", f"{BASE}/api/practice/exercises/{{exercise_id}}/report"),   # "report a problem"
+    ("POST", f"{BASE}/api/practice/exercises/{{exercise_id}}/answer"),   # feedback on an answer
+    ("GET", f"{BASE}/api/practice/exercises/{{exercise_id}}/solution"),  # only after the tries
 }
 
 

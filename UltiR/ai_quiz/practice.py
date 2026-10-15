@@ -17,7 +17,10 @@ Practice exists on a server only when config.practice_enabled(), and in a course
 instructor switches it on.
 """
 
-from UltiR.ai_quiz import config, exercises, progress, schema, storage, topics
+import time
+
+from UltiR.ai_quiz import config, exercise_types, exercises, feedback, limits, progress, schema, storage, topics
+from UltiR.ai_quiz.mathflag import has_math_notation
 
 MAX_TOPIC_NAME_CHARS = 80
 LEVELS = ("basico", "intermedio", "avanzado")
@@ -240,6 +243,104 @@ async def next_exercise(course_id: str, user_id: str, preview: bool, body: dict)
     return {"exercise": exercises.learner_view(exercise), "topic": {"topic_id": topic["topic_id"], "name": topic["name"],
                                                                      "pages": topic["pages"]},
             "chosen": chosen, "aim": aim["kind"] if aim else None}
+
+
+# ── Answering ─────────────────────────────────────────────────────────────────
+
+def _review(exercise: dict) -> dict:
+    """What to read again: the document, the page, and the passage when it reads as plain prose."""
+    source = exercise["source"]
+    quoted = not has_math_notation(source.get("excerpt") or "")
+    return {"doc_label": source.get("doc_label"), "page": source.get("page"),
+            "excerpt": source.get("excerpt") if quoted else None}
+
+
+def _may_see_solution(entry: dict) -> bool:
+    tries = entry["tries"]
+    return bool(tries) and (tries[-1]["verdict"] == "correcto" or len(tries) >= limits.MAX_PRACTICE_TRIES)
+
+
+async def answer(course_id: str, user_id: str, exercise_id: str, body: dict) -> dict:
+    """Feedback on one try. Reads `answer`, `value` (numerical exercises) and `language` only."""
+    require_open(course_id)
+    owner = _owner(course_id, user_id)
+    language = _language(body)
+    exercise, entry = _entry(course_id, owner, exercise_id)
+    if len(entry["tries"]) >= limits.MAX_PRACTICE_TRIES or (entry["tries"] and entry["tries"][-1]["verdict"] == "correcto"):
+        raise PracticeError(409, "no_more_tries")
+    try:
+        text = feedback.clean_answer(body.get("answer"))
+        given = exercise_types.TYPES[exercise["type"]].given(body)
+    except feedback.AnswerRefused as refused:
+        raise PracticeError(refused.status, refused.code) from None
+    except exercise_types.InvalidExercise:
+        raise PracticeError(400, "bad_value") from None
+    if exercise["type"] == "numerica" and given.get("value") is None:
+        raise PracticeError(400, "value_missing")
+    if exercise["type"] != "numerica" and not text:
+        raise PracticeError(400, "answer_missing")
+    wait = exercises.take_run(course_id)
+    if wait:
+        raise PracticeError(429, "practice_busy", retry_after_seconds=wait)
+
+    record, lookup = progress.load(course_id, owner), _lookup(course_id)
+    history = progress.misses(record, exercise["topic_id"], lookup)
+    number = len(entry["tries"]) + 1
+    started = time.monotonic()
+    try:
+        got = await feedback.give(exercise, text, given, number, history, language, exercises.ask)
+    except ValueError:
+        raise PracticeError(503, "model_unavailable") from None
+    seconds = time.monotonic() - started
+    exercises.record_run(course_id, "feedback", got["calls"], seconds, "ai" if got["ai"] else "fallback", got["rejected"])
+
+    kept = {"verdict": got["verdict"], "ai": got["ai"], "mistake": got["mistake"], "at": exercises.now(),
+            "statuses": {kid: said["status"] for kid, said in (got["statuses"] or {}).items()},
+            "checks": got["rejected"]}
+    with storage.locked(course_id):
+        record = progress.load(course_id, owner)
+        mine = record["exercises"].get(exercise_id)
+        if mine is None or len(mine["tries"]) != number - 1:
+            raise PracticeError(409, "answered_meanwhile")
+        mine["tries"].append(kept)
+        progress.save(course_id, owner, record)
+
+    points = []
+    for point in exercise["key_points"]:
+        said = (got["statuses"] or {}).get(point["id"]) or {}
+        points.append({"id": point["id"], "text": point["text"], "status": said.get("status"), "evidence": said.get("evidence") or ""})
+    mistake = next(({"id": m["id"], "text": m["text"]} for m in exercise["typical_mistakes"] if m["id"] == got["mistake"]), None)
+    result = {
+        "exercise_id": exercise_id, "try": number, "verdict": got["verdict"], "ai": got["ai"],
+        "key_points": points, "mistake": mistake, "feedback": got["feedback"], "next_step": got["next_step"],
+        "review": _review(exercise),
+        "can_retry": got["verdict"] != "correcto" and number < limits.MAX_PRACTICE_TRIES,
+        "can_see_solution": _may_see_solution(mine),
+        "level_suggestion": progress.level_suggestion(record, exercise["topic_id"], exercise["level"]),
+    }
+    if exercise["type"] == "numerica":
+        result["numeric"] = {"given": given["value"], "given_text": exercise_types.shown(given["value"]),
+                             "right": got["verdict"] == "correcto"}
+    return result
+
+
+def solution(course_id: str, user_id: str, exercise_id: str) -> dict:
+    """The reference solution, once the student got it right or used every try. Not before."""
+    require_open(course_id)
+    owner = _owner(course_id, user_id)
+    with storage.locked(course_id):
+        exercise, entry = _entry(course_id, owner, exercise_id)
+        if not _may_see_solution(entry):
+            raise PracticeError(409, "solution_not_yet")
+        record = progress.load(course_id, owner)
+        record["exercises"][exercise_id]["solution"] = True
+        progress.save(course_id, owner, record)
+    shown = {"exercise_id": exercise_id, "reference_solution": exercise["reference_solution"],
+             "key_points": exercise["key_points"], "review": _review(exercise)}
+    if exercise["type"] == "numerica":
+        value = exercise["answer"].get("checked_value", exercise["answer"]["value"])
+        shown.update(value=value, value_text=exercise_types.shown(value), unit=exercise["answer"].get("unit") or "")
+    return shown
 
 
 # ── Reporting ─────────────────────────────────────────────────────────────────

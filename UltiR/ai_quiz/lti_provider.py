@@ -754,3 +754,20 @@ async def ai_quiz_practice_report(exercise_id: str, request: Request):
     session = _practice_session(request, require_session)
     body = await _json_object(request)
     return _practised(practice.report, session["course_id"], session.get("user_id", ""), exercise_id, body)
+
+
+@router.post(f"{BASE}/api/practice/exercises/{{exercise_id}}/answer")
+async def ai_quiz_practice_answer(exercise_id: str, request: Request):
+    """Feedback on one try. The verdict is decided here in code; the model's text only explains it.
+    The answer is sent to the model with no name, id or course, and is not stored."""
+    session = _practice_session(request, require_session)
+    body = await _json_object(request)
+    got = await _practised_async(practice.answer, session["course_id"], session.get("user_id", ""), exercise_id, body)
+    return JSONResponse(got, status_code=201)
+
+
+@router.get(f"{BASE}/api/practice/exercises/{{exercise_id}}/solution")
+async def ai_quiz_practice_solution(exercise_id: str, request: Request):
+    """The reference solution, once the answer was right or both tries are used."""
+    session = _practice_session(request, require_session)
+    return _practised(practice.solution, session["course_id"], session.get("user_id", ""), exercise_id)
