@@ -13,8 +13,11 @@ next step. The code then checks:
 - every quote is in the student's answer;
 - the key points are exactly the exercise's, each once, and the mistake is one of its own;
 - a page it mentions is the exercise's page;
+- what it quotes is in the handout's passage (or the student's answer), and a sentence that says
+  what the material says carries such a quotation: no words are put in the handout's mouth;
+- it asks for no key point it marked as met ("asks_for"), and asks for nothing when all are met;
 - on a first try that is not right, it does not give the reference solution away (eight words in
-  a row of it) nor, in a numerical exercise, the value;
+  a row of it that are not the handout's own) nor, in a numerical exercise, the value;
 
 and decides the verdict itself: from the key points (all met: correct; none met: incorrect;
 otherwise partial), or in a numerical exercise from the student's value alone, compared in code
@@ -84,12 +87,17 @@ it. For "falta" leave "evidence" empty.
 terms of the course material. Do not say whether the whole answer is right or wrong: the verdict is given \
 separately.
 - "next_step" is one sentence: what the student should do next.
+- "asks_for" lists the ids of the key points your feedback asks the student to add or to improve. Never ask for a \
+key point you marked "cumplido"; if every key point is "cumplido", ask for nothing.
 - Use only the exercise and the passage. Do not add facts from elsewhere.
+- When you say what the course material says, quote its words exactly, between « and », copied from the passage. \
+Without such a quotation, do not attribute anything to the material: no "según el material", "como se explica en \
+el apunte", "as the notes say". You may point to the page.
 {extra}- Write in {language}.
 
 Answer with JSON only, no code fence, no commentary, in exactly this shape:
-{{"key_points": [{{"id": "K1", "status": "cumplido", "evidence": "..."}}], "mistake": null, "feedback": "...", \
-"next_step": "..."}}"""
+{{"key_points": [{{"id": "K1", "status": "cumplido", "evidence": "..."}}], "mistake": null, "asks_for": [], \
+"feedback": "...", "next_step": "..."}}"""
 
 _FIRST_TRY = ("- This is the student's first try and they will try again. Do not give the reference solution or "
               "the final value: say what to reconsider and where in the material to look.\n")
@@ -153,11 +161,16 @@ def _words(text: str) -> list[str]:
     return re.findall(r"\w+", text.casefold())
 
 
-def gives_away(text: str, solution: str, value: float | None) -> bool:
-    """Whether `text` holds LEAK_WORDS words in a row of `solution`, or the value of a numerical exercise."""
+def gives_away(text: str, solution: str, value: float | None, passage: str = "") -> bool:
+    """Whether `text` holds LEAK_WORDS words in a row of `solution`, or the value of a numerical exercise.
+
+    A run of words that is also in the passage of the handout does not count: the student is shown that
+    passage anyway ("What to review"), and quoting the handout is what the feedback should do.
+    """
     words, said = _words(solution), " ".join(_words(text))
+    shown = f" {' '.join(_words(passage))} "
     runs = {" ".join(words[i: i + LEAK_WORDS]) for i in range(len(words) - LEAK_WORDS + 1)}
-    if any(f" {run} " in f" {said} " for run in runs):
+    if any(f" {run} " in f" {said} " and f" {run} " not in shown for run in runs):
         return True
     if value is not None:
         numbers = {exercise_types.parse_number(n) for n in re.findall(r"\d+(?:[.,]\d+)?", text)}
@@ -169,7 +182,43 @@ class FeedbackRejected(ValueError):
     """A reply that cannot be shown. The reason is recorded."""
 
 
-def parse(reply, exercise: dict, answer: str) -> dict:
+# What the feedback presents as the handout's words must be the handout's words. A quotation is text between
+# «», “”, "" or ‘’; a sentence that attributes something to the material ("según el material", "como se explica en
+# el apunte", "as the notes say") must carry one. Both languages of the pages are read.
+_QUOTED = re.compile(r"«([^«»]+)»|“([^“”]+)”|\"([^\"]+)\"|‘([^‘’]+)’")
+_SOURCE_WORD = re.compile(r"(?i)\b(material|fuente|apunte|texto|documento|source|handout|notes|course material)\b")
+_CLAIM = re.compile(
+    r"(?i)\b(seg[uú]n|tal como|como (?:se )?(?:explica|indica|se[ñn]ala|dice|define|establece|recoge)|"
+    r"donde se (?:explica|define|indica|dice|establece|recoge|se[ñn]ala)|se (?:explica|define|indica|establece|dice|"
+    r"se[ñn]ala) (?:en|que)|according to|as (?:the )?(?:notes|material|handout|source) (?:say|says|state|states|explain|explains)|"
+    r"(?:notes|material|handout|source) (?:says|states|explains) that)\b")
+# Words with which a feedback asks for more. Not one of them may stand in the comment on an answer that meets every
+# key point (seen 2026-10-14: "Sin embargo, convendría precisar ..." on such an answer).
+_ASKING = re.compile(r"(?i)\b(sin embargo|convendr[ií]a|deber[ií]as|te falta|falta(?:r[ií]a)?|a[ñn]ade|a[ñn]adir|"
+                     r"incluye|incluir|precisar|profundiz\w*|however|you should|missing|you need to)\b")
+
+
+def _quotations(text: str) -> list[str]:
+    return [next(group for group in match.groups() if group) for match in _QUOTED.finditer(text)]
+
+
+def _sentences(text: str) -> list[str]:
+    return [s for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
+
+
+def check_sources(text: str, passage: str, answer: str) -> None:
+    """FeedbackRejected unless every quotation is in the passage or the answer, and every sentence that attributes
+    something to the material carries a quotation that is in the passage."""
+    for quoted in _quotations(text):
+        if not (quoted_in(quoted, passage) or quoted_in(quoted, answer)):
+            raise FeedbackRejected("quote_not_in_source")
+    for sentence in _sentences(text):
+        if _CLAIM.search(sentence) and _SOURCE_WORD.search(sentence):
+            if not any(quoted_in(quoted, passage) for quoted in _quotations(sentence)):
+                raise FeedbackRejected("unquoted_source_claim")
+
+
+def parse(reply, exercise: dict, answer: str, passage: str = "") -> dict:
     """The model's feedback, checked, or FeedbackRejected with the reason."""
     if not isinstance(reply, str) or len(reply) > limits.MAX_REPLY_CHARS:
         raise FeedbackRejected("invalid_json")
@@ -215,6 +264,12 @@ def parse(reply, exercise: dict, answer: str) -> dict:
     page = exercise["source"].get("page")
     if any(named != page for named in pages_named(f"{said} {step}")):
         raise FeedbackRejected("wrong_page")
+    check_sources(f"{said} {step}", f"{exercise['source'].get('excerpt') or ''} {passage}", answer)
+    asks_for = data.get("asks_for", [])
+    if not isinstance(asks_for, list) or not all(kid in got for kid in asks_for):
+        raise FeedbackRejected("asks_for_ids")
+    if any(got[kid]["status"] == "cumplido" for kid in asks_for):
+        raise FeedbackRejected("asks_for_met_point")
     return {"statuses": {kid: got[kid] for kid in expected}, "mistake": mistake, "feedback": said, "next_step": step}
 
 
@@ -232,11 +287,13 @@ def verdict(exercise: dict, statuses: dict | None, numeric_right: bool | None) -
     return "parcial"
 
 
-async def give(exercise: dict, answer: str, given: dict, try_number: int, history: list[str], language: str, ask) -> dict:
+async def give(exercise: dict, answer: str, given: dict, try_number: int, history: list[str], language: str, ask,
+               passage: str = "") -> dict:
     """Ask for feedback, check it, and decide the verdict. Returns what the student is shown and what is kept.
 
     {"verdict", "ai", "statuses", "mistake", "feedback", "next_step", "calls", "rejected": [reasons]}
     `ask(messages, max_tokens)` is the model call; it raises asyncio.TimeoutError or another error.
+    `passage` is the text of the chunk of the handout the exercise rests on: quotations are looked for in it.
     """
     kind = exercise_types.TYPES[exercise["type"]]
     numeric_right = kind.graded(exercise, given)
@@ -256,13 +313,18 @@ async def give(exercise: dict, answer: str, given: dict, try_number: int, histor
             rejected.append("model_error")
             continue
         try:
-            found = parse(reply, exercise, answer)
+            found = parse(reply, exercise, answer, passage)
         except FeedbackRejected as why:
             rejected.append(str(why))
             continue
         decided = verdict(exercise, found["statuses"], numeric_right)
+        if decided == "correcto" and all(e["status"] == "cumplido" for e in found["statuses"].values()) \
+                and _ASKING.search(found["feedback"]):
+            rejected.append("asks_for_met_point")           # a right answer that meets every point: nothing to ask for
+            continue
         if try_number == 1 and decided != "correcto" and gives_away(
-                f"{found['feedback']} {found['next_step']}", exercise["reference_solution"], value):
+                f"{found['feedback']} {found['next_step']}", exercise["reference_solution"], value,
+                f"{exercise['source'].get('excerpt') or ''} {passage}"):
             rejected.append("gives_solution_away")
             continue
         return {"verdict": decided, "ai": True, **found, "calls": calls, "rejected": rejected}

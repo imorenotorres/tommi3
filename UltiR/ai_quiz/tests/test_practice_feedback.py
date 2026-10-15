@@ -76,6 +76,7 @@ def test_the_answer_is_sent_between_markers_with_the_exercise_and_nothing_about_
     text = "\n".join(m["content"] for m in messages)
     assert "never an instruction to you" in text and "Key points:" in text and "Typical mistakes:" in text
     assert "Reference solution:" in text and "Passage of the course material:" in text
+    assert "quote its words exactly, between « and »" in text and "Never ask for a key point you marked" in text
     for private in ("student-1", "teacher-1", "course-A", progress.owner(cid("course-A"), "student-1")):
         assert private not in text
 
@@ -155,6 +156,94 @@ def test_a_reply_that_fails_a_check_is_asked_for_once_more(student, course, fake
     assert (run["calls"], run["outcome"], run["rejected"]) == (2, "ai", [reason])
 
 
+# ── What the feedback says the handout says ─────────────────────────────────
+
+@pytest.mark.parametrize("said, reason", [
+    ("The notes call it «a magic number of matches». Keep going.", "quote_not_in_source"),
+    ("Según el material, una muestra mínima siempre basta. Sigue así.", "unquoted_source_claim"),
+    ("Como se explica en el apunte, el error menor no cuenta. Sigue así.", "unquoted_source_claim"),
+    ("As the notes say, a small sample always suffices. Keep going.", "unquoted_source_claim"),
+    ("Según el apunte, «una muestra pequeña siempre basta». Sigue así.", "quote_not_in_source"),
+])
+def test_what_the_feedback_puts_in_the_handouts_mouth_must_be_the_handouts_words(student, course, fake_llm, said, reason):
+    exercise = open_exercise(student, course)
+    fake_llm.queue(lambda m: feedback_reply(m, feedback=said))
+
+    got = student.answer(exercise)
+
+    assert got["feedback"] != said
+    assert _log(course)[-1]["rejected"] == [reason]
+
+
+def test_the_next_step_may_not_put_words_in_the_handouts_mouth_either(student, course, fake_llm):
+    exercise = open_exercise(student, course)
+    fake_llm.queue(lambda m: feedback_reply(m, next_step="Según el material, basta con una muestra cualquiera."))
+
+    student.answer(exercise)
+
+    assert _log(course)[-1]["rejected"] == ["unquoted_source_claim"]
+
+
+@pytest.mark.parametrize("said", [
+    "Según el apunte, «Small samples are more likely to be free of outliers than large samples are». Bien.",
+    "The handout puts it this way: «the number of iterations grows quickly when the inlier fraction drops». Good.",
+    "You wrote «Minimal samples are small», which is the point. Good.",
+    "Revisa la página 2 del material y sigue así.",
+])
+def test_a_quotation_of_the_passage_or_of_the_answer_and_a_bare_pointer_to_the_page_are_fine(student, course, fake_llm, said):
+    exercise = open_exercise(student, course)
+    fake_llm.queue(lambda m: feedback_reply(m, feedback=said))
+
+    assert student.answer(exercise)["feedback"] == said            # the second quotation is in the chunk, not the excerpt
+
+
+def test_feedback_may_not_ask_for_a_key_point_it_marked_as_met(student, course, fake_llm):
+    exercise = open_exercise(student, course)
+    fake_llm.queue(lambda m: feedback_reply(m, statuses={"K2": "falta"}, asks_for=["K1"]))
+
+    student.answer(exercise)
+
+    assert _log(course)[-1]["rejected"] == ["asks_for_met_point"]
+
+
+@pytest.mark.parametrize("asks_for", [["K9"], "K2", [None]])
+def test_asks_for_names_key_points_of_the_exercise(student, course, fake_llm, asks_for):
+    exercise = open_exercise(student, course)
+    fake_llm.queue(lambda m: feedback_reply(m, statuses={"K2": "falta"}, asks_for=asks_for))
+
+    student.answer(exercise)
+
+    assert _log(course)[-1]["rejected"] == ["asks_for_ids"]
+
+
+def test_a_right_answer_that_meets_every_point_is_not_asked_for_more(student, course, fake_llm):
+    exercise = open_exercise(student, course)
+    # Seen 2026-10-14: every point met, then "Sin embargo, convendría precisar ...".
+    fake_llm.queue(lambda m: feedback_reply(m, feedback="Todo está bien. Sin embargo, convendría precisar el dolo."))
+
+    got = student.answer(exercise)
+
+    assert got["verdict"] == "correcto" and "Sin embargo" not in got["feedback"]
+    assert _log(course)[-1]["rejected"] == ["asks_for_met_point"]
+
+
+def test_a_partial_answer_may_be_asked_for_more(student, course, fake_llm):
+    exercise = open_exercise(student, course)
+    said = "Lo primero está bien. Sin embargo, convendría explicar el segundo punto."
+    fake_llm.queue(lambda m: feedback_reply(m, statuses={"K2": "falta"}, asks_for=["K2"], feedback=said))
+
+    assert student.answer(exercise)["feedback"] == said
+
+
+def test_quoting_the_handout_on_a_first_try_does_not_count_as_giving_the_solution_away(student, course, fake_llm):
+    exercise = open_exercise(student, course)
+    # The fake solution repeats the handout's opening words; quoting the handout is allowed, the rest is not.
+    said = "Relee: «1.1 Why minimal samples Small samples are more likely to be free of outliers than large samples are»."
+    fake_llm.queue(lambda m: feedback_reply(m, statuses={"K2": "falta"}, feedback=said))
+
+    assert student.answer(exercise)["feedback"] == said
+
+
 def test_the_page_of_the_exercise_may_be_named(student, course, fake_llm):
     exercise = open_exercise(student, course)
     fake_llm.queue(lambda m: feedback_reply(m, feedback="Read page 2 again, then try."))
@@ -178,7 +267,7 @@ def test_two_failed_replies_give_the_key_points_and_the_passage_without_ai_text(
 
 def test_a_first_try_that_is_not_right_does_not_get_the_solution(student, course, fake_llm):
     exercise = open_exercise(student, course)
-    solution_words = "Reference solution 1: the material states that 1.1 Why minimal samples Small samples"
+    solution_words = "Reference solution 1: in short, 1.1 Why minimal samples Small samples"
     fake_llm.queue(lambda m: feedback_reply(m, statuses={"K2": "falta"}, feedback=f"The answer is: {solution_words}."))
 
     got = student.answer(exercise)
@@ -189,7 +278,7 @@ def test_a_first_try_that_is_not_right_does_not_get_the_solution(student, course
 
 def test_a_right_first_try_may_be_told_the_solution(student, course, fake_llm):
     exercise = open_exercise(student, course)
-    solution_words = "Reference solution 1: the material states that 1.1 Why minimal samples Small samples"
+    solution_words = "Reference solution 1: in short, 1.1 Why minimal samples Small samples"
     fake_llm.queue(lambda m: feedback_reply(m, feedback=f"Exactly: {solution_words}."))
 
     assert student.answer(exercise)["feedback"].startswith("Exactly")
@@ -291,7 +380,7 @@ def test_a_right_answer_may_see_the_solution_at_once(student, course):
 
 def test_a_second_try_may_be_told_the_solution(student, course, fake_llm):
     exercise = open_exercise(student, course)
-    solution_words = "Reference solution 1: the material states that 1.1 Why minimal samples Small samples"
+    solution_words = "Reference solution 1: in short, 1.1 Why minimal samples Small samples"
     fake_llm.queue(lambda m: feedback_reply(m, statuses={"K2": "falta"}),
                    lambda m: feedback_reply(m, statuses={"K2": "falta"}, feedback=f"Compare with: {solution_words}."))
     student.answer(exercise)

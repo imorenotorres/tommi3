@@ -39,7 +39,7 @@ def exercise(source: str, text: str, kind: str = "abierta", n: int = 1, value: f
         "type": kind,
         "task": "explicar",
         "statement": f"Exercise {n} about source {source}: explain what the material says in your own words.",
-        "reference_solution": f"Reference solution {n}: the material states that {' '.join(words[:10])}.",
+        "reference_solution": f"Reference solution {n}: in short, {' '.join(words[:10])}.",
         "key_points": [f"Key point {n}.1 of the rubric", f"Key point {n}.2 of the rubric"],
         "typical_mistakes": [f"Typical mistake {n}.1", f"Typical mistake {n}.2"],
         "source": source,

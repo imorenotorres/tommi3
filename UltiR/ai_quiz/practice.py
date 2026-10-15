@@ -19,7 +19,7 @@ instructor switches it on.
 
 import time
 
-from UltiR.ai_quiz import config, exercise_types, exercises, feedback, limits, progress, schema, storage, topics
+from UltiR.ai_quiz import config, documents, exercise_types, exercises, feedback, limits, progress, schema, storage, topics
 from UltiR.ai_quiz.mathflag import has_math_notation
 
 MAX_TOPIC_NAME_CHARS = 80
@@ -255,6 +255,13 @@ def _review(exercise: dict) -> dict:
             "excerpt": source.get("excerpt") if quoted else None}
 
 
+def _chunk_text(course_id: str, exercise: dict) -> str:
+    """The whole chunk of the handout the exercise's passage is in, or "" if its document is gone."""
+    source = exercise["source"]
+    return next((c["text"] for c in documents.load_chunks(course_id, source.get("doc_id") or "")
+                 if c["chunk_id"] == source.get("chunk_id")), "")
+
+
 def _may_see_solution(entry: dict) -> bool:
     tries = entry["tries"]
     return bool(tries) and (tries[-1]["verdict"] == "correcto" or len(tries) >= limits.MAX_PRACTICE_TRIES)
@@ -288,7 +295,8 @@ async def answer(course_id: str, user_id: str, exercise_id: str, body: dict) -> 
     number = len(entry["tries"]) + 1
     started = time.monotonic()
     try:
-        got = await feedback.give(exercise, text, given, number, history, language, exercises.ask)
+        got = await feedback.give(exercise, text, given, number, history, language, exercises.ask,
+                                  _chunk_text(course_id, exercise))
     except ValueError:
         raise PracticeError(503, "model_unavailable") from None
     seconds = time.monotonic() - started
