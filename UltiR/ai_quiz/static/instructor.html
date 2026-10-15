@@ -26,8 +26,14 @@
 
   <div id="content" hidden>
 
+    <!-- Shown only when the server offers practice. -->
+    <div class="tabs" id="tabs" role="tablist" data-i18n-label="tabs_label" hidden>
+      <button type="button" role="tab" id="tab-quizzes" aria-controls="overview" aria-selected="true" data-i18n="tab_quizzes"></button>
+      <button type="button" role="tab" id="tab-practice" aria-controls="practice-panel" aria-selected="false" tabindex="-1" data-i18n="tab_practice"></button>
+    </div>
+
     <!-- Overview: documents, generation, list of quizzes -->
-    <div id="overview">
+    <div id="overview" role="tabpanel" aria-labelledby="tab-quizzes">
       <section aria-labelledby="docs-heading">
         <h2 id="docs-heading" data-i18n="docs_heading"></h2>
         <form id="upload-form" class="panel">
@@ -173,6 +179,45 @@
       </section>
     </div>
 
+    <!-- Practice: settings, topics, the exercises the model wrote, discards, totals. -->
+    <div id="practice-panel" role="tabpanel" aria-labelledby="tab-practice" hidden>
+      <section aria-labelledby="practice-admin-heading">
+        <h2 id="practice-admin-heading" data-i18n="admin_practice_heading"></h2>
+        <div class="panel">
+          <label class="check" for="practice-switch">
+            <input type="checkbox" id="practice-switch">
+            <span data-i18n="admin_practice_switch"></span>
+          </label>
+          <p class="hint" data-i18n="admin_practice_hint"></p>
+          <p id="practice-state" class="flush-below"></p>
+        </div>
+      </section>
+
+      <section aria-labelledby="practice-topics-heading">
+        <h2 id="practice-topics-heading" data-i18n="admin_topics_heading"></h2>
+        <p class="hint space-below" data-i18n="admin_topics_hint"></p>
+        <div id="practice-topics"></div>
+      </section>
+
+      <section aria-labelledby="practice-summary-heading">
+        <h2 id="practice-summary-heading" data-i18n="admin_summary_heading"></h2>
+        <p class="hint space-below" id="practice-summary-hint"></p>
+        <div id="practice-summary"></div>
+      </section>
+
+      <section aria-labelledby="practice-pool-heading">
+        <h2 id="practice-pool-heading" data-i18n="admin_pool_heading"></h2>
+        <p class="hint space-below" id="practice-pool-count"></p>
+        <div id="practice-pool"></div>
+      </section>
+
+      <section aria-labelledby="practice-rejections-heading">
+        <h2 id="practice-rejections-heading" data-i18n="admin_rejections_heading"></h2>
+        <p class="hint space-below" id="practice-rejections-count"></p>
+        <div id="practice-rejections"></div>
+      </section>
+    </div>
+
   </div>
 </main>
 
@@ -180,6 +225,7 @@
 <script src="/lti/ai-quiz/assets/app.js"></script>
 <script src="/lti/ai-quiz/assets/vendor/katex/katex.min.js"></script>
 <script src="/lti/ai-quiz/assets/math.js"></script>
+<script src="/lti/ai-quiz/assets/practice_admin.js"></script>
 <script src="/lti/ai-quiz/assets/instructor.js"></script>
 </body>
 </html>

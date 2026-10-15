@@ -655,5 +655,6 @@
   A.start(function (session) {
     byId('reading-mode-field').hidden = !(session.reading_modes && session.reading_modes.full);
     loadDocuments().then(loadQuizzes).catch(A.showError);
+    if (window.AiQuizPracticeAdmin) { window.AiQuizPracticeAdmin.probe(); }   // the "Practice" tab, if the server offers it
   });
 })();
