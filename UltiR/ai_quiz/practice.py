@@ -277,7 +277,7 @@ async def answer(course_id: str, user_id: str, exercise_id: str, body: dict) -> 
         raise PracticeError(409, "no_more_tries")
     try:
         text = feedback.clean_answer(body.get("answer"))
-        given = exercise_types.TYPES[exercise["type"]].given(body)
+        given = exercise_types.TYPES[exercise["type"]].given(body, exercise)
     except feedback.AnswerRefused as refused:
         raise PracticeError(refused.status, refused.code) from None
     except exercise_types.InvalidExercise:

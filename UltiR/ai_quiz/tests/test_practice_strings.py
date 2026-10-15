@@ -64,7 +64,7 @@ def test_every_reason_a_discard_can_have_is_listed_above():
     import re
 
     found = set(re.findall(r'_reject\([^)]*?"([a-z_]+)', inspect.getsource(exercises)))
-    found |= set(re.findall(r'return "([a-z_]+)"', inspect.getsource(exercise_types)))
+    found |= set(re.findall(r'return "([a-z_]+)"', inspect.getsource(exercise_types.Numeric.check)))
     found |= set(re.findall(r'why = "([a-z_]+)"', inspect.getsource(exercises)))
     found |= set(re.findall(r'return "([a-z_]+)"', inspect.getsource(exercises.check_claims)))
     found |= {"numeric_mismatch", "invalid_exercise"}             # written with details after a colon

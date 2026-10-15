@@ -258,6 +258,75 @@ def test_passages_without_numbers_get_an_open_exercise_instead():
     assert exercises.choose_kind(numbers, "made-up type") == "abierta"
 
 
+# ── Passages with formulas, and values in a stated form ─────────────────────
+
+GARBLED = "Precision P and recall R are defined as P = T PT P+ F P, (43) R = T PT P+ F N. (44) Precision is the fraction"
+
+
+def test_a_formula_quoted_in_its_clean_form_matches_the_garbled_text_of_the_pdf():
+    # Seen 2026-10-14: the excerpt "P = TP / (TP + FP), R = TP / (TP + FN)" was not found in the text above.
+    chunk = {"chunk_id": "c_0001", "text": GARBLED}
+    claimed = "Precision P and recall R are defined as P = TP / (TP + FP), R = TP / (TP + FN)."
+
+    found = exercises._locate({"excerpt": claimed, "source": "S1"}, {"S1": chunk})
+
+    assert found is not None and found[1].startswith("Precision P and recall R")
+
+
+def test_the_numbers_of_the_handout_still_have_to_match():
+    chunk = {"chunk_id": "c_0001", "text": "A sample of four points with an inlier fraction of 0.5 needs 72 iterations in all."}
+
+    assert exercises._locate({"excerpt": "A sample of four points with an inlier fraction of 0.5 needs 17 iterations in all"},
+                             {"S1": chunk}) is None
+
+
+def test_unicode_ligatures_are_compared_in_their_plain_form():
+    chunk = {"chunk_id": "c_0001", "text": "The ﬁrst step deﬁnes the ﬁtted model on a minimal sample of the matches."}
+
+    assert exercises._locate({"excerpt": "The first step defines the fitted model on a minimal sample"}, {"S1": chunk})
+
+
+@pytest.mark.parametrize("statement, written, checked, stored_as", [
+    ("Calcula la precisión como un decimal entre 0 y 1.", 0.8, 80, 0.8),
+    ("Calcula la precisión como un decimal entre 0 y 1.", 80, 0.8, 0.8),
+    ("Calcula la precisión como porcentaje.", 0.8, 80, 80),
+    ("Calcula la precisión en %.", 0.8, 0.8, 80),
+    ("Calcula la precisión.", 0.8, 80, None),
+])
+def test_a_value_and_its_percentage_agree_when_the_statement_names_the_form(course, fake_llm, statement, written, checked,
+                                                                            stored_as):
+    fake_llm.queue(lambda m: exercise_reply(m, value=written, statement=statement), lambda m: check_reply(m, value=checked))
+
+    stored = write(course, kind="numerica")
+
+    if stored_as is not None:
+        assert stored["answer"]["value"] == stored["answer"]["checked_value"] == pytest.approx(stored_as)
+        assert rejections(course) == []
+    else:
+        assert rejections(course)[0]["reason"] == "numeric_mismatch: 0.8 vs 80"
+
+
+def test_the_form_a_statement_names_is_read_in_both_languages():
+    assert exercise_types.stated_form("Give it as a decimal between 0 and 1") == "fraction"
+    assert exercise_types.stated_form("Exprésalo en tanto por ciento") == "percent"
+    assert exercise_types.stated_form("¿Cuántas iteraciones hacen falta?") is None
+    # Both named: the decimal it asks for wins over the percentage it rules out.
+    assert exercise_types.stated_form("Dala como un decimal entre 0 y 1, no como porcentaje") == "fraction"
+
+
+@pytest.mark.parametrize("typed, value", [("70 %", 0.7), ("70%", 0.7), ("0,7", 0.7), ("70", 70.0)])
+def test_a_student_may_give_a_fraction_as_a_percentage(typed, value):
+    exercise = {"answer": {"value": 0.7, "tolerance": 0.01}}
+
+    assert exercise_types.TYPES["numerica"].given({"value": typed}, exercise)["value"] == pytest.approx(value)
+
+
+def test_a_percentage_stays_a_percentage_when_the_value_is_one():
+    exercise = {"answer": {"value": 75, "tolerance": 0.01}}
+
+    assert exercise_types.TYPES["numerica"].given({"value": "75 %"}, exercise)["value"] == 75
+
+
 # ── Named quantities ────────────────────────────────────────────────────────
 
 def test_an_exercise_that_names_quantities_a_student_could_swap_needs_a_key_point_that_names_them_all(course, fake_llm):

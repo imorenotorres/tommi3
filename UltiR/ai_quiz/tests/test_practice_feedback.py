@@ -403,6 +403,15 @@ def test_a_numerical_answer_is_judged_by_its_value_alone(student, course, fake_l
     assert ("it is correct." in told) is (verdict == "correcto")
 
 
+def test_a_fraction_given_as_a_percentage_is_right(student, course, fake_llm):
+    from .fake_practice import check_reply, exercise_reply
+    student.answer(open_exercise(student, course))
+    fake_llm.queue(lambda m: exercise_reply(m, value=0.7), lambda m: check_reply(m, value=0.7))
+    numeric = open_exercise(student, course)
+
+    assert student.answer(numeric, "Table.", value="70 %")["verdict"] == "correcto"
+
+
 def test_a_numerical_answer_needs_a_value(student, course, fake_llm):
     numeric = numeric_exercise(student, course, fake_llm)
 

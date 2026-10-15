@@ -126,6 +126,29 @@ def parse_number(value) -> float | None:
     return number if math.isfinite(number) else None
 
 
+_PERCENT = re.compile(r"(?i)%|\b(porcentaje|percentage|per ?cent|por ciento|tanto por ciento)\b")
+_FRACTION = re.compile(r"(?i)\b(decimal|tanto por uno|entre 0 y 1|between 0 and 1)\b")
+
+
+def stated_form(statement: str) -> str | None:
+    """The form a statement asks its value in: "fraction" (a decimal between 0 and 1), "percent", or None."""
+    statement = statement or ""
+    if _FRACTION.search(statement):
+        return "fraction"
+    if _PERCENT.search(statement):
+        return "percent"
+    return None
+
+
+def in_form(value: float, form: str) -> float:
+    """A share written as the stated form asks: 0.8 as a fraction, 80 as a percentage."""
+    if form == "fraction" and abs(value) > 1:
+        return value / 100
+    if form == "percent" and abs(value) <= 1:
+        return value * 100
+    return value
+
+
 def agree(a: float, b: float, tolerance: float) -> bool:
     """Whether two values are the same answer: within `tolerance` of the larger one, relatively."""
     return abs(a - b) <= tolerance * max(abs(a), abs(b)) or a == b
@@ -159,7 +182,7 @@ class Open:
     def graded(self, exercise: dict, given: dict) -> bool | None:
         return None
 
-    def given(self, body: dict) -> dict:
+    def given(self, body: dict, exercise: dict | None = None) -> dict:
         return {}
 
 
@@ -226,8 +249,16 @@ class Numeric:
         if value is None:
             return "check_no_value"
         claimed = exercise["answer"]["value"]
-        if not agree(claimed, value, exercise["answer"]["tolerance"]):
+        tolerance = exercise["answer"]["tolerance"]
+        form = stated_form(exercise["statement"])
+        if form and not agree(claimed, value, tolerance):
+            # 0.8 and 80 are the same value when the statement says in which form to give it (seen 2026-10-14)
+            value = next((v for v in (value / 100, value * 100) if agree(claimed, v, tolerance)), value)
+        if not agree(claimed, value, tolerance):
             return f"numeric_mismatch: {shown(claimed)} vs {shown(value)}"
+        if form:
+            # Both values in the form the statement asks for, so that a student who gives it that way is right.
+            exercise["answer"]["value"], value = in_form(claimed, form), in_form(value, form)
         exercise["answer"]["checked_value"] = value
         return None
 
@@ -236,13 +267,17 @@ class Numeric:
         answer = exercise["answer"]
         return value is not None and agree(value, answer.get("checked_value", answer["value"]), answer["tolerance"])
 
-    def given(self, body: dict) -> dict:
+    def given(self, body: dict, exercise: dict | None = None) -> dict:
+        """The value the student typed. "70 %" is 0.7 when the exercise's value is a fraction (at most 1)."""
         raw = body.get("value")
         if raw is None or raw == "":
             return {"value": None}
-        value = parse_number(raw)
+        percent = isinstance(raw, str) and raw.strip().endswith("%")
+        value = parse_number(raw.strip()[:-1] if percent else raw)
         if value is None:
             raise InvalidExercise("value")
+        if percent and exercise and abs(exercise["answer"].get("checked_value", exercise["answer"]["value"])) <= 1:
+            value /= 100
         return {"value": value}
 
 

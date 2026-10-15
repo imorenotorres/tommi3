@@ -28,6 +28,7 @@ import logging
 import re
 import secrets
 import time
+import unicodedata
 from datetime import datetime, timezone
 
 from UltiR.ai_quiz import config, exercise_types, generation, ingestion, limits, storage
@@ -170,10 +171,23 @@ def _locate(raw: dict, sources: dict[str, dict]) -> tuple[dict, str] | None:
     named = raw.get("source")
     order = ([sources[named]] if isinstance(named, str) and named in sources else []) + list(sources.values())
     for chunk in order:
-        found = generation.locate_excerpt(excerpt, chunk["text"])
+        found = generation.locate_excerpt(excerpt, chunk["text"]) or \
+            generation.locate_excerpt(normalized(excerpt), normalized(chunk["text"]))
         if found is not None:
             return chunk, found[: limits.MAX_EXCERPT_CHARS]
     return None
+
+
+_EQUATION_LABEL = re.compile(r"\(\s*\d{1,3}\s*\)")
+
+
+def normalized(text: str) -> str:
+    """Text as the passage check compares it on a second try: Unicode in its compatibility form (ligatures, "²"),
+    and without the numbers of equations, "(43)", which a model leaves out when it quotes a formula. Spacing and
+    signs are ignored anyway (generation.locate_excerpt compares letters and digits only), so a formula that text
+    reading garbled, "P = T PT P+ F P", matches its clean form "P = TP / (TP + FP)".
+    """
+    return _EQUATION_LABEL.sub(" ", unicodedata.normalize("NFKC", text))
 
 
 # ── The claim check ───────────────────────────────────────────────────────────
