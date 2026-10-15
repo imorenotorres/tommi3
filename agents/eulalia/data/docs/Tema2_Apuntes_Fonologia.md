@@ -395,9 +395,7 @@ La siguiente tabla, obtenida de Arias Rodríguez (2021), muestra los fonemas del
 <div id="phoneme-table-container">
 <style>
 #phoneme-table { width:100%; border-collapse:collapse; font-size:13px; margin:16px 0; }
-#phoneme-table th { background:#4250b3; color:#fff; padding:8px 10px; cursor:pointer; user-select:none; white-space:nowrap; font-size:12px; }
-#phoneme-table th:hover { background:#3740a0; }
-#phoneme-table th .sort-arrow { font-size:10px; margin-left:4px; }
+#phoneme-table th { background:#4250b3; color:#fff; padding:8px 10px; white-space:nowrap; font-size:12px; }
 #phoneme-table td { padding:6px 10px; border-bottom:1px solid #e2e8f0; }
 #phoneme-table tr:hover td { background:#f8fafc; }
 #phoneme-table .ph-cell { font-family:'Doulos SIL','Charis SIL',serif; font-size:16px; font-weight:700; color:#4250b3; }
@@ -405,72 +403,40 @@ La siguiente tabla, obtenida de Arias Rodríguez (2021), muestra los fonemas del
 </style>
 <table id="phoneme-table">
 <thead><tr>
-<th onclick="sortPhTable(0)">Fonema <span class="sort-arrow">▼</span></th>
-<th onclick="sortPhTable(1)">% <span class="sort-arrow"></span></th>
-<th onclick="sortPhTable(2)">C/V <span class="sort-arrow"></span></th>
-<th onclick="sortPhTable(3)">Modo art. <span class="sort-arrow"></span></th>
-<th onclick="sortPhTable(4)">Lugar art. <span class="sort-arrow"></span></th>
-<th onclick="sortPhTable(5)">Sonoridad <span class="sort-arrow"></span></th>
-<th onclick="sortPhTable(6)">Nasalidad <span class="sort-arrow"></span></th>
+<th>Fonema</th>
+<th>%</th>
+<th>C/V</th>
+<th>Modo art.</th>
+<th>Lugar art.</th>
+<th>Sonoridad</th>
+<th>Nasalidad</th>
 </tr></thead>
-<tbody id="phoneme-tbody"></tbody>
+<tbody>
+<tr><td class="ph-cell">/a/</td><td>13.30%<span class="pct-bar" style="width:80px"></span></td><td>Vocal</td><td>Abierta</td><td>Central</td><td>Sonora</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/e/</td><td>13.10%<span class="pct-bar" style="width:79px"></span></td><td>Vocal</td><td>Media</td><td>Anterior</td><td>Sonora</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/o/</td><td>9.85%<span class="pct-bar" style="width:59px"></span></td><td>Vocal</td><td>Media</td><td>Posterior</td><td>Sonora</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/s/</td><td>7.47%<span class="pct-bar" style="width:45px"></span></td><td>Consonante</td><td>Fricativa</td><td>Alveolar</td><td>Sorda</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/i/</td><td>7.37%<span class="pct-bar" style="width:44px"></span></td><td>Vocal</td><td>Cerrada</td><td>Anterior</td><td>Sonora</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/n/</td><td>7.07%<span class="pct-bar" style="width:43px"></span></td><td>Consonante</td><td>Nasal</td><td>Alveolar</td><td>Sonora</td><td>Nasal</td></tr>
+<tr><td class="ph-cell">/ɾ/</td><td>5.88%<span class="pct-bar" style="width:35px"></span></td><td>Consonante</td><td>Vibrante simple</td><td>Alveolar</td><td>Sonora</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/d/</td><td>4.95%<span class="pct-bar" style="width:30px"></span></td><td>Consonante</td><td>Oclusiva</td><td>Dental</td><td>Sonora</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/l/</td><td>4.95%<span class="pct-bar" style="width:30px"></span></td><td>Consonante</td><td>Lateral</td><td>Alveolar</td><td>Sonora</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/t/</td><td>4.29%<span class="pct-bar" style="width:26px"></span></td><td>Consonante</td><td>Oclusiva</td><td>Dental</td><td>Sorda</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/k/</td><td>3.93%<span class="pct-bar" style="width:24px"></span></td><td>Consonante</td><td>Oclusiva</td><td>Velar</td><td>Sorda</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/u/</td><td>3.25%<span class="pct-bar" style="width:20px"></span></td><td>Vocal</td><td>Cerrada</td><td>Posterior</td><td>Sonora</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/m/</td><td>3.04%<span class="pct-bar" style="width:18px"></span></td><td>Consonante</td><td>Nasal</td><td>Bilabial</td><td>Sonora</td><td>Nasal</td></tr>
+<tr><td class="ph-cell">/b/</td><td>2.81%<span class="pct-bar" style="width:17px"></span></td><td>Consonante</td><td>Oclusiva</td><td>Bilabial</td><td>Sonora</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/p/</td><td>2.58%<span class="pct-bar" style="width:16px"></span></td><td>Consonante</td><td>Oclusiva</td><td>Bilabial</td><td>Sorda</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/θ/</td><td>1.67%<span class="pct-bar" style="width:10px"></span></td><td>Consonante</td><td>Fricativa</td><td>Interdental</td><td>Sorda</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/g/</td><td>1.12%<span class="pct-bar" style="width:7px"></span></td><td>Consonante</td><td>Oclusiva</td><td>Velar</td><td>Sonora</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/ʝ/</td><td>0.78%<span class="pct-bar" style="width:5px"></span></td><td>Consonante</td><td>Fricativa</td><td>Palatal</td><td>Sonora</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/r/</td><td>0.73%<span class="pct-bar" style="width:4px"></span></td><td>Consonante</td><td>Vibrante múltiple</td><td>Alveolar</td><td>Sonora</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/x/</td><td>0.73%<span class="pct-bar" style="width:4px"></span></td><td>Consonante</td><td>Fricativa</td><td>Velar</td><td>Sorda</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/f/</td><td>0.64%<span class="pct-bar" style="width:4px"></span></td><td>Consonante</td><td>Fricativa</td><td>Labiodental</td><td>Sorda</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/ʧ/</td><td>0.28%<span class="pct-bar" style="width:2px"></span></td><td>Consonante</td><td>Africada</td><td>Palatal</td><td>Sorda</td><td>Oral</td></tr>
+<tr><td class="ph-cell">/ɲ/</td><td>0.21%<span class="pct-bar" style="width:1px"></span></td><td>Consonante</td><td>Nasal</td><td>Palatal</td><td>Sonora</td><td>Nasal</td></tr>
+</tbody>
 </table>
-<script>
-var phData = [
-  {ph:'a', pct:13.30, cv:'Vocal', modo:'Abierta', lugar:'Central', son:'Sonora', nas:'Oral'},
-  {ph:'e', pct:13.10, cv:'Vocal', modo:'Media', lugar:'Anterior', son:'Sonora', nas:'Oral'},
-  {ph:'o', pct:9.85, cv:'Vocal', modo:'Media', lugar:'Posterior', son:'Sonora', nas:'Oral'},
-  {ph:'s', pct:7.47, cv:'Consonante', modo:'Fricativa', lugar:'Alveolar', son:'Sorda', nas:'Oral'},
-  {ph:'i', pct:7.37, cv:'Vocal', modo:'Cerrada', lugar:'Anterior', son:'Sonora', nas:'Oral'},
-  {ph:'n', pct:7.07, cv:'Consonante', modo:'Nasal', lugar:'Alveolar', son:'Sonora', nas:'Nasal'},
-  {ph:'ɾ', pct:5.88, cv:'Consonante', modo:'Vibrante simple', lugar:'Alveolar', son:'Sonora', nas:'Oral'},
-  {ph:'d', pct:4.95, cv:'Consonante', modo:'Oclusiva', lugar:'Dental', son:'Sonora', nas:'Oral'},
-  {ph:'l', pct:4.95, cv:'Consonante', modo:'Lateral', lugar:'Alveolar', son:'Sonora', nas:'Oral'},
-  {ph:'t', pct:4.29, cv:'Consonante', modo:'Oclusiva', lugar:'Dental', son:'Sorda', nas:'Oral'},
-  {ph:'k', pct:3.93, cv:'Consonante', modo:'Oclusiva', lugar:'Velar', son:'Sorda', nas:'Oral'},
-  {ph:'u', pct:3.25, cv:'Vocal', modo:'Cerrada', lugar:'Posterior', son:'Sonora', nas:'Oral'},
-  {ph:'m', pct:3.04, cv:'Consonante', modo:'Nasal', lugar:'Bilabial', son:'Sonora', nas:'Nasal'},
-  {ph:'b', pct:2.81, cv:'Consonante', modo:'Oclusiva', lugar:'Bilabial', son:'Sonora', nas:'Oral'},
-  {ph:'p', pct:2.58, cv:'Consonante', modo:'Oclusiva', lugar:'Bilabial', son:'Sorda', nas:'Oral'},
-  {ph:'θ', pct:1.67, cv:'Consonante', modo:'Fricativa', lugar:'Interdental', son:'Sorda', nas:'Oral'},
-  {ph:'g', pct:1.12, cv:'Consonante', modo:'Oclusiva', lugar:'Velar', son:'Sonora', nas:'Oral'},
-  {ph:'ʝ', pct:0.78, cv:'Consonante', modo:'Fricativa', lugar:'Palatal', son:'Sonora', nas:'Oral'},
-  {ph:'r', pct:0.73, cv:'Consonante', modo:'Vibrante múltiple', lugar:'Alveolar', son:'Sonora', nas:'Oral'},
-  {ph:'x', pct:0.73, cv:'Consonante', modo:'Fricativa', lugar:'Velar', son:'Sorda', nas:'Oral'},
-  {ph:'f', pct:0.64, cv:'Consonante', modo:'Fricativa', lugar:'Labiodental', son:'Sorda', nas:'Oral'},
-  {ph:'ʧ', pct:0.28, cv:'Consonante', modo:'Africada', lugar:'Palatal', son:'Sorda', nas:'Oral'},
-  {ph:'ɲ', pct:0.21, cv:'Consonante', modo:'Nasal', lugar:'Palatal', son:'Sonora', nas:'Nasal'}
-];
-var phSortCol = 1, phSortAsc = false;
-function renderPhTable() {
-  var tbody = document.getElementById('phoneme-tbody');
-  var maxPct = 13.30;
-  var html = '';
-  phData.forEach(function(d) {
-    var barW = Math.round(d.pct / maxPct * 80);
-    html += '<tr><td class="ph-cell">/' + d.ph + '/</td>';
-    html += '<td>' + d.pct.toFixed(2) + '%<span class="pct-bar" style="width:' + barW + 'px"></span></td>';
-    html += '<td>' + d.cv + '</td><td>' + d.modo + '</td><td>' + d.lugar + '</td>';
-    html += '<td>' + d.son + '</td><td>' + d.nas + '</td></tr>';
-  });
-  tbody.innerHTML = html;
-  // Update arrows
-  var ths = document.querySelectorAll('#phoneme-table th .sort-arrow');
-  ths.forEach(function(a,i) { a.textContent = i === phSortCol ? (phSortAsc ? '▲' : '▼') : ''; });
-}
-function sortPhTable(col) {
-  if (phSortCol === col) { phSortAsc = !phSortAsc; } else { phSortCol = col; phSortAsc = true; }
-  var keys = ['ph','pct','cv','modo','lugar','son','nas'];
-  var key = keys[col];
-  phData.sort(function(a,b) {
-    var va = a[key], vb = b[key];
-    if (typeof va === 'number') return phSortAsc ? va - vb : vb - va;
-    return phSortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
-  });
-  renderPhTable();
-}
-renderPhTable();
-</script>
 </div>
 
 
