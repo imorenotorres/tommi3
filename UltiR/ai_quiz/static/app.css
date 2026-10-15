@@ -350,6 +350,7 @@ table.points td.status { font-weight: 600; white-space: nowrap; }
 table.points tr[data-status="cumplido"] td.status { color: var(--ok); }
 table.points tr[data-status="parcial"] td.status { color: var(--warn-ink); }
 table.points tr[data-status="falta"] td.status { color: var(--wrong); }
+table.points tr[data-status="revisar"] td.status { color: var(--text-soft); }
 table.points q { background: var(--marker); quotes: none; }
 #practice-comment { margin: 0.6rem 0; }
 #practice-review h4 { margin: 0; color: var(--ink); }

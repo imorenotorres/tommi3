@@ -17,7 +17,7 @@ DISCARD_REASONS = ("passage_not_found", "numeric_mismatch", "check_no_value", "c
 def built_keys() -> set[str]:
     return ({f"practice_level_{level}" for level in practice.LEVELS}
             | {f"practice_type_{kind}" for kind in exercise_types.TYPES}
-            | {f"practice_status_{status}" for status in feedback.STATUSES}
+            | {f"practice_status_{status}" for status in (*feedback.STATUSES, feedback.UNSURE)}
             | {f"practice_verdict_{verdict}" for verdict in feedback.VERDICTS}
             | {f"admin_status_{status}" for status in exercises.STATUSES}
             | {f"report_{reason}" for reason in exercises.REPORT_REASONS}

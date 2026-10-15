@@ -78,16 +78,33 @@ class FakeLLM:
         self.replies.extend(replies)
 
     def __call__(self, messages, max_tokens):
+        reply = self._reply(messages, max_tokens)
+        from . import fake_practice                     # imported here: it builds on this module
+        if fake_practice.kind_of(messages) == "feedback":
+            self.last_feedback = reply                  # the default second grading agrees with it
+        return reply
+
+    last_feedback = None
+
+    def _reply(self, messages, max_tokens):
         self.calls.append({"messages": messages, "max_tokens": max_tokens})
+        from . import fake_practice                     # imported here: it builds on this module
+        grading = fake_practice.kind_of(messages) == "grading"
+        # A second grading of practice feedback takes a queued reply only if it is marked as one (Grading);
+        # otherwise it agrees with the feedback, and the queue is left for the calls the test is about.
+        if self.replies and grading != isinstance(self.replies[0], fake_practice.Grading):
+            return fake_practice.reply(messages, self._serial + 1, self.last_feedback)
         if self.replies:
             reply = self.replies.pop(0)
+            if isinstance(reply, fake_practice.Grading):
+                reply = reply.reply
             if isinstance(reply, BaseException):
                 raise reply
             return reply(messages) if callable(reply) else reply
         if questions_in(messages):
             return analysis_reply(messages)             # a request to analyse a class summary
         from . import fake_practice                     # imported here: it builds on this module
-        practised = fake_practice.reply(messages, self._serial + 1)
+        practised = fake_practice.reply(messages, self._serial + 1, self.last_feedback)
         if practised is not None:                       # an exercise, a check of its value, or feedback
             self._serial += 1
             return practised

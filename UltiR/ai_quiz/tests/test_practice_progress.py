@@ -68,7 +68,8 @@ def test_a_mistake_made_twice_comes_before_a_missed_key_point(student, course, f
                                    json={"topic_id": topic(course), "level": "intermedio"})
 
     assert response.json()["aim"] == "mistake"
-    assert "Typical mistake" in user_text(fake_llm.calls[-1]["messages"]).split("This student recently missed")[1]
+    written = [c for c in fake_llm.calls if kind_of(c["messages"]) == "exercise"][-1]
+    assert "Typical mistake" in user_text(written["messages"]).split("This student recently missed")[1]
 
 
 def test_a_point_put_right_on_the_second_try_is_still_what_the_next_exercise_practises(student, course, fake_llm):

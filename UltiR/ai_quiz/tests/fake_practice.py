@@ -23,6 +23,8 @@ def user_text(messages) -> str:
 def kind_of(messages) -> str | None:
     """Which practice prompt this is, or None for any other."""
     text = user_text(messages)
+    if ANSWER.search(text) and "Grade the answer now." in text:
+        return "grading"
     if ANSWER.search(text):
         return "feedback"
     if CHECK.search(text) and "Solve the exercise now." in text:
@@ -88,9 +90,27 @@ def feedback_reply(messages, statuses=None, mistake=None, evidence=None, **chang
     return json.dumps(reply)
 
 
-def reply(messages, serial: int) -> str | None:
+class Grading:
+    """A queued reply meant for the second, independent grading of practice feedback."""
+
+    def __init__(self, reply):
+        self.reply = reply
+
+
+def grading_reply(messages, last_feedback: str | None = None, statuses=None, mistake=None) -> str:
+    """An independent grading. By default it agrees with the feedback given just before, so that a test sees two
+    gradings disagree only where it asks for that."""
+    if statuses is None and last_feedback:
+        data = json.loads(last_feedback)
+        return json.dumps({"key_points": data["key_points"], "mistake": data.get("mistake")})
+    return json.dumps(json.loads(feedback_reply(messages, statuses=statuses, mistake=mistake)) | {"feedback": None})
+
+
+def reply(messages, serial: int, last_feedback: str | None = None) -> str | None:
     """The default answer to a practice prompt, or None when it is not one."""
     kind = kind_of(messages)
+    if kind == "grading":
+        return grading_reply(messages, last_feedback)
     if kind == "exercise":
         return exercise_reply(messages, serial)
     if kind == "check":

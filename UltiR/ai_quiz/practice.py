@@ -319,7 +319,7 @@ async def answer(course_id: str, user_id: str, exercise_id: str, body: dict) -> 
         points.append({"id": point["id"], "text": point["text"], "status": said.get("status"), "evidence": said.get("evidence") or ""})
     mistake = next(({"id": m["id"], "text": m["text"]} for m in exercise["typical_mistakes"] if m["id"] == got["mistake"]), None)
     result = {
-        "exercise_id": exercise_id, "try": number, "verdict": got["verdict"], "ai": got["ai"],
+        "exercise_id": exercise_id, "try": number, "verdict": got["verdict"], "ai": got["ai"], "uncertain": got["uncertain"],
         "key_points": points, "mistake": mistake, "feedback": got["feedback"], "next_step": got["next_step"],
         "review": _review(exercise),
         "can_retry": got["verdict"] != "correcto" and number < limits.MAX_PRACTICE_TRIES,

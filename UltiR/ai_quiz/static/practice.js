@@ -151,6 +151,7 @@
     verdict.textContent = got.verdict ? t('practice_verdict_' + got.verdict) : t('practice_verdict_none');
     byId('practice-try').textContent = t('practice_try', { n: got.try });
     byId('practice-fallback').hidden = got.ai;
+    byId('practice-uncertain').hidden = !(got.ai && got.uncertain);
     byId('practice-numeric').hidden = !got.numeric;
     if (got.numeric) {
       byId('practice-numeric').textContent = got.numeric.given === null ? t('practice_value_none')
@@ -178,7 +179,8 @@
       return el('tr', { 'data-status': point.status || 'none' }, [
         el('td', { class: 'content', text: point.text }),
         el('td', { class: 'status', text: point.status ? t('practice_status_' + point.status) : '–' }),
-        el('td', {}, [point.evidence ? el('q', { text: point.evidence }) : el('span', { class: 'hint', text: '–' })])
+        el('td', {}, [point.status === 'revisar' ? el('span', { class: 'hint', text: t('practice_revisar_hint') })
+          : point.evidence ? el('q', { text: point.evidence }) : el('span', { class: 'hint', text: '–' })])
       ]);
     });
     box.appendChild(el('table', { class: 'list points' }, [

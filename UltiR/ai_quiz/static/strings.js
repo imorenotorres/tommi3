@@ -467,7 +467,10 @@ window.AI_QUIZ_STRINGS = {
     "admin_item_where": "{n} students · {topic} · {level}",
     "info_how_5": "Where the instructor switches it on, students can also practise on their own: they choose a topic or a level, get one exercise at a time written by the model from the course material, and get feedback on their own answer.",
     "info_students_practice": "Where practice is on, “Practise” gives you one exercise at a time on a topic or at a level you choose, with feedback on what your answer covers and what it misses, one more try, then the solution. It does not count towards your grade.",
-    "admin_claimed": "Passage the model said it quoted, not found in the topic:"
+    "admin_claimed": "Passage the model said it quoted, not found in the topic:",
+    "practice_status_revisar": "To check",
+    "practice_revisar_hint": "Could not be judged reliably: compare this point with the passage and, later, the solution.",
+    "practice_uncertain": "Two separate gradings of your answer disagreed on some key points, so no comment is shown. The points marked “To check” are for you to compare with the passage below."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -934,6 +937,9 @@ window.AI_QUIZ_STRINGS = {
     "admin_item_where": "{n} estudiantes · {topic} · {level}",
     "info_how_5": "Si el docente la activa, el alumnado también puede practicar por su cuenta: elige un tema o un nivel, recibe de uno en uno ejercicios que el modelo redacta a partir del material del curso y recibe comentarios sobre su propia respuesta.",
     "info_students_practice": "Si la práctica está activada, «Practicar» te da ejercicios de uno en uno sobre el tema o en el nivel que elijas, con comentarios sobre lo que tu respuesta cubre y lo que le falta, un intento más y después la solución. No cuenta para la nota.",
-    "admin_claimed": "Pasaje que el modelo dijo citar y que no está en el tema:"
+    "admin_claimed": "Pasaje que el modelo dijo citar y que no está en el tema:",
+    "practice_status_revisar": "Revisar",
+    "practice_revisar_hint": "No se ha podido valorar con seguridad: compara este punto con el pasaje y, después, con la solución.",
+    "practice_uncertain": "Dos valoraciones independientes de tu respuesta no coinciden en algunos puntos clave, así que no se muestra ningún comentario. Los puntos marcados «Revisar» compáralos tú con el pasaje de abajo."
   }
 };

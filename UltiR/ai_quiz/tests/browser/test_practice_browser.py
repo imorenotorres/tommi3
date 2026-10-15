@@ -121,6 +121,24 @@ def test_feedback_that_fails_its_checks_shows_the_key_points_and_the_passage_onl
     expect(page.locator("#practice-review q")).to_be_visible()
 
 
+def test_a_point_the_two_gradings_disagree_on_is_shown_as_to_be_checked_without_a_comment(site, fake_llm):
+    from ..fake_practice import Grading, grading_reply
+    course_with_practice(site)
+    page = practice_page(site)
+    get_exercise(page)
+    fake_llm.queue(Grading(lambda m: grading_reply(m, statuses={"K2": "falta"})))
+
+    send(page)
+
+    expect(page.locator("#practice-verdict")).to_have_text("Parcial")
+    expect(page.locator("#practice-uncertain")).to_be_visible()
+    expect(page.locator("#practice-comment")).to_be_hidden()
+    row = page.locator("#practice-points tbody tr").nth(1)
+    expect(row).to_contain_text("Revisar")
+    expect(row).to_contain_text("No se ha podido valorar con seguridad")
+    expect(page.locator("#practice-points tbody tr").nth(0).locator("q")).to_be_visible()
+
+
 def test_a_numerical_exercise_asks_for_the_value_and_says_whether_it_is_right(site):
     course_with_practice(site)
     page = practice_page(site)
