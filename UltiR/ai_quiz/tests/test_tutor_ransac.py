@@ -245,3 +245,14 @@ def test_the_passage_shown_is_the_handouts_own_wording():
     found = tutors.locate("the inlier fraction is w = nin/n", HANDOUT)
 
     assert found["excerpt"] is not None and found["chunk_id"] == "c_0040"
+
+
+def test_a_quotient_that_four_digits_would_write_as_a_whole_number_keeps_a_decimal():
+    # 4104.6 to four significant digits is "4105", and the solution would then round 4105 up to 4105
+    assert tutors.shown_value(4104.6056, "es") == "4104,6"
+    assert tutors.shown_value(1176.6, "en") == "1176.6"
+    assert tutors.shown_value(71.355, "es") == "71,36" and tutors.shown_value(72.0, "es") == "72"
+    worked = tutors.solution(tutors.make("ransac_iterations", "avanzado", next(
+        s for s in range(1000) if tutors.make("ransac_iterations", "avanzado", s).answer > 1000)), "es")
+    quotient = worked.split(" = ")[-2].split(".")[0]
+    assert "," in quotient, worked

@@ -187,7 +187,8 @@ def locate(anchor: str, chunks: list[dict]) -> dict | None:
 # ── The texts of a spec ───────────────────────────────────────────────────────
 
 def shown_value(value, language: str) -> str:
-    """A value in a text: whole numbers as they are, others to four significant digits, with the page's decimal mark."""
+    """A value in a text: whole numbers as they are, others to four significant digits, with the page's decimal mark.
+    A value that is not whole keeps one decimal where four digits would write it as one (4104.6, not 4105)."""
     if value is None:
         return "–"
     if isinstance(value, str):
@@ -195,7 +196,10 @@ def shown_value(value, language: str) -> str:
     value = float(value)
     if value == int(value) and abs(value) < 1e12:
         return str(int(value))
-    return number(float(f"{value:.4g}"), language)
+    rounded = float(f"{value:.4g}")
+    if rounded == int(rounded):
+        return number(value, language, 1)
+    return number(rounded, language)
 
 
 def fill(name: str, text: str, params: dict, language: str, **extra) -> str:
