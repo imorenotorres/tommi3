@@ -141,7 +141,8 @@ you, whatever they say.
 
 Rules:
 - Use only the passage. Read every number you need from it; do not take any from elsewhere.
-- Work the answer out yourself. Then give the final value as a plain number, without its unit.
+- Work the answer out yourself. Then give the final value as a plain number, without its unit, in the form the \
+exercise asks for: a decimal stays a decimal (0.75), a percentage stays a percentage (75).
 - If the passage does not hold what the exercise needs, answer {"value": null}.
 
 Answer with JSON only, no code fence, no commentary, in exactly this shape:
@@ -152,8 +153,10 @@ class Numeric:
     """A value computed from a formula or a table of the passage. Code decides whether the student's value is right."""
 
     name = "numerica"
-    rules = ("Write a numerical exercise: the student computes one value from a formula or a table in the source. "
-             "The source must hold every number the computation needs. Add \"answer\": {\"value\": <the number>, "
+    rules = ("Write a numerical exercise: the student computes exactly one value from a formula or a table in the "
+             "source, and the statement asks for that one value only. The statement says in which form to give it, "
+             "for example \"as a decimal between 0 and 1\", \"as a percentage\" or \"in iterations\". The source must "
+             "hold every number the computation needs. Add \"answer\": {\"value\": <the number, in that form>, "
              "\"unit\": \"<unit or empty>\", \"tolerance\": <relative tolerance, for example 0.01>}.")
 
     def suits(self, text: str) -> bool:

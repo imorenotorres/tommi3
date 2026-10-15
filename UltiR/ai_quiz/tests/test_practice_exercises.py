@@ -211,6 +211,16 @@ def test_a_numerical_exercise_is_worked_out_again_by_a_separate_call(course, fak
     assert "Reference solution" not in check and "reference_solution" not in check     # not told the first answer
 
 
+def test_both_calls_are_told_to_keep_to_one_value_in_the_form_the_statement_asks(course, fake_llm):
+    # Seen 2026-10-14: an exercise asked for precision and recall at once, and the check gave 80 for a
+    # precision of 0.8: the same value, as a percentage.
+    write(course, kind="numerica")
+
+    writing, checking = (c["messages"][0]["content"] for c in fake_llm.calls)
+    assert "exactly one value" in writing and "that one value only" in writing and "in which form" in writing
+    assert "a decimal stays a decimal (0.75), a percentage stays a percentage (75)" in checking
+
+
 def test_two_values_that_differ_discard_the_exercise_with_both_values_on_record(course, fake_llm):
     # The real case of 2026-10-12: a draft said 5 iterations where the handout's table says 17.
     fake_llm.queue(lambda m: exercise_reply(m, value=5), lambda m: check_reply(m, value=17))
