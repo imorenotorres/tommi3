@@ -14,7 +14,7 @@ from UltiR.ai_quiz import exercise_types, exercises, limits, topics
 
 from .conftest import cid
 from .fake_llm import sources_in
-from .fake_practice import CHECK, check_reply, exercise, exercise_reply, kind_of, user_text
+from .fake_practice import CHECK, check_reply, claims_reply, exercise, exercise_reply, kind_of, user_text
 from .practice_helpers import PracticeCourse, run
 
 
@@ -56,7 +56,7 @@ def test_the_core_of_an_exercise_is_numbered_by_the_server():
 
     assert [p["id"] for p in core["key_points"]] == ["K1", "K2", "K3"]
     assert [m["id"] for m in core["typical_mistakes"]] == ["M1", "M2"]
-    assert set(core) == {"statement", "reference_solution", "key_points", "typical_mistakes"}
+    assert set(core) == {"statement", "reference_solution", "key_points", "typical_mistakes", "named_quantities"}
 
 
 @pytest.mark.parametrize("changes", [
@@ -120,7 +120,7 @@ def test_an_exercise_is_stored_with_its_passage_located_and_the_page_of_its_chun
     assert (source["chunk_id"], source["page"], source["doc_label"]) == ("c_0002", 2, "unit4.pdf")
     assert source["excerpt"].startswith("1.1 Why minimal samples")
     assert exercises.load(cid(course.course), stored["exercise_id"]) == stored
-    assert len(fake_llm.calls) == 1 and stored["calls"] == 1
+    assert len(fake_llm.calls) == 2 and stored["calls"] == 2                  # the exercise and its claim check
 
 
 def test_the_page_named_by_the_model_is_never_used(course, fake_llm):
@@ -152,7 +152,7 @@ def test_a_passage_that_is_not_in_the_topic_discards_the_exercise_and_it_is_writ
 
     stored = write(course)
 
-    assert stored["calls"] == 2 and stored["discarded_before"] == 1
+    assert stored["calls"] == 3 and stored["discarded_before"] == 1
     [discard] = rejections(course)
     assert discard["reason"] == "passage_not_found"
     assert discard["claimed_excerpt"] == "a sentence that appears nowhere in the handout at all"     # what the model claimed
@@ -204,7 +204,7 @@ def test_a_numerical_exercise_is_worked_out_again_by_a_separate_call(course, fak
     stored = write(course, kind="numerica")
 
     assert stored["type"] == "numerica" and stored["answer"]["value"] == 72 and stored["answer"]["checked_value"] == 72
-    assert [kind_of(c["messages"]) for c in fake_llm.calls] == ["exercise", "check"]
+    assert [kind_of(c["messages"]) for c in fake_llm.calls] == ["exercise", "check", "claims"]
     check = user_text(fake_llm.calls[1]["messages"])
     assert "N = log(1 - p)" in check                   # the whole chunk the passage is in
     assert CHECK.search(check).group(2) == stored["statement"]
@@ -216,7 +216,7 @@ def test_both_calls_are_told_to_keep_to_one_value_in_the_form_the_statement_asks
     # precision of 0.8: the same value, as a percentage.
     write(course, kind="numerica")
 
-    writing, checking = (c["messages"][0]["content"] for c in fake_llm.calls)
+    writing, checking = (c["messages"][0]["content"] for c in fake_llm.calls[:2])
     assert "exactly one value" in writing and "that one value only" in writing and "in which form" in writing
     assert "a decimal stays a decimal (0.75), a percentage stays a percentage (75)" in checking
 
@@ -230,7 +230,7 @@ def test_two_values_that_differ_discard_the_exercise_with_both_values_on_record(
     assert stored["answer"]["value"] == 72                       # the next one, which agreed
     entry = rejections(course)[0]
     assert entry["reason"] == "numeric_mismatch: 5 vs 17" and entry["answer"]["value"] == 5
-    assert stored["calls"] == 4
+    assert stored["calls"] == 5
 
 
 def test_a_check_that_gives_no_value_discards_the_exercise(course, fake_llm):
@@ -239,7 +239,7 @@ def test_a_check_that_gives_no_value_discards_the_exercise(course, fake_llm):
     stored = write(course, kind="numerica")
 
     assert [r["reason"] for r in rejections(course)] == ["check_no_value", "check_invalid"]
-    assert stored["calls"] == 6
+    assert stored["calls"] == 7
 
 
 def test_values_within_the_tolerance_agree(course, fake_llm):
@@ -258,6 +258,83 @@ def test_passages_without_numbers_get_an_open_exercise_instead():
     assert exercises.choose_kind(numbers, "made-up type") == "abierta"
 
 
+# ── Named quantities ────────────────────────────────────────────────────────
+
+def test_an_exercise_that_names_quantities_a_student_could_swap_needs_a_key_point_that_names_them_all(course, fake_llm):
+    names = ["precisión", "exhaustividad"]
+    fake_llm.queue(lambda m: exercise_reply(m, named_quantities=names),
+                   lambda m: exercise_reply(m, named_quantities=names, key_points=[
+                       "Asigna a la precisión y a la exhaustividad su propio valor", "Explica cada una"]))
+
+    stored = write(course)
+
+    assert [r["reason"] for r in rejections(course)] == ["no_assignment_key_point"]
+    assert stored["named_quantities"] == names and stored["key_points"][0]["text"].startswith("Asigna")
+
+
+def test_a_key_point_that_names_only_one_of_them_is_not_enough():
+    exercise = {"named_quantities": ["precisión", "exhaustividad"],
+                "key_points": [{"id": "K1", "text": "Calcula la precisión"}, {"id": "K2", "text": "Interpreta el resultado"}]}
+
+    assert exercise_types.assignment_point_missing(exercise)
+    exercise["key_points"][1]["text"] = "Asigna a la Precisión y a la exhaustividad su valor"
+    assert not exercise_types.assignment_point_missing(exercise)
+
+
+def test_one_name_or_none_needs_no_such_key_point(course, fake_llm):
+    fake_llm.queue(lambda m: exercise_reply(m, named_quantities=["precisión"]))
+
+    assert write(course)["named_quantities"] == ["precisión"] and rejections(course) == []
+
+
+@pytest.mark.parametrize("names", ["precisión, exhaustividad", [5, 6], ["x"] * 7])
+def test_the_names_must_be_a_short_list_of_texts(names):
+    with pytest.raises(exercise_types.InvalidExercise):
+        exercise_types.core(good(named_quantities=names))
+
+
+def test_the_model_is_asked_for_the_names_and_the_key_point(course, fake_llm):
+    write(course)
+
+    assert "\"named_quantities\" lists the names" in fake_llm.calls[0]["messages"][0]["content"]
+
+
+# ── The claim check ─────────────────────────────────────────────────────────
+
+def test_every_exercise_is_checked_against_the_sources_by_a_separate_call(course, fake_llm):
+    stored = write(course)
+
+    claims = [c for c in fake_llm.calls if kind_of(c["messages"]) == "claims"]
+    assert len(claims) == 1
+    prompt = user_text(claims[0]["messages"])
+    assert stored["reference_solution"] in prompt and stored["typical_mistakes"][0]["text"] in prompt
+    assert len(sources_in(claims[0]["messages"])) == 2                  # every source the exercise was written from
+    assert "not wrong according to the material, or that contradicts the reference solution" in claims[0]["messages"][0]["content"]
+
+
+@pytest.mark.parametrize("reply, reason", [
+    (lambda m: claims_reply(unsupported=["El modelo de 8 puntos es más estable numéricamente."]), "claim_unsupported"),
+    (lambda m: claims_reply(bad_mistakes=["M2"]), "mistake_contradicts"),
+    (lambda m: "not json", "claim_check_invalid"),
+    (lambda m: json.dumps({"unsupported": "none"}), "claim_check_invalid"),
+])
+def test_an_exercise_the_claim_check_finds_fault_with_is_discarded(course, fake_llm, reply, reason):
+    fake_llm.queue(exercise_reply, reply)
+
+    stored = write(course)
+
+    assert [r["reason"] for r in rejections(course)] == [reason]
+    assert stored["calls"] == 4                                         # the discarded one and its check, then two more
+
+
+def test_a_claim_check_that_times_out_discards_the_exercise(course, fake_llm):
+    fake_llm.queue(exercise_reply, asyncio.TimeoutError())
+
+    write(course)
+
+    assert [r["reason"] for r in rejections(course)] == ["claim_check_timeout"]
+
+
 # ── The record ──────────────────────────────────────────────────────────────
 
 def test_every_run_is_logged_with_its_calls_and_time_and_no_student(course, fake_llm):
@@ -265,7 +342,7 @@ def test_every_run_is_logged_with_its_calls_and_time_and_no_student(course, fake
     write(course, kind="numerica")
 
     [run] = exercises.run_log(cid(course.course))
-    assert (run["kind"], run["calls"], run["outcome"], run["rejected"]) == ("exercise", 4, "accepted", ["numeric_mismatch: 5 vs 17"])
+    assert (run["kind"], run["calls"], run["outcome"], run["rejected"]) == ("exercise", 5, "accepted", ["numeric_mismatch: 5 vs 17"])
     assert run["seconds"] >= 0 and set(run) == {"at", "kind", "calls", "seconds", "outcome", "rejected"}
 
 

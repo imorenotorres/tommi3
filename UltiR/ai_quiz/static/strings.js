@@ -470,7 +470,13 @@ window.AI_QUIZ_STRINGS = {
     "admin_claimed": "Passage the model said it quoted, not found in the topic:",
     "practice_status_revisar": "To check",
     "practice_revisar_hint": "Could not be judged reliably: compare this point with the passage and, later, the solution.",
-    "practice_uncertain": "Two separate gradings of your answer disagreed on some key points, so no comment is shown. The points marked “To check” are for you to compare with the passage below."
+    "practice_uncertain": "Two separate gradings of your answer disagreed on some key points, so no comment is shown. The points marked “To check” are for you to compare with the passage below.",
+    "reject_no_assignment_key_point": "It names quantities a student could swap, and no key point says which is which",
+    "reject_claim_unsupported": "The solution says something the handout does not",
+    "reject_mistake_contradicts": "A typical mistake contradicts the solution or the handout",
+    "reject_claim_check_invalid": "The check against the handout could not be read",
+    "reject_claim_check_timeout": "The check against the handout took too long",
+    "reject_claim_check_error": "The check against the handout failed"
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -940,6 +946,12 @@ window.AI_QUIZ_STRINGS = {
     "admin_claimed": "Pasaje que el modelo dijo citar y que no está en el tema:",
     "practice_status_revisar": "Revisar",
     "practice_revisar_hint": "No se ha podido valorar con seguridad: compara este punto con el pasaje y, después, con la solución.",
-    "practice_uncertain": "Dos valoraciones independientes de tu respuesta no coinciden en algunos puntos clave, así que no se muestra ningún comentario. Los puntos marcados «Revisar» compáralos tú con el pasaje de abajo."
+    "practice_uncertain": "Dos valoraciones independientes de tu respuesta no coinciden en algunos puntos clave, así que no se muestra ningún comentario. Los puntos marcados «Revisar» compáralos tú con el pasaje de abajo.",
+    "reject_no_assignment_key_point": "Nombra magnitudes que se pueden confundir y ningún punto clave dice cuál es cuál",
+    "reject_claim_unsupported": "La solución dice algo que el apunte no dice",
+    "reject_mistake_contradicts": "Un error típico contradice la solución o el apunte",
+    "reject_claim_check_invalid": "No se pudo leer la comprobación contra el apunte",
+    "reject_claim_check_timeout": "La comprobación contra el apunte tardó demasiado",
+    "reject_claim_check_error": "Falló la comprobación contra el apunte"
   }
 };

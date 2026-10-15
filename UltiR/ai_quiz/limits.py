@@ -55,6 +55,7 @@ MAX_ATTEMPTS_PER_QUIZ = 50      # per learner and quiz
 # are settings (config.practice_daily_limit, config.practice_timeout).
 MAX_EXERCISE_RETRIES = 2        # an exercise that fails a check is written again at most this many more times
 MAX_EXERCISE_TOKENS = 1200      # reply length asked of the model for one exercise
+MAX_CLAIM_CHECK_TOKENS = 600    # reply length asked of the claim check of one exercise
 MAX_PRACTICE_RUNS_PER_HOUR = 300    # per course: exercises written and feedback given, failed ones included
 MAX_PRACTICE_AVOID = 20         # existing statements of the topic the model is told not to repeat
 PRACTICE_TARGET_FIT = 0.3       # share of a target's words an exercise of the pool must have to practise it

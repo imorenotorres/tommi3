@@ -22,6 +22,7 @@ import json
 import math
 import re
 import secrets
+import unicodedata
 
 from UltiR.ai_quiz import limits, schema
 from UltiR.ai_quiz.mathflag import has_math_notation
@@ -30,6 +31,8 @@ MAX_STATEMENT_CHARS = 1000
 MAX_SOLUTION_CHARS = 1500
 MAX_POINT_CHARS = 300
 MAX_UNIT_CHARS = 30
+MAX_NAMES = 6
+MAX_NAME_CHARS = 60
 KEY_POINTS = (2, 4)
 MISTAKES = (2, 3)
 
@@ -70,7 +73,34 @@ def core(raw) -> dict:
         "reference_solution": _text(raw.get("reference_solution"), MAX_SOLUTION_CHARS),
         "key_points": _items(raw.get("key_points"), "K", KEY_POINTS),
         "typical_mistakes": _items(raw.get("typical_mistakes"), "M", MISTAKES),
+        "named_quantities": _names(raw.get("named_quantities")),
     }
+
+
+def _names(raw) -> list[str]:
+    """The names of quantities or notions a student could mix up, as the model lists them: at most MAX_NAMES."""
+    if raw is None:
+        return []
+    if not isinstance(raw, list) or len(raw) > MAX_NAMES:
+        raise InvalidExercise("named_quantities")
+    names = [_text(name, MAX_NAME_CHARS) for name in raw]
+    return list(dict.fromkeys(names))
+
+
+def _letters(text: str) -> str:
+    return "".join(c for c in unicodedata.normalize("NFKC", text).casefold() if c.isalnum())
+
+
+def assignment_point_missing(exercise: dict) -> bool:
+    """Whether the exercise names two or more quantities a student could swap and no key point names them all.
+
+    Seen 2026-10-14: a student who swapped precision and recall had a key point on the calculation marked as
+    met. With a key point that the names go with the right values, swapping them is a point missed.
+    """
+    names = exercise.get("named_quantities") or []
+    if len(names) < 2:
+        return False
+    return not any(all(_letters(name) in _letters(point["text"]) for name in names) for point in exercise["key_points"])
 
 
 # ── Numbers ───────────────────────────────────────────────────────────────────

@@ -11,7 +11,8 @@ from UltiR.ai_quiz import exercise_types, exercises, feedback, practice, progres
 from .test_pages import load_strings
 
 DISCARD_REASONS = ("passage_not_found", "numeric_mismatch", "check_no_value", "check_invalid", "check_timeout",
-                   "check_error", "invalid_json", "invalid_exercise", "timeout", "model_error")
+                   "check_error", "invalid_json", "invalid_exercise", "timeout", "model_error", "no_assignment_key_point",
+                   "claim_unsupported", "mistake_contradicts", "claim_check_invalid", "claim_check_timeout", "claim_check_error")
 
 
 def built_keys() -> set[str]:
@@ -65,6 +66,7 @@ def test_every_reason_a_discard_can_have_is_listed_above():
     found = set(re.findall(r'_reject\([^)]*?"([a-z_]+)', inspect.getsource(exercises)))
     found |= set(re.findall(r'return "([a-z_]+)"', inspect.getsource(exercise_types)))
     found |= set(re.findall(r'why = "([a-z_]+)"', inspect.getsource(exercises)))
+    found |= set(re.findall(r'return "([a-z_]+)"', inspect.getsource(exercises.check_claims)))
     found |= {"numeric_mismatch", "invalid_exercise"}             # written with details after a colon
 
     assert found and found <= set(DISCARD_REASONS)

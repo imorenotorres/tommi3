@@ -29,6 +29,8 @@ def kind_of(messages) -> str | None:
         return "feedback"
     if CHECK.search(text) and "Solve the exercise now." in text:
         return "check"
+    if CHECK.search(text) and "Check the exercise now." in text:
+        return "claims"
     if EXERCISE_ASKED.search(text):
         return "exercise"
     return None
@@ -66,6 +68,11 @@ def check_reply(messages, value=None) -> str:
         found = FAKE_VALUE.search(CHECK.search(user_text(messages)).group(2))
         value = float(found.group(1)) if found else None
     return json.dumps({"value": value, "unit": ""})
+
+
+def claims_reply(unsupported=(), bad_mistakes=()) -> str:
+    """The claim check: by default it finds every claim supported and every mistake a real mistake."""
+    return json.dumps({"unsupported": list(unsupported), "bad_mistakes": list(bad_mistakes)})
 
 
 def answer_in(messages) -> str:
@@ -115,6 +122,8 @@ def reply(messages, serial: int, last_feedback: str | None = None) -> str | None
         return exercise_reply(messages, serial)
     if kind == "check":
         return check_reply(messages)
+    if kind == "claims":
+        return claims_reply()
     if kind == "feedback":
         return feedback_reply(messages)
     return None
