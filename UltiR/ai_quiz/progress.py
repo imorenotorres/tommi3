@@ -9,7 +9,9 @@ not keep the text of an answer, nor the model's feedback.
 
 What the next exercise aims at comes from that record alone: the typical mistake the student
 made in two of their last exercises on the topic, or else the key point they missed most
-recently. After PRACTICE_LEVEL_AFTER exercises on a topic at one level, the record suggests going
+recently. What a student missed is read from their first try that was assessed, the one made
+without help: a point put right on the second try, after the feedback, is still a weak point.
+The verdict of an exercise is that of its last try. After PRACTICE_LEVEL_AFTER exercises on a topic at one level, the record suggests going
 up (all of the last ones correct) or down (most of them incorrect).
 
 The instructor's totals count students, not tries, and show nothing for a group smaller than
@@ -51,6 +53,11 @@ def final(entry: dict) -> dict | None:
     return entry["tries"][-1] if entry.get("tries") else None
 
 
+def unaided(entry: dict) -> dict:
+    """The first try of an exercise that the feedback assessed (it has key point statuses), else {}."""
+    return next((t for t in entry.get("tries") or [] if t.get("statuses")), {})
+
+
 def _on_topic(record: dict, topic_id: str, level: str | None = None) -> list[dict]:
     """The answered exercises of the record on a topic (at a level), oldest first."""
     return [e for e in sorted(record["exercises"].values(), key=lambda e: e["served_at"])
@@ -61,13 +68,13 @@ def _on_topic(record: dict, topic_id: str, level: str | None = None) -> list[dic
 
 def misses(record: dict, topic_id: str, lookup) -> list[str]:
     """What the student missed in their recent exercises on the topic, as texts, oldest first:
-    key points marked "falta" or "parcial" in the last try, and typical mistakes they made."""
+    key points marked "falta" or "parcial" in the first assessed try, and typical mistakes made in it."""
     said = []
     for entry in _on_topic(record, topic_id)[-limits.MAX_PRACTICE_HISTORY:]:
         exercise = lookup(entry["exercise_id"])
         if exercise is None:
             continue
-        last = final(entry)
+        last = unaided(entry)
         points = {p["id"]: p["text"] for p in exercise["key_points"]}
         said += [points[kid] for kid, status in (last.get("statuses") or {}).items()
                  if status in ("falta", "parcial") and kid in points]
@@ -86,13 +93,13 @@ def target(record: dict, topic_id: str, lookup) -> dict | None:
     recent = _on_topic(record, topic_id)[-3:]
     made = []
     for entry in recent:
-        exercise, last = lookup(entry["exercise_id"]), final(entry)
+        exercise, last = lookup(entry["exercise_id"]), unaided(entry)
         if exercise and last.get("mistake"):
             made += [m["text"] for m in exercise["typical_mistakes"] if m["id"] == last["mistake"]]
     if len(made) >= 2:
         return {"kind": "mistake", "text": made[-1]}
     for entry in reversed(recent):
-        exercise, last = lookup(entry["exercise_id"]), final(entry)
+        exercise, last = lookup(entry["exercise_id"]), unaided(entry)
         if not exercise:
             continue
         statuses = last.get("statuses") or {}
@@ -166,9 +173,10 @@ def summary(course_id: str, topic_names: dict[str, str], lookup) -> dict:
             row["students"].add(number)
             row["exercises"] += 1
             row["verdicts"][last.get("verdict") or "sin_valorar"] += 1
-            if last.get("mistake"):
-                mistakes[(entry["exercise_id"], last["mistake"])].add(number)
-            for kid, status in (last.get("statuses") or {}).items():
+            first = unaided(entry)                      # what was missed or mistaken: the try made without help
+            if first.get("mistake"):
+                mistakes[(entry["exercise_id"], first["mistake"])].add(number)
+            for kid, status in (first.get("statuses") or {}).items():
                 if status in ("falta", "parcial"):
                     missed[(entry["exercise_id"], kid)].add(number)
 

@@ -71,6 +71,46 @@ def test_a_mistake_made_twice_comes_before_a_missed_key_point(student, course, f
     assert "Typical mistake" in user_text(fake_llm.calls[-1]["messages"]).split("This student recently missed")[1]
 
 
+def test_a_point_put_right_on_the_second_try_is_still_what_the_next_exercise_practises(student, course, fake_llm):
+    exercise = student.exercise(topic_id=topic(course), level="intermedio")
+    fake_llm.queue(lambda m: feedback_reply(m, statuses={"K1": "falta"}, mistake="M1"), lambda m: feedback_reply(m))
+    student.answer(exercise)
+    assert student.answer(exercise)["verdict"] == "correcto"             # right after the feedback
+
+    response = student.client.post(f"{PRACTICE}/exercise", params={"token": student.token},
+                                   json={"topic_id": topic(course), "level": "intermedio"})
+
+    assert response.json()["aim"] == "key_point"
+    written = [c for c in fake_llm.calls if kind_of(c["messages"]) == "exercise"][-1]
+    assert '"Key point 1.1 of the rubric"' in user_text(written["messages"])
+
+
+def test_a_first_try_without_assessment_does_not_hide_what_the_second_try_shows(student, course, fake_llm):
+    exercise = student.exercise(topic_id=topic(course), level="intermedio")
+    fake_llm.queue("not json", "not json", lambda m: feedback_reply(m, statuses={"K2": "falta"}))
+    student.answer(exercise)                                              # no feedback could be checked
+    student.answer(exercise)
+
+    response = student.client.post(f"{PRACTICE}/exercise", params={"token": student.token},
+                                   json={"topic_id": topic(course), "level": "intermedio"})
+
+    assert response.json()["aim"] == "key_point"
+
+
+def test_the_totals_count_what_was_missed_on_the_first_try_and_the_verdict_of_the_last(client, course, fake_llm):
+    for user in ("s-1", "s-2", "s-3"):
+        s = Student(course, user)
+        exercise = s.exercise(topic_id=topic(course), level="intermedio")
+        fake_llm.queue(lambda m: feedback_reply(m, statuses={"K2": "falta"}, mistake="M2"), lambda m: feedback_reply(m))
+        s.answer(exercise)
+        s.answer(exercise)
+
+    summary = client.get(f"{PRACTICE}/summary", params={"token": course.instructor}).json()
+
+    assert summary["rows"][0]["verdicts"] == {"correcto": 3}
+    assert [m["id"] for m in summary["mistakes"]] == ["M2"] and [p["id"] for p in summary["missed_key_points"]] == ["K2"]
+
+
 def test_without_anything_missed_there_is_no_aim(student, course):
     student.answer(student.exercise(topic_id=topic(course), level="intermedio"))
 
