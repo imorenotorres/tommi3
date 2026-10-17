@@ -273,7 +273,15 @@ async function generateExercise() {
         }
         var catParam = cats.length ? '&categorias=' + cats.join(',') : '';
         var res = await fetch('/api/public-agent/eulalia/ejercicio-informe-errores?num_errores=' + nErr + '&seed=' + Math.floor(Math.random() * 100000) + catParam);
-        if (!res.ok) throw new Error('Error ' + res.status);
+        if (!res.ok) {
+            var errBody = {};
+            try { errBody = await res.json(); } catch(_) {}
+            var msg = errBody.error || ('Error ' + res.status);
+            var tb  = errBody.traceback ? '<pre style="font-size:10px;text-align:left;margin-top:8px;white-space:pre-wrap;">' + errBody.traceback + '</pre>' : '';
+            document.getElementById('stimulus').innerHTML = '<p style="color:#dc2626;font-weight:600;">Error al generar el ejercicio:</p><p style="color:#dc2626;">' + msg + '</p>' + tb;
+            document.getElementById('stimulus').style.display = '';
+            return;
+        }
         currentExercise = await res.json();
     } catch(e) {
         document.getElementById('stimulus').innerHTML = '<p style="color:#dc2626;">Error al generar el ejercicio: ' + e.message + '</p>';

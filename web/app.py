@@ -3653,13 +3653,14 @@ async def lali_ejercicio_informe_errores(
     import json as _json
     import re as _re
     import traceback as _tb
+    from fastapi.responses import JSONResponse
 
     try:
         return await _lali_ejercicio_informe_errores_impl(
             request, num_errores, seed, categorias, oracion_id
         )
     except Exception as exc:
-        return {"error": str(exc), "traceback": _tb.format_exc()}
+        return JSONResponse(status_code=500, content={"error": str(exc), "traceback": _tb.format_exc()})
 
 
 async def _lali_ejercicio_informe_errores_impl(
