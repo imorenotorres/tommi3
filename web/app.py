@@ -3652,6 +3652,22 @@ async def lali_ejercicio_informe_errores(
     import random
     import json as _json
     import re as _re
+    import traceback as _tb
+
+    try:
+        return await _lali_ejercicio_informe_errores_impl(
+            request, num_errores, seed, categorias, oracion_id
+        )
+    except Exception as exc:
+        return {"error": str(exc), "traceback": _tb.format_exc()}
+
+
+async def _lali_ejercicio_informe_errores_impl(
+    request, num_errores, seed, categorias, oracion_id
+):
+    import random
+    import json as _json
+    import re as _re
 
     rng = random.Random(seed)
 
