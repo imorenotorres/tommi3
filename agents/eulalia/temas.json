@@ -518,10 +518,10 @@
           "categoria": "B"
         },
         {
-          "nombre": "Clasificar errores (individual)",
+          "nombre": "Test de errores fonológicos",
           "tipo": "panel_errores",
           "apartado": "2.5.2",
-          "descripcion": "Clasifica errores fonológicos individuales con corrección automática",
+          "descripcion": "Identifica y clasifica errores fonológicos individuales con corrección automática",
           "categoria": "B"
         },
         {
