@@ -18,7 +18,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
 .container { max-width: 740px; margin: 0 auto; padding: 32px 20px; }
 
 h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
-.subtitle { font-size: 15px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+.subtitle { font-size: 15px; color: #64748b; margin-bottom: 20px; line-height: 1.6; }
 
 .btn { padding: 8px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; transition: all 0.2s; }
 .btn-primary { background: #4250b3; color: #fff; }
@@ -26,14 +26,24 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
 .btn-secondary { background: #e2e8f0; color: #475569; }
 .btn-secondary:hover { background: #cbd5e1; }
 
+.level-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+.level-tab {
+    padding: 6px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    border: 2px solid #e2e8f0; background: #fff; color: #64748b; cursor: pointer;
+    transition: all 0.15s;
+}
+.level-tab:hover { border-color: #4250b3; color: #4250b3; }
+.level-tab.active { background: #4250b3; color: #fff; border-color: #4250b3; }
+
 .exercise-card {
     background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
     padding: 20px 24px; margin-bottom: 16px;
 }
-.ex-label { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; }
-.ex-pair { display: flex; gap: 16px; align-items: center; margin-bottom: 12px; font-size: 15px; }
-.ex-target { font-family: 'Doulos SIL', serif; font-weight: 700; color: #4250b3; }
-.ex-arrow { color: #94a3b8; }
+.ex-label { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; }
+.ex-word { font-size: 13px; color: #64748b; margin-bottom: 6px; }
+.ex-pair { display: flex; gap: 16px; align-items: center; margin-bottom: 14px; font-size: 16px; }
+.ex-target   { font-family: 'Doulos SIL', serif; font-weight: 700; color: #4250b3; }
+.ex-arrow    { color: #94a3b8; }
 .ex-produced { font-family: 'Doulos SIL', serif; font-weight: 700; color: #dc2626; }
 
 .answer-select {
@@ -43,8 +53,21 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
 .answer-select:focus { outline: none; border-color: #4250b3; }
 .answer-select.correct { border-color: #16a34a; background: #f0fdf4; }
 .answer-select.incorrect { border-color: #dc2626; background: #fef2f2; }
+.answer-select.partial { border-color: #f59e0b; background: #fffbeb; }
 
-.ex-feedback { margin-top: 8px; font-size: 13px; display: none; line-height: 1.6; }
+/* Second question for systemic errors */
+.extra-rasgos { display: none; margin-top: 12px; background: #f8fafc; border-radius: 8px; padding: 12px 14px; }
+.extra-title { font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; }
+.rasgo-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.rasgo-row label { font-size: 13px; color: #475569; min-width: 120px; }
+.rasgo-select {
+    flex: 1; padding: 6px 10px; border: 2px solid #e2e8f0; border-radius: 6px;
+    font-family: inherit; font-size: 13px;
+}
+.rasgo-select.correct  { border-color: #16a34a; background: #f0fdf4; }
+.rasgo-select.incorrect{ border-color: #dc2626; background: #fef2f2; }
+
+.ex-feedback { margin-top: 10px; font-size: 13px; display: none; line-height: 1.7; }
 .ex-feedback.show { display: block; }
 
 .results-bar {
@@ -54,11 +77,10 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
 .results-bar.show { display: block; }
 .score { font-size: 36px; font-weight: 800; }
 .score.good { color: #16a34a; }
-.score.mid { color: #f59e0b; }
-.score.bad { color: #dc2626; }
+.score.mid  { color: #f59e0b; }
+.score.bad  { color: #dc2626; }
 
-.action-bar { display: flex; gap: 8px; margin-top: 16px; justify-content: center; }
-
+.action-bar { display: flex; gap: 8px; margin-top: 16px; justify-content: center; flex-wrap: wrap; }
 </style>
 </head>
 <body>
@@ -75,10 +97,22 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
 
 <div class="container">
     <h2>Análisis de errores fonológicos</h2>
-    <p class="subtitle">Clasifica cada error: ¿es un error de estructura de palabra, de sílaba o sistémico? Indica el subtipo concreto.</p>
+    <p class="subtitle">Se muestra la producción correcta y la producida por un paciente. Indica el tipo de error. Para errores sistémicos, especifica también qué valor fonológico debería tener y cuál ha producido el paciente.</p>
 
-    <div style="margin-bottom:20px;">
-        <button class="btn btn-primary" onclick="generateExercise()">Nuevo ejercicio</button>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+        <select id="level-select" onchange="onLevelChange()" style="padding:8px 14px;border:2px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:14px;min-width:280px;">
+            <option value="">— Selecciona un nivel —</option>
+            <option value="palabra">Nivel básico: solo Estructura de palabra</option>
+            <option value="silaba">Nivel básico: solo Estructura de sílaba</option>
+            <option value="sistemico">Nivel básico: solo errores sistémicos</option>
+            <option value="todos">Nivel avanzado: todos los errores</option>
+        </select>
+        <select id="count-select" style="padding:8px 14px;border:2px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:14px;display:none;">
+            <option value="4">4 items</option>
+            <option value="8">8 items</option>
+            <option value="12">12 items</option>
+        </select>
+        <button class="btn btn-primary" id="start-btn" onclick="generateExercise()" disabled>Empezar</button>
     </div>
 
     <div id="exercise-area"></div>
@@ -89,74 +123,298 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
     </div>
 
     <div class="action-bar" id="action-bar" style="display:none;">
-        <button class="btn btn-primary" onclick="checkAll()">Comprobar</button>
+        <button class="btn btn-primary"   onclick="checkAll()">Comprobar</button>
         <button class="btn btn-secondary" onclick="showSolutions()">Ver soluciones</button>
         <button class="btn btn-secondary" onclick="generateExercise()">Nuevo ejercicio</button>
     </div>
 </div>
 
-</div>
-
 <script>
-// ── Error exercise bank ──
+// ── Exercise bank ─────────────────────────────────────────────────────────────
+// Systemic items use:
+//   rasgo: "sonoridad" | "nasalidad" | "lugar" | "modo"
+//   rasgo_correct: value that should have been produced
+//   rasgo_produced: value the patient actually produced
 var EXERCISES = [
-    {target:"/ma.ɾi.ˈpo.sa/", produced:"/ˈpo.sa/", type:"palabra", subtype:"Omisión de sílaba átona", explanation:"Se omiten las dos primeras sílabas átonas /ma.ɾi/."},
-    {target:"/ˈtɾen/", produced:"/ˈten/", type:"silaba", subtype:"Simplificación de ataque", explanation:"El grupo consonántico /tɾ/ se reduce a /t/."},
-    {target:"/ˈka.sa/", produced:"/ˈta.sa/", type:"sistemico", subtype:"Adelantamiento", explanation:"La velar /k/ se sustituye por la dental /t/ (lugar más anterior)."},
-    {target:"/ˈme.sa/", produced:"/ˈse.ma/", type:"palabra", subtype:"Metátesis", explanation:"Se intercambian las posiciones de /m/ y /s/."},
-    {target:"/ˈtie.ne/", produced:"/ˈte.ne/", type:"silaba", subtype:"Simplificación de núcleo", explanation:"Se pierde la semiconsonante /i/ del diptongo /ie/."},
-    {target:"/ˈde.do/", produced:"/ˈte.to/", type:"sistemico", subtype:"Ensordecimiento", explanation:"La sonora /d/ se sustituye por la sorda /t/."},
-    {target:"/ˈpan/", produced:"/ˈpa/", type:"silaba", subtype:"Omisión de coda", explanation:"Se omite la consonante /n/ en posición de coda."},
-    {target:"/ˈka.na/", produced:"/ˈna.na/", type:"palabra", subtype:"Asimilación regresiva", explanation:"La /k/ se asimila a la /n/ que viene después."},
-    {target:"/ˈke.so/", produced:"/ˈke.ko/", type:"palabra", subtype:"Asimilación progresiva", explanation:"La /s/ se asimila a la /k/ anterior."},
-    {target:"/ˈpie/", produced:"/ˈie/", type:"silaba", subtype:"Omisión de ataque", explanation:"Se omite la consonante /p/ en posición de ataque."},
-    {target:"/ˈplan/", produced:"/ˈpan/", type:"silaba", subtype:"Simplificación de ataque", explanation:"El grupo /pl/ se reduce a /p/."},
-    {target:"/θa.ˈpa.to/", produced:"/ˈpa.to/", type:"palabra", subtype:"Omisión de sílaba átona", explanation:"Se omite la primera sílaba átona /θa/."},
-    {target:"/ˈten/", produced:"/ˈte/", type:"silaba", subtype:"Omisión de coda", explanation:"Se omite la /n/ final."},
-    {target:"/ˈma.la.ga/", produced:"/ˈma.ga.la/", type:"palabra", subtype:"Metátesis", explanation:"Se intercambian las sílabas /la/ y /ga/."},
-    {target:"/ma.ˈɲa.na/", produced:"/ma.ˈna.na/", type:"palabra", subtype:"Asimilación regresiva", explanation:"La /ɲ/ se asimila a la /n/ posterior."},
-    {target:"/ˈta.θa/", produced:"/ˈta.ta/", type:"palabra", subtype:"Asimilación progresiva", explanation:"La /θ/ se asimila a la /t/ anterior."},
-    {target:"/ˈbo.ka/", produced:"/ˈmo.ka/", type:"sistemico", subtype:"Nasalización", explanation:"La oclusiva sonora /b/ se sustituye por la nasal /m/."},
-    {target:"/ˈma.no/", produced:"/ˈba.no/", type:"sistemico", subtype:"Desnasalización", explanation:"La nasal /m/ se sustituye por la oral /b/."},
-    {target:"/ˈka.sa/", produced:"/ˈxa.sa/", type:"sistemico", subtype:"Lenición", explanation:"La oclusiva /k/ se suaviza a la fricativa /x/."},
-    {target:"/ˈxa.mon/", produced:"/ˈka.mon/", type:"sistemico", subtype:"Fortición", explanation:"La fricativa /x/ se refuerza a la oclusiva /k/."},
-    {target:"/ˈpe.ro/", produced:"/ˈke.ro/", type:"sistemico", subtype:"Posteriorización", explanation:"La bilabial /p/ se sustituye por la velar /k/."},
-    {target:"/ˈta.pa/", produced:"/ˈda.pa/", type:"sistemico", subtype:"Sonorización", explanation:"La sorda /t/ se sustituye por la sonora /d/."},
-    {target:"/es.ˈtɾe.ʝa/", produced:"/e.ˈte.ʝa/", type:"silaba", subtype:"Simplificación de ataque", explanation:"El grupo /tɾ/ se reduce a /t/, y se omite la /s/ en coda."},
-    {target:"/ma.ɾi.ˈpo.sa/", produced:"/ˈsa/", type:"palabra", subtype:"Omisión de sílaba tónica", explanation:"Se omite la sílaba tónica y las átonas, quedando solo /sa/."},
+
+    // ── ESTRUCTURA DE PALABRA ─────────────────────────────────────────────────
+    {nivel:"palabra", word:"mariposa",
+     target:"/ma.ɾi.ˈpo.sa/", produced:"/ˈpo.sa/",
+     type:"palabra", subtype:"Omisión de sílaba pretónica",
+     explanation:"Se omiten las dos primeras sílabas pretónicas /ma.ɾi/."},
+    {nivel:"palabra", word:"zapato",
+     target:"/θa.ˈpa.to/", produced:"/ˈpa.to/",
+     type:"palabra", subtype:"Omisión de sílaba pretónica",
+     explanation:"Se omite la primera sílaba pretónica /θa/."},
+    {nivel:"palabra", word:"televisión",
+     target:"/te.le.bi.ˈsion/", produced:"/le.bi.ˈsion/",
+     type:"palabra", subtype:"Omisión de sílaba pretónica",
+     explanation:"Se omite la primera sílaba pretónica /te/."},
+    {nivel:"palabra", word:"mesa",
+     target:"/ˈme.sa/", produced:"/ˈse.ma/",
+     type:"palabra", subtype:"Metátesis",
+     explanation:"Se intercambian las posiciones de /m/ y /s/."},
+    {nivel:"palabra", word:"Málaga",
+     target:"/ˈma.la.ga/", produced:"/ˈma.ga.la/",
+     type:"palabra", subtype:"Metátesis",
+     explanation:"Se intercambian las sílabas /la/ y /ga/."},
+    {nivel:"palabra", word:"cana",
+     target:"/ˈka.na/", produced:"/ˈna.na/",
+     type:"palabra", subtype:"Asimilación regresiva",
+     explanation:"La /k/ se asimila a la /n/ que viene después."},
+    {nivel:"palabra", word:"mañana",
+     target:"/ma.ˈɲa.na/", produced:"/ma.ˈna.na/",
+     type:"palabra", subtype:"Asimilación regresiva",
+     explanation:"La /ɲ/ se asimila a la /n/ posterior."},
+    {nivel:"palabra", word:"queso",
+     target:"/ˈke.so/", produced:"/ˈke.ko/",
+     type:"palabra", subtype:"Asimilación progresiva",
+     explanation:"La /s/ se asimila a la /k/ anterior."},
+    {nivel:"palabra", word:"taza",
+     target:"/ˈta.θa/", produced:"/ˈta.ta/",
+     type:"palabra", subtype:"Asimilación progresiva",
+     explanation:"La /θ/ se asimila a la /t/ anterior."},
+
+    // ── ESTRUCTURA DE SÍLABA ──────────────────────────────────────────────────
+    {nivel:"silaba", word:"tren",
+     target:"/ˈtɾen/", produced:"/ˈten/",
+     type:"silaba", subtype:"Simplificación de ataque",
+     explanation:"El grupo consonántico /tɾ/ se reduce a /t/."},
+    {nivel:"silaba", word:"plan",
+     target:"/ˈplan/", produced:"/ˈpan/",
+     type:"silaba", subtype:"Simplificación de ataque",
+     explanation:"El grupo consonántico /pl/ se reduce a /p/."},
+    {nivel:"silaba", word:"fresa",
+     target:"/ˈfɾe.sa/", produced:"/ˈfe.sa/",
+     type:"silaba", subtype:"Simplificación de ataque",
+     explanation:"El grupo consonántico /fɾ/ se reduce a /f/."},
+    {nivel:"silaba", word:"tiene",
+     target:"/ˈtie.ne/", produced:"/ˈte.ne/",
+     type:"silaba", subtype:"Simplificación de núcleo",
+     explanation:"El diptongo /ie/ se reduce a la vocal simple /e/."},
+    {nivel:"silaba", word:"bueno",
+     target:"/ˈbue.no/", produced:"/ˈbe.no/",
+     type:"silaba", subtype:"Simplificación de núcleo",
+     explanation:"El diptongo /ue/ se reduce a la vocal simple /e/."},
+    {nivel:"silaba", word:"pie",
+     target:"/ˈpie/", produced:"/ˈie/",
+     type:"silaba", subtype:"Omisión de ataque",
+     explanation:"Se omite la consonante /p/ en posición de ataque."},
+    {nivel:"silaba", word:"sol",
+     target:"/ˈsol/", produced:"/ˈso/",
+     type:"silaba", subtype:"Omisión de coda",
+     explanation:"Se omite la /l/ en posición de coda."},
+    {nivel:"silaba", word:"pan",
+     target:"/ˈpan/", produced:"/ˈpa/",
+     type:"silaba", subtype:"Omisión de coda",
+     explanation:"Se omite la /n/ en posición de coda."},
+
+    // ── SISTÉMICO — Sonoridad ─────────────────────────────────────────────────
+    {nivel:"sistemico", word:"dedo",
+     target:"/ˈde.do/", produced:"/ˈte.to/",
+     type:"sistemico", rasgo:"sonoridad",
+     rasgo_correct:"sonora", rasgo_produced:"sorda",
+     explanation:"Las sonoras /d/ se sustituyen sistemáticamente por sordas /t/."},
+    {nivel:"sistemico", word:"tapa",
+     target:"/ˈta.pa/", produced:"/ˈda.pa/",
+     type:"sistemico", rasgo:"sonoridad",
+     rasgo_correct:"sorda", rasgo_produced:"sonora",
+     explanation:"La sorda /t/ se sustituye por la sonora /d/."},
+
+    // ── SISTÉMICO — Nasalidad ─────────────────────────────────────────────────
+    {nivel:"sistemico", word:"boca",
+     target:"/ˈbo.ka/", produced:"/ˈmo.ka/",
+     type:"sistemico", rasgo:"nasalidad",
+     rasgo_correct:"oral", rasgo_produced:"nasal",
+     explanation:"La oclusiva oral /b/ se sustituye por la nasal /m/."},
+    {nivel:"sistemico", word:"mano",
+     target:"/ˈma.no/", produced:"/ˈba.no/",
+     type:"sistemico", rasgo:"nasalidad",
+     rasgo_correct:"nasal", rasgo_produced:"oral",
+     explanation:"La nasal /m/ se sustituye por la oral /b/."},
+
+    // ── SISTÉMICO — Lugar de articulación ────────────────────────────────────
+    {nivel:"sistemico", word:"casa",
+     target:"/ˈka.sa/", produced:"/ˈta.sa/",
+     type:"sistemico", rasgo:"lugar",
+     rasgo_correct:"velar", rasgo_produced:"dental",
+     explanation:"La velar /k/ se sustituye por la dental /t/ (lugar más anterior)."},
+    {nivel:"sistemico", word:"jota",
+     target:"/ˈxo.ta/", produced:"/ˈso.ta/",
+     type:"sistemico", rasgo:"lugar",
+     rasgo_correct:"velar", rasgo_produced:"alveolar",
+     explanation:"La velar /x/ se sustituye por la alveolar /s/ (lugar más anterior)."},
+    {nivel:"sistemico", word:"pero",
+     target:"/ˈpe.ɾo/", produced:"/ˈke.ɾo/",
+     type:"sistemico", rasgo:"lugar",
+     rasgo_correct:"bilabial", rasgo_produced:"velar",
+     explanation:"La bilabial /p/ se sustituye por la velar /k/ (lugar más posterior)."},
+    {nivel:"sistemico", word:"sopa",
+     target:"/ˈso.pa/", produced:"/ˈxo.pa/",
+     type:"sistemico", rasgo:"lugar",
+     rasgo_correct:"alveolar", rasgo_produced:"velar",
+     explanation:"La alveolar /s/ se sustituye por la velar /x/ (lugar más posterior)."},
+
+    // ── SISTÉMICO — Modo de articulación ─────────────────────────────────────
+    {nivel:"sistemico", word:"casa",
+     target:"/ˈka.sa/", produced:"/ˈxa.sa/",
+     type:"sistemico", rasgo:"modo",
+     rasgo_correct:"oclusiva", rasgo_produced:"fricativa",
+     explanation:"La oclusiva /k/ se debilita a la fricativa /x/ (mismo lugar velar)."},
+    {nivel:"sistemico", word:"jamón",
+     target:"/xa.ˈmon/", produced:"/ka.ˈmon/",
+     type:"sistemico", rasgo:"modo",
+     rasgo_correct:"fricativa", rasgo_produced:"oclusiva",
+     explanation:"La fricativa /x/ se refuerza a la oclusiva /k/ (mismo lugar velar)."},
 ];
+
+// ── Dropdown definitions ──────────────────────────────────────────────────────
+var RASGO_VALUES = {
+    sonoridad: ['sorda', 'sonora'],
+    nasalidad: ['oral', 'nasal'],
+    lugar:     ['bilabial', 'labiodental', 'interdental', 'dental', 'alveolar', 'palatal', 'velar'],
+    modo:      ['oclusiva', 'fricativa', 'africada', 'lateral', 'vibrante', 'nasal']
+};
+var RASGO_LABELS = {
+    sonoridad: 'Sonoridad',
+    nasalidad: 'Nasalidad',
+    lugar:     'Lugar de articulación',
+    modo:      'Modo de articulación'
+};
 
 var ERROR_TYPES = [
-    {value: "", label: "— Selecciona —"},
-    {value: "palabra|Asimilación regresiva", label: "Estructura de palabra: Asimilación regresiva"},
-    {value: "palabra|Asimilación progresiva", label: "Estructura de palabra: Asimilación progresiva"},
-    {value: "palabra|Metátesis", label: "Estructura de palabra: Metátesis"},
-    {value: "palabra|Omisión de sílaba átona", label: "Estructura de palabra: Omisión de sílaba átona"},
-    {value: "palabra|Omisión de sílaba tónica", label: "Estructura de palabra: Omisión de sílaba tónica"},
-    {value: "silaba|Omisión de ataque", label: "Estructura de sílaba: Omisión de ataque"},
-    {value: "silaba|Simplificación de ataque", label: "Estructura de sílaba: Simplificación de ataque"},
-    {value: "silaba|Simplificación de núcleo", label: "Estructura de sílaba: Simplificación de núcleo"},
-    {value: "silaba|Omisión de coda", label: "Estructura de sílaba: Omisión de coda"},
-    {value: "sistemico|Sonorización", label: "Sistémico: Sonorización"},
-    {value: "sistemico|Ensordecimiento", label: "Sistémico: Ensordecimiento"},
-    {value: "sistemico|Nasalización", label: "Sistémico: Nasalización"},
-    {value: "sistemico|Desnasalización", label: "Sistémico: Desnasalización"},
-    {value: "sistemico|Lenición", label: "Sistémico: Lenición"},
-    {value: "sistemico|Fortición", label: "Sistémico: Fortición"},
-    {value: "sistemico|Adelantamiento", label: "Sistémico: Adelantamiento"},
-    {value: "sistemico|Posteriorización", label: "Sistémico: Posteriorización"},
+    {value: "",                                   label: "— Selecciona —"},
+    {value: "palabra|Asimilación regresiva",      label: "Estructura de palabra: Asimilación regresiva"},
+    {value: "palabra|Asimilación progresiva",     label: "Estructura de palabra: Asimilación progresiva"},
+    {value: "palabra|Metátesis",                  label: "Estructura de palabra: Metátesis"},
+    {value: "palabra|Omisión de sílaba pretónica",label: "Estructura de palabra: Omisión de sílaba pretónica"},
+    {value: "silaba|Omisión de ataque",           label: "Estructura de sílaba: Omisión de ataque"},
+    {value: "silaba|Simplificación de ataque",    label: "Estructura de sílaba: Simplificación de ataque"},
+    {value: "silaba|Simplificación de núcleo",    label: "Estructura de sílaba: Simplificación de núcleo"},
+    {value: "silaba|Omisión de coda",             label: "Estructura de sílaba: Omisión de coda"},
+    {value: "sistemico|sonoridad",                label: "Sistémico: Sonoridad"},
+    {value: "sistemico|nasalidad",                label: "Sistémico: Nasalidad"},
+    {value: "sistemico|lugar",                    label: "Sistémico: Lugar de articulación"},
+    {value: "sistemico|modo",                     label: "Sistémico: Modo de articulación"},
 ];
 
+// ── Todos-mode bank (different words from single-level bank) ─────────────────
+var EXERCISES_TODOS = [
+    // Palabra
+    {nivel:"palabra", word:"pelota",
+     target:"/pe.ˈlo.ta/", produced:"/ˈlo.ta/",
+     type:"palabra", subtype:"Omisión de sílaba pretónica",
+     explanation:"Se omite la primera sílaba pretónica /pe/."},
+    {nivel:"palabra", word:"sábana",
+     target:"/ˈsa.ba.na/", produced:"/ˈna.ba.na/",
+     type:"palabra", subtype:"Asimilación regresiva",
+     explanation:"La /s/ se asimila a la /n/ que aparece después en la palabra."},
+    {nivel:"palabra", word:"camisa",
+     target:"/ka.ˈmi.sa/", produced:"/ka.ˈmi.ka/",
+     type:"palabra", subtype:"Asimilación progresiva",
+     explanation:"La /s/ se asimila a la /k/ anterior."},
+    {nivel:"palabra", word:"pálido",
+     target:"/ˈpa.li.do/", produced:"/ˈpa.ni.do/",
+     type:"palabra", subtype:"Asimilación regresiva",
+     explanation:"La /l/ se asimila a la /n/ que aparece después."},
+    // Sílaba
+    {nivel:"silaba", word:"brazo",
+     target:"/ˈbɾa.θo/", produced:"/ˈba.θo/",
+     type:"silaba", subtype:"Simplificación de ataque",
+     explanation:"El grupo consonántico /bɾ/ se reduce a /b/."},
+    {nivel:"silaba", word:"globo",
+     target:"/ˈglo.bo/", produced:"/ˈgo.bo/",
+     type:"silaba", subtype:"Simplificación de ataque",
+     explanation:"El grupo consonántico /gl/ se reduce a /g/."},
+    {nivel:"silaba", word:"puerta",
+     target:"/ˈpuer.ta/", produced:"/ˈper.ta/",
+     type:"silaba", subtype:"Simplificación de núcleo",
+     explanation:"El diptongo /ue/ se reduce a la vocal simple /e/."},
+    {nivel:"silaba", word:"viento",
+     target:"/ˈbien.to/", produced:"/ˈben.to/",
+     type:"silaba", subtype:"Simplificación de núcleo",
+     explanation:"El diptongo /ie/ se reduce a la vocal simple /e/."},
+    {nivel:"silaba", word:"mes",
+     target:"/ˈmes/", produced:"/ˈme/",
+     type:"silaba", subtype:"Omisión de coda",
+     explanation:"Se omite la /s/ en posición de coda."},
+    // Sistémico
+    {nivel:"sistemico", word:"gato",
+     target:"/ˈga.to/", produced:"/ˈka.to/",
+     type:"sistemico", rasgo:"sonoridad",
+     rasgo_correct:"sonora", rasgo_produced:"sorda",
+     explanation:"La sonora /g/ se sustituye por la sorda /k/."},
+    {nivel:"sistemico", word:"nube",
+     target:"/ˈnu.be/", produced:"/ˈnu.me/",
+     type:"sistemico", rasgo:"nasalidad",
+     rasgo_correct:"oral", rasgo_produced:"nasal",
+     explanation:"La oral /b/ se sustituye por la nasal /m/."},
+    {nivel:"sistemico", word:"niño",
+     target:"/ˈni.ɲo/", produced:"/ˈni.no/",
+     type:"sistemico", rasgo:"lugar",
+     rasgo_correct:"palatal", rasgo_produced:"alveolar",
+     explanation:"La palatal /ɲ/ se sustituye por la alveolar /n/ (lugar más anterior)."},
+    {nivel:"sistemico", word:"lago",
+     target:"/ˈla.go/", produced:"/ˈla.xo/",
+     type:"sistemico", rasgo:"modo",
+     rasgo_correct:"oclusiva", rasgo_produced:"fricativa",
+     explanation:"La oclusiva /g/ se debilita a la fricativa /x/ (mismo lugar velar)."},
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+var currentLevel = '';
 var currentItems = [];
 
+function onLevelChange() {
+    currentLevel = document.getElementById('level-select').value;
+    var countSel = document.getElementById('count-select');
+    if (currentLevel && currentLevel !== 'todos') {
+        countSel.style.display = '';
+    } else {
+        countSel.style.display = 'none';
+    }
+    document.getElementById('start-btn').disabled = !currentLevel;
+}
+
+// ── Exercise generation ───────────────────────────────────────────────────────
 function generateExercise() {
-    var shuffled = EXERCISES.slice().sort(function() { return Math.random() - 0.5; });
-    currentItems = shuffled.slice(0, 6);
+    if (!currentLevel) return;
+
+    var pool;
+    if (currentLevel === 'todos') {
+        // Pick exactly 4 from each subgroup and shuffle the combined list
+        var byType = {palabra: [], silaba: [], sistemico: []};
+        EXERCISES_TODOS.forEach(function(e) { byType[e.nivel].push(e); });
+        pool = [];
+        ['palabra','silaba','sistemico'].forEach(function(t) {
+            var sh = byType[t].slice().sort(function(){return Math.random()-0.5;});
+            pool = pool.concat(sh.slice(0, 4));
+        });
+        currentItems = pool.sort(function(){return Math.random()-0.5;});
+    } else {
+        var count = parseInt(document.getElementById('count-select').value) || 6;
+        var shuffled = EXERCISES.filter(function(e) { return e.nivel === currentLevel; })
+                                .sort(function(){return Math.random()-0.5;});
+        var usedWords = {};
+        var deduped = [];
+        shuffled.forEach(function(e) {
+            var key = e.word || e.target;
+            if (!usedWords[key]) { usedWords[key] = true; deduped.push(e); }
+        });
+        currentItems = deduped.slice(0, count);
+    }
 
     var area = document.getElementById('exercise-area');
     area.innerHTML = '';
 
-    var optionsHtml = ERROR_TYPES.map(function(t) {
+    // Filter dropdown options to match selected level (show all if "todos")
+    var filteredTypes = currentLevel === 'todos'
+        ? ERROR_TYPES
+        : ERROR_TYPES.filter(function(t) {
+            return t.value === '' || t.value.split('|')[0] === currentLevel;
+          });
+
+    var optionsHtml = filteredTypes.map(function(t) {
         return '<option value="' + t.value + '">' + t.label + '</option>';
     }).join('');
 
@@ -165,12 +423,16 @@ function generateExercise() {
         card.className = 'exercise-card';
         card.innerHTML =
             '<div class="ex-label">Error ' + (i + 1) + '</div>' +
+            (item.word ? '<div class="ex-word">Palabra: <em>' + item.word + '</em></div>' : '') +
             '<div class="ex-pair">' +
                 '<span class="ex-target">' + item.target + '</span>' +
                 '<span class="ex-arrow">→</span>' +
                 '<span class="ex-produced">' + item.produced + '</span>' +
             '</div>' +
-            '<select class="answer-select" id="answer-' + i + '">' + optionsHtml + '</select>' +
+            '<select class="answer-select" id="answer-' + i + '" onchange="onTypeChange(this,' + i + ')">' +
+                optionsHtml +
+            '</select>' +
+            '<div class="extra-rasgos" id="extra-' + i + '"></div>' +
             '<div class="ex-feedback" id="fb-' + i + '"></div>';
         area.appendChild(card);
     });
@@ -179,71 +441,176 @@ function generateExercise() {
     document.getElementById('results-bar').classList.remove('show');
 }
 
-function checkAll() {
-    var correct = 0;
-    currentItems.forEach(function(item, i) {
-        var sel = document.getElementById('answer-' + i);
-        var fb = document.getElementById('fb-' + i);
-        var answer = sel.value;
-        var expected = item.type + '|' + item.subtype;
+// ── Conditional value dropdowns ───────────────────────────────────────────────
+function buildValueDropdowns(i, rasgo) {
+    var label = RASGO_LABELS[rasgo] || rasgo;
+    var vals = RASGO_VALUES[rasgo] || [];
+    var opts = '<option value="">— elige —</option>' +
+        vals.map(function(v) { return '<option value="' + v + '">' + v + '</option>'; }).join('');
+    return '<div class="extra-title">' + label + ':</div>' +
+        '<div class="rasgo-row">' +
+            '<label>Debería ser:</label>' +
+            '<select class="rasgo-select" id="val-correct-' + i + '">' + opts + '</select>' +
+        '</div>' +
+        '<div class="rasgo-row">' +
+            '<label>Ha producido:</label>' +
+            '<select class="rasgo-select" id="val-produced-' + i + '">' + opts + '</select>' +
+        '</div>';
+}
 
-        fb.classList.add('show');
+function onTypeChange(sel, i) {
+    var parts = sel.value.split('|');
+    var type  = parts[0] || '';
+    var rasgo = parts[1] || '';
+    var extra = document.getElementById('extra-' + i);
 
-        if (answer === expected) {
-            correct++;
-            sel.className = 'answer-select correct';
-            fb.innerHTML = '<span style="color:#16a34a;font-weight:600;">✓ Correcto.</span> ' + item.explanation;
-        } else if (!answer) {
-            sel.className = 'answer-select incorrect';
-            fb.innerHTML = '<span style="color:#dc2626;">Sin respuesta.</span><br>Respuesta correcta: <strong>' + item.subtype + '</strong>. ' + item.explanation;
-        } else {
-            sel.className = 'answer-select incorrect';
-            fb.innerHTML = '<span style="color:#dc2626;">✗ Incorrecto.</span><br>Respuesta correcta: <strong>' + item.subtype + '</strong>. ' + item.explanation;
-        }
-    });
-
-    var total = currentItems.length;
-    var pct = Math.round(correct / total * 100);
-    var scoreEl = document.getElementById('score-text');
-    scoreEl.textContent = correct + ' / ' + total;
-    scoreEl.className = 'score ' + (pct >= 80 ? 'good' : (pct >= 50 ? 'mid' : 'bad'));
-    document.getElementById('results-detail').textContent = pct + '% de aciertos';
-    document.getElementById('results-bar').classList.add('show');
-
-    // Save progress (localStorage + server)
-    try {
-        var progress = JSON.parse(localStorage.getItem('lali_progress') || '{}');
-        var prev = progress['ejercicio_errores'];
-        if (!prev || pct > prev.score) {
-            progress['ejercicio_errores'] = { completed: pct >= 75, score: pct, date: new Date().toISOString().split('T')[0] };
-            localStorage.setItem('lali_progress', JSON.stringify(progress));
-        }
-    } catch(e) {}
-    if (typeof guardarProgreso === 'function') {
-        guardarProgreso('ejercicio_errores', correct, total, {tipo: 'errores_fonologicos'});
+    if (type === 'sistemico' && RASGO_VALUES[rasgo]) {
+        extra.innerHTML = buildValueDropdowns(i, rasgo);
+        extra.style.display = 'block';
+    } else {
+        extra.style.display = 'none';
+        extra.innerHTML = '';
     }
 }
 
+// ── Scoring helpers ───────────────────────────────────────────────────────────
+function getRasgoSels(i) {
+    return {
+        correct:  document.getElementById('val-correct-' + i),
+        produced: document.getElementById('val-produced-' + i)
+    };
+}
+
+// ── Check ─────────────────────────────────────────────────────────────────────
+function checkAll() {
+    var earned = 0, total = 0;
+    var byGroup = {
+        palabra:   {earned:0, total:0},
+        silaba:    {earned:0, total:0},
+        sistemico: {earned:0, total:0}
+    };
+
+    currentItems.forEach(function(item, i) {
+        var sel    = document.getElementById('answer-' + i);
+        var fb     = document.getElementById('fb-' + i);
+        var answer = sel.value;
+        fb.classList.add('show');
+
+        var isSistemic = item.type === 'sistemico';
+        var weight = isSistemic ? 3 : 1;
+        total += weight;
+        byGroup[item.type].total += weight;
+
+        var itemEarned = 0;
+
+        if (!answer) {
+            sel.className = 'answer-select incorrect';
+            fb.innerHTML = '<span style="color:#dc2626;">Sin respuesta.</span> ' + _correctAnswer(item);
+        } else {
+            var parts      = answer.split('|');
+            var selType    = parts[0] || '';
+            var selSubtype = parts[1] || '';
+
+            if (!isSistemic) {
+                var ok = selType === item.type && selSubtype === item.subtype;
+                sel.className = 'answer-select ' + (ok ? 'correct' : 'incorrect');
+                fb.innerHTML = ok
+                    ? '<span style="color:#16a34a;font-weight:600;">✓ Correcto.</span> ' + item.explanation
+                    : '<span style="color:#dc2626;">✗ Incorrecto.</span> ' + _correctAnswer(item);
+                if (ok) itemEarned = 1;
+            } else {
+                var rasgoOk = selType === 'sistemico' && selSubtype === item.rasgo;
+                if (!rasgoOk) {
+                    sel.className = 'answer-select incorrect';
+                    fb.innerHTML = '<span style="color:#dc2626;">✗ Incorrecto.</span> ' + _correctAnswer(item);
+                } else {
+                    itemEarned = 1;
+                    var sels = getRasgoSels(i);
+                    var cVal = sels.correct  ? sels.correct.value  : '';
+                    var pVal = sels.produced ? sels.produced.value : '';
+                    var cOk  = cVal === item.rasgo_correct;
+                    var pOk  = pVal === item.rasgo_produced;
+                    if (sels.correct)  sels.correct.className  = 'rasgo-select ' + (cOk ? 'correct' : 'incorrect');
+                    if (sels.produced) sels.produced.className = 'rasgo-select ' + (pOk ? 'correct' : 'incorrect');
+                    if (cOk && pOk) {
+                        sel.className = 'answer-select correct';
+                        fb.innerHTML = '<span style="color:#16a34a;font-weight:600;">✓ Correcto.</span> ' + item.explanation;
+                        itemEarned = 3;
+                    } else {
+                        sel.className = 'answer-select partial';
+                        var hint = 'Rasgo correcto. Valor correcto: <strong>' + item.rasgo_correct + '</strong>';
+                        if (!cOk) hint += ' (marcaste: ' + (cVal || '—') + ')';
+                        hint += '. Valor producido: <strong>' + item.rasgo_produced + '</strong>';
+                        if (!pOk) hint += ' (marcaste: ' + (pVal || '—') + ')';
+                        fb.innerHTML = '<span style="color:#f59e0b;font-weight:600;">⚠ Rasgo correcto, pero revisa los valores.</span><br>' + hint + '. ' + item.explanation;
+                        itemEarned = 1 + (cOk || pOk ? 1 : 0);
+                    }
+                }
+            }
+        }
+
+        earned += itemEarned;
+        byGroup[item.type].earned += itemEarned;
+    });
+
+    var pct = total > 0 ? Math.round(earned / total * 100) : 0;
+    var scoreEl = document.getElementById('score-text');
+    scoreEl.textContent = earned + ' / ' + total + ' pts';
+    scoreEl.className = 'score ' + (pct >= 80 ? 'good' : (pct >= 50 ? 'mid' : 'bad'));
+
+    var detailEl = document.getElementById('results-detail');
+    if (currentLevel === 'todos') {
+        var groupLabels = {palabra:'Estructura de palabra', silaba:'Estructura de sílaba', sistemico:'Errores sistémicos'};
+        var breakdown = ['palabra','silaba','sistemico'].map(function(t) {
+            var g = byGroup[t];
+            if (!g.total) return null;
+            var gpct = Math.round(g.earned / g.total * 100);
+            var color = gpct >= 80 ? '#16a34a' : (gpct >= 50 ? '#f59e0b' : '#dc2626');
+            return '<span style="color:' + color + ';font-weight:600;">' + groupLabels[t] + ': ' + g.earned + '/' + g.total + ' pts (' + gpct + '%)</span>';
+        }).filter(Boolean);
+        detailEl.innerHTML = pct + '% global &nbsp;|&nbsp; ' + breakdown.join(' &nbsp;|&nbsp; ');
+    } else {
+        detailEl.textContent = pct + '% de aciertos';
+    }
+    document.getElementById('results-bar').classList.add('show');
+
+    if (typeof guardarProgreso === 'function') {
+        guardarProgreso('ejercicio_errores', earned, total, {tipo: 'errores_fonologicos'});
+    }
+}
+
+function _correctAnswer(item) {
+    if (item.type === 'sistemico') {
+        return 'Rasgo afectado: <strong>' + RASGO_LABELS[item.rasgo] + '</strong>. '
+             + 'Debería ser: <strong>' + item.rasgo_correct + '</strong>; '
+             + 'producido: <strong>' + item.rasgo_produced + '</strong>. '
+             + item.explanation;
+    }
+    return 'Respuesta correcta: <strong>' + item.subtype + '</strong>. ' + item.explanation;
+}
+
+// ── Show solutions ────────────────────────────────────────────────────────────
 function showSolutions() {
     currentItems.forEach(function(item, i) {
         var sel = document.getElementById('answer-' + i);
-        var fb = document.getElementById('fb-' + i);
+        var fb  = document.getElementById('fb-' + i);
         fb.classList.add('show');
-        var answer = sel.value;
-        var expected = item.type + '|' + item.subtype;
-        if (answer === expected) {
-            sel.className = 'answer-select correct';
-            fb.innerHTML = '<span style="color:#16a34a;font-weight:600;">✓ Correcto.</span> ' + item.explanation;
+
+        if (item.type === 'sistemico') {
+            sel.value = 'sistemico|' + item.rasgo;
+            onTypeChange(sel, i);
+            var sels = getRasgoSels(i);
+            if (sels.correct)  sels.correct.value  = item.rasgo_correct;
+            if (sels.produced) sels.produced.value = item.rasgo_produced;
         } else {
-            sel.className = 'answer-select incorrect';
-            fb.innerHTML = '<strong>' + item.subtype + '</strong>: ' + item.explanation;
+            sel.value = item.type + '|' + item.subtype;
         }
+        sel.className = 'answer-select correct';
+        fb.innerHTML = _correctAnswer(item);
     });
 }
 
-// Generate first exercise on load
-generateExercise();
-
+// No auto-generate: user must select a level first
 </script>
 <script src="/static/eulalia/progreso.js"></script>
 <script src="/static/eulalia/informar_profesor.js"></script>

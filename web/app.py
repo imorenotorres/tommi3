@@ -3815,6 +3815,44 @@ async def _lali_ejercicio_informe_errores_impl(
     words_con_err = len(set(t[0] for t, e in zip(tokens, errs_map) if e is not None))
     ppc = max(0, round((total_words - words_con_err) / total_words * 100)) if total_words else 100
 
+    # ── Phonological feature table (from course materials) ───────────────────
+    _RASGOS = {
+        'p':  {'sonoridad': 'sorda',  'nasalidad': 'oral',  'lugar': 'bilabial',    'modo': 'oclusiva'},
+        'b':  {'sonoridad': 'sonora', 'nasalidad': 'oral',  'lugar': 'bilabial',    'modo': 'oclusiva'},
+        't':  {'sonoridad': 'sorda',  'nasalidad': 'oral',  'lugar': 'dental',      'modo': 'oclusiva'},
+        'd':  {'sonoridad': 'sonora', 'nasalidad': 'oral',  'lugar': 'dental',      'modo': 'oclusiva'},
+        'k':  {'sonoridad': 'sorda',  'nasalidad': 'oral',  'lugar': 'velar',       'modo': 'oclusiva'},
+        'g':  {'sonoridad': 'sonora', 'nasalidad': 'oral',  'lugar': 'velar',       'modo': 'oclusiva'},
+        'f':  {'sonoridad': 'sorda',  'nasalidad': 'oral',  'lugar': 'labiodental', 'modo': 'fricativa'},
+        'θ':  {'sonoridad': 'sorda',  'nasalidad': 'oral',  'lugar': 'interdental', 'modo': 'fricativa'},
+        's':  {'sonoridad': 'sorda',  'nasalidad': 'oral',  'lugar': 'alveolar',    'modo': 'fricativa'},
+        'x':  {'sonoridad': 'sorda',  'nasalidad': 'oral',  'lugar': 'velar',       'modo': 'fricativa'},
+        'ʝ':  {'sonoridad': 'sonora', 'nasalidad': 'oral',  'lugar': 'palatal',     'modo': 'fricativa'},
+        'ʧ':  {'sonoridad': 'sorda',  'nasalidad': 'oral',  'lugar': 'palatal',     'modo': 'africada'},
+        'm':  {'sonoridad': 'sonora', 'nasalidad': 'nasal', 'lugar': 'bilabial',    'modo': 'nasal'},
+        'n':  {'sonoridad': 'sonora', 'nasalidad': 'nasal', 'lugar': 'alveolar',    'modo': 'nasal'},
+        'ɲ':  {'sonoridad': 'sonora', 'nasalidad': 'nasal', 'lugar': 'palatal',     'modo': 'nasal'},
+        'l':  {'sonoridad': 'sonora', 'nasalidad': 'oral',  'lugar': 'alveolar',    'modo': 'lateral'},
+        'r':  {'sonoridad': 'sonora', 'nasalidad': 'oral',  'lugar': 'alveolar',    'modo': 'vibrante'},
+        'ɾ':  {'sonoridad': 'sonora', 'nasalidad': 'oral',  'lugar': 'alveolar',    'modo': 'vibrante'},
+    }
+    _RASGO_KEYS = ['sonoridad', 'nasalidad', 'lugar', 'modo']
+
+    def _compute_rasgos(desc_str):
+        """Parse 'X→Y' and return list of feature names that differ.
+        If nasalidad differs, modo is excluded (nasal mode is implicit in nasality)."""
+        m = _re.match(r'^(.+?)→(.+)$', desc_str.strip())
+        if not m:
+            return []
+        src, tgt = m.group(1).strip(), m.group(2).strip()
+        rs, rt = _RASGOS.get(src), _RASGOS.get(tgt)
+        if not rs or not rt:
+            return []
+        diffs = [k for k in _RASGO_KEYS if rs[k] != rt[k]]
+        if 'nasalidad' in diffs and 'modo' in diffs:
+            diffs.remove('modo')
+        return diffs
+
     # ── Format errors ─────────────────────────────────────────────────────────
     TIPO_LABEL = {
         'metatesis':             ('palabra',   'Metátesis'),
@@ -3827,31 +3865,58 @@ async def _lali_ejercicio_informe_errores_impl(
         'omision_coda':          ('silaba',    'Omisión de coda'),
         'sistematico':           ('sistemico', 'Error sistémico'),
     }
-    # Compound types → two separate error entries
+    # Compound types → two separate error entries.
+    # Order must match the "Part1 + Part2" order in banco descripcion strings.
     COMPOUND_SPLIT = {
-        'asim_omision_silaba':                  [('palabra',   'Asimilación regresiva'),
-                                                 ('palabra',   'Omisión de sílaba pretónica')],
+        # desc: "sílaba omitida + fonema→X"  → [omisión sílaba, asimilación]
+        'asim_omision_silaba':                  [('palabra',   'Omisión de sílaba pretónica'),
+                                                 ('palabra',   'Asimilación regresiva')],
+        # desc: "sílaba omitida + onset→∅"   → [omisión sílaba, omisión ataque]
         'omision_ataque_silaba':                 [('palabra',   'Omisión de sílaba pretónica'),
                                                  ('silaba',    'Omisión de ataque')],
+        # desc: "diptongo→vocal + onset→∅"   → [simp. núcleo, omisión ataque]
         'simplificacion_nucleo_omision_ataque':  [('silaba',    'Simplificación de núcleo'),
                                                  ('silaba',    'Omisión de ataque')],
-        'sistematico_simplificacion_nucleo':     [('sistemico', 'Error sistémico'),
-                                                 ('silaba',    'Simplificación de núcleo')],
-        'sistematico_simplificacion_ataque':     [('sistemico', 'Error sistémico'),
-                                                 ('silaba',    'Simplificación de ataque')],
-        'sistematico_omision_ataque':            [('sistemico', 'Error sistémico'),
-                                                 ('silaba',    'Omisión de ataque')],
+        # desc: "diptongo→vocal + fon→fon"   → [simp. núcleo, sistémico]
+        'sistematico_simplificacion_nucleo':     [('silaba',    'Simplificación de núcleo'),
+                                                 ('sistemico', 'Error sistémico')],
+        # desc: "CC→C + fon→fon"             → [simp. ataque, sistémico]
+        'sistematico_simplificacion_ataque':     [('silaba',    'Simplificación de ataque'),
+                                                 ('sistemico', 'Error sistémico')],
+        # desc: "onset→∅ + fon→fon"          → [omisión ataque, sistémico]
+        'sistematico_omision_ataque':            [('silaba',    'Omisión de ataque'),
+                                                 ('sistemico', 'Error sistémico')],
     }
 
     errores_fmt = []
     for ent in selected:
-        detalle = f"{ent['descripcion']} en \'{ent['ortografia']}\'"
+        word = ent['ortografia']
         if ent['banco_tipo'] in COMPOUND_SPLIT:
-            for cat_tipo, subtipo in COMPOUND_SPLIT[ent['banco_tipo']]:
-                errores_fmt.append({'tipo': cat_tipo, 'subtipo': subtipo, 'detalle': detalle})
+            # Split "Part1 + Part2" description and assign each part to its entry
+            parts = [p.strip() for p in ent['descripcion'].split('+')]
+            for i, (cat_tipo, subtipo) in enumerate(COMPOUND_SPLIT[ent['banco_tipo']]):
+                desc_part = parts[i] if i < len(parts) else ent['descripcion']
+                entry = {'tipo': cat_tipo, 'subtipo': subtipo,
+                         'detalle': f"{desc_part} en '{word}'"}
+                if cat_tipo == 'sistemico':
+                    entry['rasgos'] = _compute_rasgos(desc_part)
+                errores_fmt.append(entry)
         else:
             cat_tipo, subtipo = TIPO_LABEL.get(ent['banco_tipo'], ('sistemico', ent['banco_tipo']))
-            errores_fmt.append({'tipo': cat_tipo, 'subtipo': subtipo, 'detalle': detalle})
+            # If description has multiple parts (e.g. "ʧ→t + k→t"), split into separate entries
+            if '+' in ent['descripcion']:
+                for part in [p.strip() for p in ent['descripcion'].split('+')]:
+                    entry = {'tipo': cat_tipo, 'subtipo': subtipo,
+                             'detalle': f"{part} en '{word}'"}
+                    if cat_tipo == 'sistemico':
+                        entry['rasgos'] = _compute_rasgos(part)
+                    errores_fmt.append(entry)
+            else:
+                entry = {'tipo': cat_tipo, 'subtipo': subtipo,
+                         'detalle': f"{ent['descripcion']} en '{word}'"}
+                if cat_tipo == 'sistemico':
+                    entry['rasgos'] = _compute_rasgos(ent['descripcion'])
+                errores_fmt.append(entry)
 
     _log_eulalia_event("exercise_start", {
         "exercise": "informe_errores",

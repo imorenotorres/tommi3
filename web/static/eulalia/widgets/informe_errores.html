@@ -43,8 +43,10 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
 
 .error-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
 .error-row select { padding: 6px 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 13px; font-family: inherit; }
-.error-row input { flex: 1; min-width: 120px; }
+.error-row input[type="text"] { flex: 1; min-width: 120px; }
 .error-row .remove-btn { background: none; border: none; color: #dc2626; cursor: pointer; font-size: 16px; }
+.rasgos-checks { width: 100%; padding: 4px 0 0 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.rasgo-label { font-size: 12px; color: #334155; display: flex; align-items: center; gap: 3px; cursor: pointer; }
 
 .pk { margin-bottom: 12px; background: #f1f5f9; padding: 6px 12px; border-radius: 6px; display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
 .pk-label { font-size: 11px; color: #64748b; margin-right: 4px; }
@@ -110,7 +112,7 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
     <div class="step locked" id="step1">
         <div class="step-header"><div class="step-num">1</div><div class="step-title">Transcripción fonológica correcta</div></div>
         <div class="step-desc">Escribe la transcripción fonológica de lo que debería haber dicho el paciente. <strong>Este paso es un prerrequisito: si no es correcta, la calificación será 0.</strong></div>
-        <input type="text" id="resp-transcripcion" placeholder="/ ... /" onfocus="lastFocusedInput=this">
+        <textarea id="resp-transcripcion" rows="2" placeholder="/ ... /" onfocus="lastFocusedInput=this" style="resize:none;"></textarea>
         <div class="solution" id="sol-transcripcion"></div>
         <div style="margin-top:8px;"><button class="btn btn-secondary" onclick="checkStep1()">Comprobar paso 1</button></div>
     </div>
@@ -175,7 +177,7 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
 
 <script>
 // Phoneme keyboard
-var pkSymbols = ['θ','ɾ','r','ʝ','ʧ','ɲ','x', null, 'ˈ','.','/',null,'[',']'];
+var pkSymbols = ['θ','ɾ','r','ʝ','ʧ','ɲ','x', null, 'ˈ','.','/',null,'[',']', null, '∅','>'];
 var pkRow = document.getElementById('pk-row');
 var lbl = document.createElement('span');
 lbl.className = 'pk-label';
@@ -204,19 +206,21 @@ function insertSymbol(s) {
     inp.focus();
 }
 
-// Error subtypes
+// Error subtypes — must match TIPO_LABEL in app.py exactly
 var SUBTYPES = {
-    palabra: ['Asimilación regresiva','Asimilación progresiva','Metátesis','Omisión de sílaba átona','Omisión de sílaba tónica'],
-    silaba: ['Omisión de ataque','Simplificación de ataque','Simplificación de núcleo','Omisión de coda'],
-    sistemico: ['Sonorización','Ensordecimiento','Nasalización','Desnasalización','Lenición','Fortición','Adelantamiento','Posteriorización']
+    palabra:   ['Asimilación regresiva','Asimilación progresiva','Metátesis','Omisión de sílaba pretónica'],
+    silaba:    ['Omisión de ataque','Simplificación de ataque','Simplificación de núcleo','Omisión de coda'],
+    sistemico: ['Error sistémico']
 };
 
 var _errorCounter = 0;
+var RASGO_LABELS = {sonoridad: 'Sonoridad', nasalidad: 'Nasalidad', lugar: 'Lugar', modo: 'Modo'};
 function addErrorRow(tipo) {
     _errorCounter++;
     var container = document.getElementById('errores-' + tipo);
     var div = document.createElement('div');
     div.className = 'error-row';
+    if (tipo === 'sistemico') div.className += ' error-row-sistemico';
     div.id = 'err-' + _errorCounter;
 
     var options = '<option value="">— Subtipo —</option>';
@@ -224,10 +228,22 @@ function addErrorRow(tipo) {
         options += '<option value="' + st + '">' + st + '</option>';
     });
 
+    var rasgosCks = '';
+    if (tipo === 'sistemico') {
+        rasgosCks = '<div class="rasgos-checks">' +
+            '<span style="font-size:11px;color:#64748b;margin-right:4px;">Rasgos afectados:</span>' +
+            ['sonoridad','nasalidad','lugar','modo'].map(function(r) {
+                return '<label class="rasgo-label"><input type="checkbox" value="' + r + '"> ' + RASGO_LABELS[r] + '</label>';
+            }).join('') +
+            '</div>';
+    }
+
     div.innerHTML =
         '<select>' + options + '</select>' +
-        '<input type="text" placeholder="ej. m > n en mapa" style="font-size:12px;" onfocus="lastFocusedInput=this">' +
-        '<button class="remove-btn" onclick="this.parentElement.remove()">✕</button>';
+        '<input type="text" placeholder="ej. t > d" style="font-size:12px;max-width:130px;" onfocus="lastFocusedInput=this">' +
+        '<input type="text" placeholder="palabra" style="font-size:12px;max-width:100px;">' +
+        '<button class="remove-btn" onclick="this.parentElement.remove()">✕</button>' +
+        rasgosCks;
     container.appendChild(div);
 }
 
@@ -411,31 +427,35 @@ function checkStep3() {
     ['palabra','silaba','sistemico'].forEach(function(tipo) {
         var rows = document.getElementById('errores-' + tipo).querySelectorAll('.error-row');
         rows.forEach(function(row) {
-            var select = row.querySelector('select');
-            var input  = row.querySelector('input');
+            var select  = row.querySelector('select');
+            var inputs  = row.querySelectorAll('input[type="text"]');
             if (select && select.value) {
-                userErrors.push({tipo: tipo, subtipo: select.value, detalle: input ? input.value : ''});
+                var err = {
+                    tipo:    tipo,
+                    subtipo: select.value,
+                    cambio:  inputs[0] ? inputs[0].value.trim() : '',
+                    palabra: inputs[1] ? inputs[1].value.trim().toLowerCase() : ''
+                };
+                if (tipo === 'sistemico') {
+                    err.rasgos = Array.from(row.querySelectorAll('.rasgos-checks input:checked')).map(function(cb) { return cb.value; });
+                }
+                userErrors.push(err);
             }
         });
     });
 
-    // Normalize helper: lowercase, strip accents, treat > and → as equivalent
-    var normDetail = function(s) {
+    // Normalize: lowercase, strip accents, → = >
+    var normStr = function(s) {
         return (s || '').toLowerCase()
             .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .replace(/→/g, '>').replace(/\s*>\s*/g, '>');
+            .replace(/→/g, '>').replace(/\s*>\s*/g, '>')
+            .replace(/\b0\b/g, '∅');
     };
 
-    // Extract expected word from detalle string "X>Y en 'word'"
+    // Extract expected word from banco detalle: "X en 'word'"
     var extractWord = function(detalle) {
-        var m = detalle.match(/en ['"]?([a-záéíóúñü]+)['"]?/i);
-        return m ? m[1].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
-    };
-
-    // Extract phoneme change from detalle string "X>Y en …" → "x>y"
-    var extractChange = function(detalle) {
-        var m = detalle.match(/^([^\s]+)/);
-        return m ? m[1] : '';
+        var m = detalle.match(/en ['"]?(\S+?)['"]?$/i);
+        return m ? normStr(m[1]) : '';
     };
 
     // Compare with expected
@@ -443,23 +463,20 @@ function checkStep3() {
     var matched = 0;
     var usedExpected = [];
     var usedUser = [];
+    var matchedUserIdx = {};  // ei -> ui (to retrieve user rasgos in display)
     expectedErrors.forEach(function(exp, ei) {
-        var found = false;
-        var expNorm   = normDetail(exp.detalle);
-        var expWord   = extractWord(expNorm);
-        var expChange = extractChange(expNorm);  // e.g. "b>m"
+        var found   = false;
+        var expWord = extractWord(exp.detalle);
         userErrors.forEach(function(u, ui) {
             if (found || usedUser.indexOf(ui) >= 0) return;
             if (u.tipo !== exp.tipo || u.subtipo !== exp.subtipo) return;
-            var userNorm = normDetail(u.detalle);
-            if (!userNorm) return;
-            // Must mention the word (or the word's phoneme change)
-            var hasWord   = expWord   ? userNorm.indexOf(expWord) >= 0   : true;
-            var hasChange = expChange ? userNorm.indexOf(expChange) >= 0 : true;
-            if (hasWord || hasChange) {
+            var userWord = normStr(u.palabra);
+            var wordOk = !expWord || !userWord || expWord.indexOf(userWord) >= 0 || userWord.indexOf(expWord) >= 0;
+            if (wordOk && (u.palabra || u.cambio)) {
                 found = true;
                 usedExpected.push(ei);
                 usedUser.push(ui);
+                matchedUserIdx[ei] = ui;
                 matched++;
             }
         });
@@ -478,11 +495,33 @@ function checkStep3() {
         expectedErrors.forEach(function(e, ei) {
             var isMatched = usedExpected.indexOf(ei) >= 0;
             var detalleDisplay = (e.detalle || '').replace(/→/g, ' > ');
-            if (isMatched) {
-                html += '<div style="font-size:12px;padding:4px 8px;border-radius:6px;background:#f0fdf4;color:#166534;margin-bottom:3px;">✓ ' + e.subtipo + ': ' + detalleDisplay + '</div>';
-            } else {
-                html += '<div style="font-size:12px;padding:4px 8px;border-radius:6px;background:#fef2f2;color:#dc2626;margin-bottom:3px;">✗ ' + e.subtipo + ': ' + detalleDisplay + '</div>';
+            var bg = isMatched ? '#f0fdf4' : '#fef2f2';
+            var clr = isMatched ? '#166534' : '#dc2626';
+            var icon = isMatched ? '✓' : '✗';
+            html += '<div style="font-size:12px;padding:4px 8px;border-radius:6px;background:' + bg + ';color:' + clr + ';margin-bottom:3px;">' +
+                icon + ' ' + e.subtipo + ': ' + detalleDisplay;
+
+            // For systemic errors, show rasgos comparison
+            if (e.tipo === 'sistemico' && Array.isArray(e.rasgos) && e.rasgos.length > 0) {
+                var expRasgos = e.rasgos;
+                var expLabels = expRasgos.map(function(r) { return RASGO_LABELS[r] || r; });
+                html += '<br><span style="font-size:11px;opacity:0.85;">Rasgos: ' + expLabels.join(', ');
+                if (isMatched) {
+                    var ui = matchedUserIdx[ei];
+                    var userRasgos = (userErrors[ui] && userErrors[ui].rasgos) || [];
+                    var missing = expRasgos.filter(function(r) { return userRasgos.indexOf(r) < 0; });
+                    var extra   = userRasgos.filter(function(r) { return expRasgos.indexOf(r) < 0; });
+                    if (missing.length === 0 && extra.length === 0) {
+                        html += ' ✓';
+                    } else {
+                        html += ' ⚠';
+                        if (missing.length) html += ' (falta: ' + missing.map(function(r){return RASGO_LABELS[r]||r;}).join(', ') + ')';
+                        if (extra.length)   html += ' (de más: ' + extra.map(function(r){return RASGO_LABELS[r]||r;}).join(', ') + ')';
+                    }
+                }
+                html += '</span>';
             }
+            html += '</div>';
         });
     }
     html += '<div style="margin-top:8px;font-size:12px;color:#475569;">' + matched + '/' + expectedErrors.length + ' errores identificados correctamente.';

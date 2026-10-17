@@ -1849,30 +1849,6 @@
       "sem": "cuerpo"
     },
     {
-      "ortografia": "ballena",
-      "correcta": "ba.ˈʝe.na",
-      "erronea": "ˈʝe.na",
-      "descripcion": "ba omitida (sin cambio)",
-      "cat": "nf",
-      "sem": "animal"
-    },
-    {
-      "ortografia": "galleta",
-      "correcta": "ga.ˈʝe.ta",
-      "erronea": "ˈʝe.ta",
-      "descripcion": "ga omitida (sin cambio)",
-      "cat": "nf",
-      "sem": "comida"
-    },
-    {
-      "ortografia": "bigote",
-      "correcta": "bi.ˈgo.te",
-      "erronea": "ˈgo.te",
-      "descripcion": "bi omitida (sin cambio)",
-      "cat": "nm",
-      "sem": "cuerpo"
-    },
-    {
       "ortografia": "tortilla",
       "correcta": "toɾ.ˈti.ʝa",
       "erronea": "ˈʝi.ʝa",
@@ -1903,14 +1879,6 @@
       "descripcion": "es omitida + p→d",
       "cat": "nf",
       "sem": "objeto"
-    },
-    {
-      "ortografia": "espejo",
-      "correcta": "es.ˈpe.xo",
-      "erronea": "ˈpe.xo",
-      "descripcion": "es omitida (sin cambio)",
-      "cat": "nm",
-      "sem": "mueble"
     },
     {
       "ortografia": "helado",
@@ -1959,14 +1927,6 @@
       "descripcion": "toɾ omitida + t→g",
       "cat": "nf",
       "sem": "animal"
-    },
-    {
-      "ortografia": "calcetín",
-      "correcta": "kal.θe.ˈtin",
-      "erronea": "te.ˈtin",
-      "descripcion": "kal omitida (sin cambio)",
-      "cat": "nm",
-      "sem": "ropa"
     },
     {
       "ortografia": "piñata",
@@ -7999,14 +7959,6 @@
       "sem": "abstracto"
     },
     {
-      "ortografia": "cuota",
-      "correcta": "ˈkuo.ta",
-      "erronea": "ˈko.ta",
-      "descripcion": "uo→o (sin cambio consonántico)",
-      "cat": "nf",
-      "sem": "abstracto"
-    },
-    {
       "ortografia": "ciudad",
       "correcta": "θiu.ˈdad",
       "erronea": "xu.ˈdad",
@@ -8042,7 +7994,7 @@
       "ortografia": "nuria",
       "correcta": "ˈnu.ɾia",
       "erronea": "ˈnu.la",
-      "descripcion": "ɾ→l + ia→a",
+      "descripcion": "ia→a + ɾ→l",
       "cat": "np",
       "sem": "persona"
     }
@@ -8331,18 +8283,10 @@
       "sem": "objeto"
     },
     {
-      "ortografia": "saco",
-      "correcta": "ˈsa.ko",
-      "erronea": "ˈa.ko",
-      "descripcion": "s→∅ (sin cambio)",
-      "cat": "nm",
-      "sem": "objeto"
-    },
-    {
       "ortografia": "faro",
       "correcta": "ˈfa.ɾo",
       "erronea": "ˈxa.o",
-      "descripcion": "f→x + ɾ→∅",
+      "descripcion": "ɾ→∅ + f→x",
       "cat": "nm",
       "sem": "mueble"
     },
@@ -8377,14 +8321,6 @@
       "descripcion": "p→∅ + k→t",
       "cat": "nm",
       "sem": "objeto"
-    },
-    {
-      "ortografia": "cama",
-      "correcta": "ˈka.ma",
-      "erronea": "ˈa.ma",
-      "descripcion": "k→∅ (sin cambio)",
-      "cat": "nf",
-      "sem": "mueble"
     },
     {
       "ortografia": "sopa",
