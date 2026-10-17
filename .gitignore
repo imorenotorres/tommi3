@@ -96,3 +96,6 @@ build/
 *.json
 docs/security_audit_2026-09-10.md
 docs/security_audit_2026-10-09.md
+
+!agents/eulalia/data/banco_errores_fonologicos.json
+!agents/eulalia/data/banco_oraciones_informe.json

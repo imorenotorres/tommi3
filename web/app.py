@@ -3673,10 +3673,8 @@ async def _lali_ejercicio_informe_errores_impl(
     rng = random.Random(seed)
 
     # ── Load sentence bank and error banco ────────────────────────────────────
-    oraciones_path = (Path(__file__).parent.parent
-                      / "agents" / "eulalia" / "data" / "banco_oraciones_informe.json")
-    banco_path = (Path(__file__).parent.parent
-                  / "agents" / "eulalia" / "data" / "banco_errores_fonologicos.json")
+    oraciones_path = _LALI_DIR / "data" / "banco_oraciones_informe.json"
+    banco_path     = _LALI_DIR / "data" / "banco_errores_fonologicos.json"
     with open(oraciones_path, "r", encoding="utf-8") as f:
         oraciones = _json.load(f)
     with open(banco_path, "r", encoding="utf-8") as f:

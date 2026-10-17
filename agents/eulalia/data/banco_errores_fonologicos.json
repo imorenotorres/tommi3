@@ -1,0 +1,8568 @@
+{
+  "metatesis": [
+    {
+      "ortografia": "fábrica",
+      "correcta": "ˈfa.bɾi.ka",
+      "erronea": "ˈbɾa.fi.ka",
+      "descripcion": "f ↔ bɾ",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "mariposa",
+      "correcta": "ma.ɾi.ˈpo.sa",
+      "erronea": "ma.ɾi.ˈso.pa",
+      "descripcion": "p ↔ s",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "padre",
+      "correcta": "ˈpa.dɾe",
+      "erronea": "ˈda.pɾe",
+      "descripcion": "p ↔ dɾ",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "madre",
+      "correcta": "ˈma.dɾe",
+      "erronea": "ˈdɾa.me",
+      "descripcion": "m ↔ dɾ",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "libro",
+      "correcta": "ˈli.bɾo",
+      "erronea": "ˈbɾi.lo",
+      "descripcion": "l ↔ bɾ",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tigre",
+      "correcta": "ˈti.gɾe",
+      "erronea": "ˈgɾi.te",
+      "descripcion": "t ↔ gɾ",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "negro",
+      "correcta": "ˈne.gɾo",
+      "erronea": "ˈgɾe.no",
+      "descripcion": "n ↔ gɾ",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "grande",
+      "correcta": "ˈgɾan.de",
+      "erronea": "ˈdan.gɾe",
+      "descripcion": "gɾ ↔ d",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "trabaja",
+      "correcta": "tɾa.ˈba.xa",
+      "erronea": "ba.ˈtɾa.xa",
+      "descripcion": "tɾ ↔ b",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "plato",
+      "correcta": "ˈpla.to",
+      "erronea": "ˈta.plo",
+      "descripcion": "pl ↔ t",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "clase",
+      "correcta": "ˈkla.se",
+      "erronea": "ˈsa.kle",
+      "descripcion": "kl ↔ s",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "presa",
+      "correcta": "ˈpɾe.sa",
+      "erronea": "ˈse.pɾa",
+      "descripcion": "pɾ ↔ s",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "crema",
+      "correcta": "ˈkɾe.ma",
+      "erronea": "ˈme.kɾa",
+      "descripcion": "kɾ ↔ m",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "prima",
+      "correcta": "ˈpɾi.ma",
+      "erronea": "ˈmi.pɾa",
+      "descripcion": "pɾ ↔ m",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "grasa",
+      "correcta": "ˈgɾa.sa",
+      "erronea": "ˈsa.gɾa",
+      "descripcion": "gɾ ↔ s",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "brazo",
+      "correcta": "ˈbɾa.θo",
+      "erronea": "ˈθa.bɾo",
+      "descripcion": "bɾ ↔ θ",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "trapo",
+      "correcta": "ˈtɾa.po",
+      "erronea": "ˈpa.tɾo",
+      "descripcion": "tɾ ↔ p",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "droga",
+      "correcta": "ˈdɾo.ga",
+      "erronea": "ˈgo.dɾa",
+      "descripcion": "dɾ ↔ g",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "gripe",
+      "correcta": "ˈgɾi.pe",
+      "erronea": "ˈpi.gɾe",
+      "descripcion": "gɾ ↔ p",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "broma",
+      "correcta": "ˈbɾo.ma",
+      "erronea": "ˈmo.bɾa",
+      "descripcion": "bɾ ↔ m",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "flota",
+      "correcta": "ˈflo.ta",
+      "erronea": "ˈta.flo",
+      "descripcion": "fl ↔ t",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "clavo",
+      "correcta": "ˈkla.bo",
+      "erronea": "ˈba.klo",
+      "descripcion": "kl ↔ b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "drama",
+      "correcta": "ˈdɾa.ma",
+      "erronea": "ˈma.dɾa",
+      "descripcion": "dɾ ↔ m",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "trama",
+      "correcta": "ˈtɾa.ma",
+      "erronea": "ˈma.tɾa",
+      "descripcion": "tɾ ↔ m",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "globo",
+      "correcta": "ˈglo.bo",
+      "erronea": "ˈbo.glo",
+      "descripcion": "gl ↔ b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "franja",
+      "correcta": "ˈfɾan.xa",
+      "erronea": "ˈxan.fɾa",
+      "descripcion": "fɾ ↔ x",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "gato",
+      "correcta": "ˈga.to",
+      "erronea": "ˈta.go",
+      "descripcion": "g ↔ t",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "mapa",
+      "correcta": "ˈma.pa",
+      "erronea": "ˈpa.ma",
+      "descripcion": "m ↔ p",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "boca",
+      "correcta": "ˈbo.ka",
+      "erronea": "ˈko.ba",
+      "descripcion": "b ↔ k",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "lobo",
+      "correcta": "ˈlo.bo",
+      "erronea": "ˈbo.lo",
+      "descripcion": "l ↔ b",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "mesa",
+      "correcta": "ˈme.sa",
+      "erronea": "ˈse.ma",
+      "descripcion": "m ↔ s",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "moto",
+      "correcta": "ˈmo.to",
+      "erronea": "ˈto.mo",
+      "descripcion": "m ↔ t",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "polo",
+      "correcta": "ˈpo.lo",
+      "erronea": "ˈlo.po",
+      "descripcion": "p ↔ l",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "foca",
+      "correcta": "ˈfo.ka",
+      "erronea": "ˈko.fo",
+      "descripcion": "f ↔ k",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "lago",
+      "correcta": "ˈla.go",
+      "erronea": "ˈga.lo",
+      "descripcion": "l ↔ g",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "sopa",
+      "correcta": "ˈso.pa",
+      "erronea": "ˈpo.sa",
+      "descripcion": "s ↔ p",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "tapa",
+      "correcta": "ˈta.pa",
+      "erronea": "ˈpa.ta",
+      "descripcion": "t ↔ p",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "pino",
+      "correcta": "ˈpi.no",
+      "erronea": "ˈni.po",
+      "descripcion": "p ↔ n",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "lupa",
+      "correcta": "ˈlu.pa",
+      "erronea": "ˈpu.la",
+      "descripcion": "l ↔ p",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "fama",
+      "correcta": "ˈfa.ma",
+      "erronea": "ˈma.fa",
+      "descripcion": "f ↔ m",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "saco",
+      "correcta": "ˈsa.ko",
+      "erronea": "ˈka.so",
+      "descripcion": "s ↔ k",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "camino",
+      "correcta": "ka.ˈmi.no",
+      "erronea": "mi.ˈka.no",
+      "descripcion": "k ↔ m",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "maleta",
+      "correcta": "ma.ˈle.ta",
+      "erronea": "la.ˈme.ta",
+      "descripcion": "m ↔ l",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "pelota",
+      "correcta": "pe.ˈlo.ta",
+      "erronea": "le.ˈpo.ta",
+      "descripcion": "p ↔ l",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tomate",
+      "correcta": "to.ˈma.te",
+      "erronea": "mo.ˈta.te",
+      "descripcion": "t ↔ m",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "zapato",
+      "correcta": "θa.ˈpa.to",
+      "erronea": "pa.ˈθa.to",
+      "descripcion": "θ ↔ p",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "cebolla",
+      "correcta": "θe.ˈbo.ʝa",
+      "erronea": "bo.ˈθe.ʝa",
+      "descripcion": "θ ↔ b",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "botella",
+      "correcta": "bo.ˈte.ʝa",
+      "erronea": "to.ˈbe.ʝa",
+      "descripcion": "b ↔ t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "caballo",
+      "correcta": "ka.ˈba.ʝo",
+      "erronea": "ba.ˈka.ʝo",
+      "descripcion": "k ↔ b",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "conejo",
+      "correcta": "ko.ˈne.xo",
+      "erronea": "no.ˈke.xo",
+      "descripcion": "k ↔ n",
+      "cat": "nm",
+      "sem": "animal"
+    }
+  ],
+  "asimilacion_regresiva": [
+    {
+      "ortografia": "mojigato",
+      "correcta": "mo.xi.ˈga.to",
+      "erronea": "mo.xi.ˈta.to",
+      "descripcion": "g→t",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "zapato",
+      "correcta": "θa.ˈpa.to",
+      "erronea": "θa.ˈta.to",
+      "descripcion": "p→t",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "cama",
+      "correcta": "ˈka.ma",
+      "erronea": "ˈma.ma",
+      "descripcion": "k→m",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "mapa",
+      "correcta": "ˈma.pa",
+      "erronea": "ˈpa.pa",
+      "descripcion": "m→p",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "sopa",
+      "correcta": "ˈso.pa",
+      "erronea": "ˈpo.pa",
+      "descripcion": "s→p",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "foca",
+      "correcta": "ˈfo.ka",
+      "erronea": "ˈko.ka",
+      "descripcion": "f→k",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "Polonia",
+      "correcta": "po.ˈlo.nia",
+      "erronea": "lo.ˈlo.nia",
+      "descripcion": "p→l",
+      "cat": "np",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "boca",
+      "correcta": "ˈbo.ka",
+      "erronea": "ˈko.ka",
+      "descripcion": "b→k",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "tela",
+      "correcta": "ˈte.la",
+      "erronea": "ˈle.la",
+      "descripcion": "t→l",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "pala",
+      "correcta": "ˈpa.la",
+      "erronea": "ˈla.la",
+      "descripcion": "p→l",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "mano",
+      "correcta": "ˈma.no",
+      "erronea": "ˈna.no",
+      "descripcion": "m→n",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "topo",
+      "correcta": "ˈto.po",
+      "erronea": "ˈpo.po",
+      "descripcion": "t→p",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "loco",
+      "correcta": "ˈlo.ko",
+      "erronea": "ˈko.ko",
+      "descripcion": "l→k",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "luna",
+      "correcta": "ˈlu.na",
+      "erronea": "ˈnu.na",
+      "descripcion": "l→n",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "mesa",
+      "correcta": "ˈme.sa",
+      "erronea": "ˈse.sa",
+      "descripcion": "m→s",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "goma",
+      "correcta": "ˈgo.ma",
+      "erronea": "ˈmo.ma",
+      "descripcion": "g→m",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "taza",
+      "correcta": "ˈta.θa",
+      "erronea": "ˈθa.θa",
+      "descripcion": "t→θ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "papanata",
+      "correcta": "pa.pa.ˈna.ta",
+      "erronea": "pa.pa.ˈta.ta",
+      "descripcion": "n→t",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "mucho",
+      "correcta": "ˈmu.ʧo",
+      "erronea": "ˈʧu.ʧo",
+      "descripcion": "m→ʧ",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "techo",
+      "correcta": "ˈte.ʧo",
+      "erronea": "ˈʧe.ʧo",
+      "descripcion": "t→ʧ",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "pico",
+      "correcta": "ˈpi.ko",
+      "erronea": "ˈki.ko",
+      "descripcion": "p→k",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "lupa",
+      "correcta": "ˈlu.pa",
+      "erronea": "ˈpu.pa",
+      "descripcion": "l→p",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cafetera",
+      "correcta": "ka.fe.ˈte.ɾa",
+      "erronea": "fa.fe.ˈte.ɾa",
+      "descripcion": "k→f",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "faro",
+      "correcta": "ˈfa.ɾo",
+      "erronea": "ˈɾa.ɾo",
+      "descripcion": "f→ɾ",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "espuma",
+      "correcta": "es.ˈpu.ma",
+      "erronea": "es.ˈmu.ma",
+      "descripcion": "p→m",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "moto",
+      "correcta": "ˈmo.to",
+      "erronea": "ˈto.to",
+      "descripcion": "m→t",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "gafa",
+      "correcta": "ˈga.fa",
+      "erronea": "ˈfa.fa",
+      "descripcion": "g→f",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "sacacorchos",
+      "correcta": "ˈsa.ka.koɾ.ʧos",
+      "erronea": "ka.ka.ˈkoɾ.ʧos",
+      "descripcion": "s→k",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "nubarrón",
+      "correcta": "nu.ba.ˈron",
+      "erronea": "ˈbu.ba.ron",
+      "descripcion": "n→b",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "murciélago",
+      "correcta": "muɾ.ˈθie.la.go",
+      "erronea": "muɾ.ˈθie.ga.go",
+      "descripcion": "l→g",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "moño",
+      "correcta": "ˈmo.ɲo",
+      "erronea": "ˈɲo.ɲo",
+      "descripcion": "m→ɲ",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "cadena",
+      "correcta": "ka.ˈde.na",
+      "erronea": "ka.ˈne.na",
+      "descripcion": "d→n",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "aceituna",
+      "correcta": "a.θei.ˈtu.na",
+      "erronea": "a.θei.ˈnu.na",
+      "descripcion": "t→n",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "chapata",
+      "correcta": "ʧa.ˈpa.ta",
+      "erronea": "ʧa.ˈta.ta",
+      "descripcion": "p→t",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "copete",
+      "correcta": "ko.ˈpe.te",
+      "erronea": "po.ˈpe.te",
+      "descripcion": "k→p",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "camisa",
+      "correcta": "ka.ˈmi.sa",
+      "erronea": "ka.ˈsi.sa",
+      "descripcion": "m→s",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "Málaga",
+      "correcta": "ˈma.la.ga",
+      "erronea": "ˈma.la.la",
+      "descripcion": "g→l",
+      "cat": "np",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "abuelito",
+      "correcta": "a.bue.ˈli.to",
+      "erronea": "a.bue.ˈti.to",
+      "descripcion": "l→t",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "cabo",
+      "correcta": "ˈka.bo",
+      "erronea": "ˈba.bo",
+      "descripcion": "k→b",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "pata",
+      "correcta": "ˈpa.ta",
+      "erronea": "ˈta.ta",
+      "descripcion": "p→t",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "loma",
+      "correcta": "ˈlo.ma",
+      "erronea": "ˈmo.ma",
+      "descripcion": "l→m",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "Camilo",
+      "correcta": "ka.ˈmi.lo",
+      "erronea": "ka.ˈli.lo",
+      "descripcion": "m→l",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "timo",
+      "correcta": "ˈti.mo",
+      "erronea": "ˈmi.mo",
+      "descripcion": "t→m",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "asilo",
+      "correcta": "a.ˈsi.lo",
+      "erronea": "a.ˈli.lo",
+      "descripcion": "s→l",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "teléfono",
+      "correcta": "te.ˈle.fo.no",
+      "erronea": "te.ˈfe.fo.no",
+      "descripcion": "l→f",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "kilo",
+      "correcta": "ˈki.lo",
+      "erronea": "ˈli.lo",
+      "descripcion": "k→l",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "bulo",
+      "correcta": "ˈbu.lo",
+      "erronea": "ˈlu.lo",
+      "descripcion": "b→l",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "fajita",
+      "correcta": "fa.ˈxi.ta",
+      "erronea": "xa.ˈxi.ta",
+      "descripcion": "f→x",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "botella",
+      "correcta": "bo.ˈte.ʝa",
+      "erronea": "bo.ˈʝe.ʝa",
+      "descripcion": "t→ʝ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "conejo",
+      "correcta": "ko.ˈne.xo",
+      "erronea": "ko.ˈxe.xo",
+      "descripcion": "n→x",
+      "cat": "nm",
+      "sem": "animal"
+    }
+  ],
+  "asimilacion_progresiva": [
+    {
+      "ortografia": "gato",
+      "correcta": "ˈga.to",
+      "erronea": "ˈga.go",
+      "descripcion": "t→g",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "zapato",
+      "correcta": "θa.ˈpa.to",
+      "erronea": "θa.ˈpa.po",
+      "descripcion": "t→p",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "zapato",
+      "correcta": "θa.ˈpa.to",
+      "erronea": "θa.ˈθa.to",
+      "descripcion": "p→θ",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "cama",
+      "correcta": "ˈka.ma",
+      "erronea": "ˈka.ka",
+      "descripcion": "m→k",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "mapa",
+      "correcta": "ˈma.pa",
+      "erronea": "ˈma.ma",
+      "descripcion": "p→m",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "sopa",
+      "correcta": "ˈso.pa",
+      "erronea": "ˈso.so",
+      "descripcion": "p→s",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "foca",
+      "correcta": "ˈfo.ka",
+      "erronea": "ˈfo.fa",
+      "descripcion": "k→f",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "polo",
+      "correcta": "ˈpo.lo",
+      "erronea": "ˈpo.po",
+      "descripcion": "l→p",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "boca",
+      "correcta": "ˈbo.ka",
+      "erronea": "ˈbo.ba",
+      "descripcion": "k→b",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "tela",
+      "correcta": "ˈte.la",
+      "erronea": "ˈte.ta",
+      "descripcion": "l→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "pala",
+      "correcta": "ˈpa.la",
+      "erronea": "ˈpa.pa",
+      "descripcion": "l→p",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "manita",
+      "correcta": "ma.ˈni.ta",
+      "erronea": "ma.ˈni.na",
+      "descripcion": "t→n",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "loco",
+      "correcta": "ˈlo.ko",
+      "erronea": "ˈlo.lo",
+      "descripcion": "k→l",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "lunita",
+      "correcta": "lu.ˈni.ta",
+      "erronea": "lu.ˈli.ta",
+      "descripcion": "n→l",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "mesita",
+      "correcta": "me.ˈsi.ta",
+      "erronea": "me.ˈmi.ta",
+      "descripcion": "s→m",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "goma",
+      "correcta": "ˈgo.ma",
+      "erronea": "ˈgo.ga",
+      "descripcion": "m→g",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "taza",
+      "correcta": "ˈta.θa",
+      "erronea": "ˈta.ta",
+      "descripcion": "θ→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "farola",
+      "correcta": "fa.ˈɾo.la",
+      "erronea": "fa.ˈfo.la",
+      "descripcion": "ɾ→f",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "techo",
+      "correcta": "ˈte.ʧo",
+      "erronea": "ˈte.to",
+      "descripcion": "ʧ→t",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "pico",
+      "correcta": "ˈpi.ko",
+      "erronea": "ˈpi.po",
+      "descripcion": "k→p",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "lupa",
+      "correcta": "ˈlu.pa",
+      "erronea": "ˈlu.la",
+      "descripcion": "p→l",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cafetera",
+      "correcta": "ka.fe.ˈte.ɾa",
+      "erronea": "ka.ˈke.te.ɾa",
+      "descripcion": "f→k",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "nube",
+      "correcta": "ˈnu.be",
+      "erronea": "ˈnu.ne",
+      "descripcion": "b→n",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "lago",
+      "correcta": "ˈla.go",
+      "erronea": "ˈla.lo",
+      "descripcion": "g→l",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "tema",
+      "correcta": "ˈte.ma",
+      "erronea": "ˈte.ta",
+      "descripcion": "m→t",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "copa",
+      "correcta": "ˈko.pa",
+      "erronea": "ˈko.ka",
+      "descripcion": "p→k",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "misa",
+      "correcta": "ˈmi.sa",
+      "erronea": "ˈmi.ma",
+      "descripcion": "s→m",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "seta",
+      "correcta": "ˈse.ta",
+      "erronea": "ˈse.sa",
+      "descripcion": "t→s",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "puma",
+      "correcta": "ˈpu.ma",
+      "erronea": "ˈpu.pa",
+      "descripcion": "m→p",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "moto",
+      "correcta": "ˈmo.to",
+      "erronea": "ˈmo.mo",
+      "descripcion": "t→m",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "nata",
+      "correcta": "ˈna.ta",
+      "erronea": "ˈna.na",
+      "descripcion": "t→n",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "topo",
+      "correcta": "ˈto.po",
+      "erronea": "ˈto.to",
+      "descripcion": "p→t",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "bata",
+      "correcta": "ˈba.ta",
+      "erronea": "ˈba.ba",
+      "descripcion": "t→b",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "loma",
+      "correcta": "ˈlo.ma",
+      "erronea": "ˈlo.la",
+      "descripcion": "m→l",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "mula",
+      "correcta": "ˈmu.la",
+      "erronea": "ˈmu.ma",
+      "descripcion": "l→m",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "cabo",
+      "correcta": "ˈka.bo",
+      "erronea": "ˈka.ko",
+      "descripcion": "b→k",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "gafa",
+      "correcta": "ˈga.fa",
+      "erronea": "ˈga.ga",
+      "descripcion": "f→g",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "filo",
+      "correcta": "ˈfi.lo",
+      "erronea": "ˈfi.fo",
+      "descripcion": "l→f",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "kilo",
+      "correcta": "ˈki.lo",
+      "erronea": "ˈki.ko",
+      "descripcion": "l→k",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "timo",
+      "correcta": "ˈti.mo",
+      "erronea": "ˈti.to",
+      "descripcion": "m→t",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "silo",
+      "correcta": "ˈsi.lo",
+      "erronea": "ˈsi.so",
+      "descripcion": "l→s",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "pajita",
+      "correcta": "pa.ˈxi.ta",
+      "erronea": "pa.ˈxi.xa",
+      "descripcion": "t→x",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "moño",
+      "correcta": "ˈmo.ɲo",
+      "erronea": "ˈmo.mo",
+      "descripcion": "ɲ→m",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "bulo",
+      "correcta": "ˈbu.lo",
+      "erronea": "ˈbu.bo",
+      "descripcion": "l→b",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "saco",
+      "correcta": "ˈsa.ko",
+      "erronea": "ˈsa.so",
+      "descripcion": "k→s",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "camisa",
+      "correcta": "ka.ˈmi.sa",
+      "erronea": "ka.ˈmi.ma",
+      "descripcion": "s→m",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "mañana",
+      "correcta": "ma.ˈɲa.na",
+      "erronea": "ma.ˈɲa.ɲa",
+      "descripcion": "n→ɲ",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "caballo",
+      "correcta": "ka.ˈba.ʝo",
+      "erronea": "ka.ˈba.bo",
+      "descripcion": "ʝ→b",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "cuchara",
+      "correcta": "ku.ˈʧa.ɾa",
+      "erronea": "ku.ˈka.ɾa",
+      "descripcion": "ʧ→k",
+      "cat": "nf",
+      "sem": "objeto"
+    }
+  ],
+  "omision_silaba_atona": [
+    {
+      "ortografia": "vecino",
+      "correcta": "be.ˈθi.no",
+      "erronea": "ˈθi.no",
+      "descripcion": "be omitida",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "vecina",
+      "correcta": "be.ˈθi.na",
+      "erronea": "ˈθi.na",
+      "descripcion": "be omitida",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "zapato",
+      "correcta": "θa.ˈpa.to",
+      "erronea": "ˈpa.to",
+      "descripcion": "θa omitida",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "pelota",
+      "correcta": "pe.ˈlo.ta",
+      "erronea": "ˈlo.ta",
+      "descripcion": "pe omitida",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tomate",
+      "correcta": "to.ˈma.te",
+      "erronea": "ˈma.te",
+      "descripcion": "to omitida",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "camisa",
+      "correcta": "ka.ˈmi.sa",
+      "erronea": "ˈmi.sa",
+      "descripcion": "ka omitida",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "mañana",
+      "correcta": "ma.ˈɲa.na",
+      "erronea": "ˈɲa.na",
+      "descripcion": "ma omitida",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "caballo",
+      "correcta": "ka.ˈba.ʝo",
+      "erronea": "ˈba.ʝo",
+      "descripcion": "ka omitida",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "cuchara",
+      "correcta": "ku.ˈʧa.ɾa",
+      "erronea": "ˈʧa.ɾa",
+      "descripcion": "ku omitida",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "botella",
+      "correcta": "bo.ˈte.ʝa",
+      "erronea": "ˈte.ʝa",
+      "descripcion": "bo omitida",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "conejo",
+      "correcta": "ko.ˈne.xo",
+      "erronea": "ˈne.xo",
+      "descripcion": "ko omitida",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "dinero",
+      "correcta": "di.ˈne.ɾo",
+      "erronea": "ˈne.ɾo",
+      "descripcion": "di omitida",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "ventana",
+      "correcta": "ben.ˈta.na",
+      "erronea": "ˈta.na",
+      "descripcion": "ben omitida",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "maleta",
+      "correcta": "ma.ˈle.ta",
+      "erronea": "ˈle.ta",
+      "descripcion": "ma omitida",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "payaso",
+      "correcta": "pa.ˈʝa.so",
+      "erronea": "ˈʝa.so",
+      "descripcion": "pa omitida",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "naranja",
+      "correcta": "na.ˈɾan.xa",
+      "erronea": "ˈɾan.xa",
+      "descripcion": "na omitida",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "mochila",
+      "correcta": "mo.ˈʧi.la",
+      "erronea": "ˈʧi.la",
+      "descripcion": "mo omitida",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tijera",
+      "correcta": "ti.ˈxe.ɾa",
+      "erronea": "ˈxe.ɾa",
+      "descripcion": "ti omitida",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "rodilla",
+      "correcta": "ɾo.ˈdi.ʝa",
+      "erronea": "ˈdi.ʝa",
+      "descripcion": "ɾo omitida",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "cebolla",
+      "correcta": "θe.ˈbo.ʝa",
+      "erronea": "ˈbo.ʝa",
+      "descripcion": "θe omitida",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "semilla",
+      "correcta": "se.ˈmi.ʝa",
+      "erronea": "ˈmi.ʝa",
+      "descripcion": "se omitida",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "tobillo",
+      "correcta": "to.ˈbi.ʝo",
+      "erronea": "ˈbi.ʝo",
+      "descripcion": "to omitida",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "ballena",
+      "correcta": "ba.ˈʝe.na",
+      "erronea": "ˈʝe.na",
+      "descripcion": "ba omitida",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "galleta",
+      "correcta": "ga.ˈʝe.ta",
+      "erronea": "ˈʝe.ta",
+      "descripcion": "ga omitida",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "bigote",
+      "correcta": "bi.ˈgo.te",
+      "erronea": "ˈgo.te",
+      "descripcion": "bi omitida",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "tortilla",
+      "correcta": "toɾ.ˈti.ʝa",
+      "erronea": "ˈti.ʝa",
+      "descripcion": "toɾ omitida",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "cangrejo",
+      "correcta": "kaŋ.ˈgɾe.xo",
+      "erronea": "ˈgɾe.xo",
+      "descripcion": "kaŋ omitida",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "pistola",
+      "correcta": "pis.ˈto.la",
+      "erronea": "ˈto.la",
+      "descripcion": "pis omitida",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "espada",
+      "correcta": "es.ˈpa.da",
+      "erronea": "ˈpa.da",
+      "descripcion": "es omitida",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "espejo",
+      "correcta": "es.ˈpe.xo",
+      "erronea": "ˈpe.xo",
+      "descripcion": "es omitida",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "helado",
+      "correcta": "e.ˈla.do",
+      "erronea": "ˈla.do",
+      "descripcion": "e omitida",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "jabón",
+      "correcta": "xa.ˈbon",
+      "erronea": "ˈbon",
+      "descripcion": "xa omitida",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "colchón",
+      "correcta": "kol.ˈʧon",
+      "erronea": "ˈʧon",
+      "descripcion": "kol omitida",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "linterna",
+      "correcta": "lin.ˈteɾ.na",
+      "erronea": "ˈteɾ.na",
+      "descripcion": "lin omitida",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "sombrero",
+      "correcta": "som.ˈbɾe.ɾo",
+      "erronea": "ˈbɾe.ɾo",
+      "descripcion": "som omitida",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "columna",
+      "correcta": "ko.ˈlum.na",
+      "erronea": "ˈlum.na",
+      "descripcion": "ko omitida",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "palmera",
+      "correcta": "pal.ˈme.ɾa",
+      "erronea": "ˈme.ɾa",
+      "descripcion": "pal omitida",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "banana",
+      "correcta": "ba.ˈna.na",
+      "erronea": "ˈna.na",
+      "descripcion": "ba omitida",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "pasillo",
+      "correcta": "pa.ˈsi.ʝo",
+      "erronea": "ˈsi.ʝo",
+      "descripcion": "pa omitida",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "tortuga",
+      "correcta": "toɾ.ˈtu.ga",
+      "erronea": "ˈtu.ga",
+      "descripcion": "toɾ omitida",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "calcetín",
+      "correcta": "kal.θe.ˈtin",
+      "erronea": "θe.ˈtin",
+      "descripcion": "kal omitida",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "piñata",
+      "correcta": "pi.ˈɲa.ta",
+      "erronea": "ˈɲa.ta",
+      "descripcion": "pi omitida",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "bufanda",
+      "correcta": "bu.ˈfan.da",
+      "erronea": "ˈfan.da",
+      "descripcion": "bu omitida",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "cigüeña",
+      "correcta": "θi.ˈgue.ɲa",
+      "erronea": "ˈgue.ɲa",
+      "descripcion": "θi omitida",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "pijama",
+      "correcta": "pi.ˈxa.ma",
+      "erronea": "ˈxa.ma",
+      "descripcion": "pi omitida",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "tijeras",
+      "correcta": "ti.ˈxe.ɾas",
+      "erronea": "ˈxe.ɾas",
+      "descripcion": "ti omitida",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "nevera",
+      "correcta": "ne.ˈbe.ɾa",
+      "erronea": "ˈbe.ɾa",
+      "descripcion": "ne omitida",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "muleta",
+      "correcta": "mu.ˈle.ta",
+      "erronea": "ˈle.ta",
+      "descripcion": "mu omitida",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "veleta",
+      "correcta": "be.ˈle.ta",
+      "erronea": "ˈle.ta",
+      "descripcion": "be omitida",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "melena",
+      "correcta": "me.ˈle.na",
+      "erronea": "ˈle.na",
+      "descripcion": "me omitida",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "sereno",
+      "correcta": "se.ˈɾe.no",
+      "erronea": "ˈɾe.no",
+      "descripcion": "se omitida",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "velero",
+      "correcta": "be.ˈle.ɾo",
+      "erronea": "ˈle.ɾo",
+      "descripcion": "be omitida",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "preguntó",
+      "correcta": "pɾe.gun.ˈto",
+      "erronea": "gun.ˈto",
+      "descripcion": "pɾe omitida",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "muchacha",
+      "correcta": "mu.ˈʧa.ʧa",
+      "erronea": "ˈʧa.ʧa",
+      "descripcion": "mu omitida",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "abuela",
+      "correcta": "a.ˈbue.la",
+      "erronea": "ˈbue.la",
+      "descripcion": "a omitida",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "gitano",
+      "correcta": "xi.ˈta.no",
+      "erronea": "ˈta.no",
+      "descripcion": "xi omitida",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "picoteó",
+      "correcta": "pi.ko.te.ˈo",
+      "erronea": "ko.te.ˈo",
+      "descripcion": "pi omitida",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "secretaria",
+      "correcta": "se.kɾe.ˈta.ɾia",
+      "erronea": "kɾe.ˈta.ɾia",
+      "descripcion": "se omitida",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "estaba",
+      "correcta": "es.ˈta.ba",
+      "erronea": "ˈta.ba",
+      "descripcion": "es omitida",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "logopeda",
+      "correcta": "lo.go.ˈpe.da",
+      "erronea": "go.ˈpe.da",
+      "descripcion": "lo omitida",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "eugenia",
+      "correcta": "eu.ˈxe.nia",
+      "erronea": "ˈe.nia",
+      "descripcion": "eu→e + xe omitida",
+      "cat": "np",
+      "sem": "persona"
+    }
+  ],
+  "asim_omision_silaba": [
+    {
+      "ortografia": "zapato",
+      "correcta": "θa.ˈpa.to",
+      "erronea": "ˈpa.po",
+      "descripcion": "θa omitida + t→p",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "pelota",
+      "correcta": "pe.ˈlo.ta",
+      "erronea": "ˈto.ta",
+      "descripcion": "pe omitida + l→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tomate",
+      "correcta": "to.ˈma.te",
+      "erronea": "ˈta.te",
+      "descripcion": "to omitida + m→t",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "camisa",
+      "correcta": "ka.ˈmi.sa",
+      "erronea": "ˈsi.sa",
+      "descripcion": "ka omitida + m→s",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "mañana",
+      "correcta": "ma.ˈɲa.na",
+      "erronea": "ˈna.na",
+      "descripcion": "ma omitida + ɲ→n",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "caballo",
+      "correcta": "ka.ˈba.ʝo",
+      "erronea": "ˈba.bo",
+      "descripcion": "ka omitida + ʝ→b",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "cuchara",
+      "correcta": "ku.ˈʧa.ɾa",
+      "erronea": "ˈʧa.ʧa",
+      "descripcion": "ku omitida + ɾ→ʧ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "botella",
+      "correcta": "bo.ˈte.ʝa",
+      "erronea": "ˈʝe.ʝa",
+      "descripcion": "bo omitida + t→ʝ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "conejo",
+      "correcta": "ko.ˈne.xo",
+      "erronea": "ˈne.no",
+      "descripcion": "ko omitida + x→n",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "dinero",
+      "correcta": "di.ˈne.ɾo",
+      "erronea": "ˈne.no",
+      "descripcion": "di omitida + ɾ→n",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "ventana",
+      "correcta": "ben.ˈta.na",
+      "erronea": "ˈna.na",
+      "descripcion": "ben omitida + t→n",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "maleta",
+      "correcta": "ma.ˈle.ta",
+      "erronea": "ˈte.ta",
+      "descripcion": "ma omitida + l→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "payaso",
+      "correcta": "pa.ˈʝa.so",
+      "erronea": "ˈʝa.ʝo",
+      "descripcion": "pa omitida + s→ʝ",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "naranja",
+      "correcta": "na.ˈɾan.xa",
+      "erronea": "ˈxan.xa",
+      "descripcion": "na omitida + ɾ→x",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "mochila",
+      "correcta": "mo.ˈʧi.la",
+      "erronea": "ˈʧi.ʧa",
+      "descripcion": "mo omitida + l→ʧ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tijera",
+      "correcta": "ti.ˈxe.ɾa",
+      "erronea": "ˈxe.xa",
+      "descripcion": "ti omitida + ɾ→x",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "rodilla",
+      "correcta": "ɾo.ˈdi.ʝa",
+      "erronea": "ˈʝi.ʝa",
+      "descripcion": "ɾo omitida + d→ʝ",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "cebolla",
+      "correcta": "θe.ˈbo.ʝa",
+      "erronea": "ˈʝo.ʝa",
+      "descripcion": "θe omitida + b→ʝ",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "semilla",
+      "correcta": "se.ˈmi.ʝa",
+      "erronea": "ˈʝi.ʝa",
+      "descripcion": "se omitida + m→ʝ",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "tobillo",
+      "correcta": "to.ˈbi.ʝo",
+      "erronea": "ˈʝi.ʝo",
+      "descripcion": "to omitida + b→ʝ",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "ballena",
+      "correcta": "ba.ˈʝe.na",
+      "erronea": "ˈʝe.na",
+      "descripcion": "ba omitida (sin cambio)",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "galleta",
+      "correcta": "ga.ˈʝe.ta",
+      "erronea": "ˈʝe.ta",
+      "descripcion": "ga omitida (sin cambio)",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "bigote",
+      "correcta": "bi.ˈgo.te",
+      "erronea": "ˈgo.te",
+      "descripcion": "bi omitida (sin cambio)",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "tortilla",
+      "correcta": "toɾ.ˈti.ʝa",
+      "erronea": "ˈʝi.ʝa",
+      "descripcion": "toɾ omitida + t→ʝ",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "cangrejo",
+      "correcta": "kaŋ.ˈgɾe.xo",
+      "erronea": "ˈxe.xo",
+      "descripcion": "kaŋ omitida + gɾ→x",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "pistola",
+      "correcta": "pis.ˈto.la",
+      "erronea": "ˈto.ta",
+      "descripcion": "pis omitida + l→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "espada",
+      "correcta": "es.ˈpa.da",
+      "erronea": "ˈda.da",
+      "descripcion": "es omitida + p→d",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "espejo",
+      "correcta": "es.ˈpe.xo",
+      "erronea": "ˈpe.xo",
+      "descripcion": "es omitida (sin cambio)",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "helado",
+      "correcta": "e.ˈla.do",
+      "erronea": "ˈla.lo",
+      "descripcion": "e omitida + d→l",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "linterna",
+      "correcta": "lin.ˈteɾ.na",
+      "erronea": "ˈneɾ.na",
+      "descripcion": "lin omitida + t→n",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "columna",
+      "correcta": "ko.ˈlum.na",
+      "erronea": "ˈlum.la",
+      "descripcion": "ko omitida + n→l",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "palmera",
+      "correcta": "pal.ˈme.ɾa",
+      "erronea": "ˈme.ma",
+      "descripcion": "pal omitida + ɾ→m",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "pasillo",
+      "correcta": "pa.ˈsi.ʝo",
+      "erronea": "ˈʝi.ʝo",
+      "descripcion": "pa omitida + s→ʝ",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "tortuga",
+      "correcta": "toɾ.ˈtu.ga",
+      "erronea": "ˈgu.ga",
+      "descripcion": "toɾ omitida + t→g",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "calcetín",
+      "correcta": "kal.θe.ˈtin",
+      "erronea": "te.ˈtin",
+      "descripcion": "kal omitida (sin cambio)",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "piñata",
+      "correcta": "pi.ˈɲa.ta",
+      "erronea": "ˈta.ta",
+      "descripcion": "pi omitida + ɲ→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "bufanda",
+      "correcta": "bu.ˈfan.da",
+      "erronea": "ˈfan.fa",
+      "descripcion": "bu omitida + d→f",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "cigüeña",
+      "correcta": "θi.ˈgue.ɲa",
+      "erronea": "ˈgue.ga",
+      "descripcion": "θi omitida + ɲ→g",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "pijama",
+      "correcta": "pi.ˈxa.ma",
+      "erronea": "ˈxa.xa",
+      "descripcion": "pi omitida + m→x",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "tijeras",
+      "correcta": "ti.ˈxe.ɾas",
+      "erronea": "ˈxe.sas",
+      "descripcion": "ti omitida + ɾ→s",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "nevera",
+      "correcta": "ne.ˈbe.ɾa",
+      "erronea": "ˈɾe.ɾa",
+      "descripcion": "ne omitida + b→ɾ",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "muleta",
+      "correcta": "mu.ˈle.ta",
+      "erronea": "ˈte.ta",
+      "descripcion": "mu omitida + l→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "veleta",
+      "correcta": "be.ˈle.ta",
+      "erronea": "ˈte.ta",
+      "descripcion": "be omitida + l→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "melena",
+      "correcta": "me.ˈle.na",
+      "erronea": "ˈle.la",
+      "descripcion": "me omitida + n→l",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "sereno",
+      "correcta": "se.ˈɾe.no",
+      "erronea": "ˈne.no",
+      "descripcion": "se omitida + ɾ→n",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "velero",
+      "correcta": "be.ˈle.ɾo",
+      "erronea": "ˈle.lo",
+      "descripcion": "be omitida + ɾ→l",
+      "cat": "nm",
+      "sem": "objeto"
+    }
+  ],
+  "simplificacion_ataque": [
+    {
+      "ortografia": "libreta",
+      "correcta": "li.ˈbɾe.ta",
+      "erronea": "li.ˈbe.ta",
+      "descripcion": "bɾ→b",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "preciosa",
+      "correcta": "pɾe.ˈθio.sa",
+      "erronea": "pe.ˈθo.sa",
+      "descripcion": "pɾ→p + io→o",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "primo",
+      "correcta": "ˈpɾi.mo",
+      "erronea": "ˈpi.mo",
+      "descripcion": "pɾ→p",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "prado",
+      "correcta": "ˈpɾa.do",
+      "erronea": "ˈpa.do",
+      "descripcion": "pɾ→p",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "precio",
+      "correcta": "ˈpɾe.θio",
+      "erronea": "ˈpe.θio",
+      "descripcion": "pɾ→p",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "pradera",
+      "correcta": "pɾa.ˈde.ɾa",
+      "erronea": "pa.ˈde.ɾa",
+      "descripcion": "pɾ→p",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "pueblo",
+      "correcta": "ˈpue.blo",
+      "erronea": "ˈpue.bo",
+      "descripcion": "bl→b",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "tres",
+      "correcta": "ˈtɾes",
+      "erronea": "ˈtes",
+      "descripcion": "tɾ→t",
+      "cat": "num",
+      "sem": "num"
+    },
+    {
+      "ortografia": "trabajo",
+      "correcta": "tɾa.ˈba.xo",
+      "erronea": "ta.ˈba.xo",
+      "descripcion": "tɾ→t",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "trono",
+      "correcta": "ˈtɾo.no",
+      "erronea": "ˈto.no",
+      "descripcion": "tɾ→t",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "trigo",
+      "correcta": "ˈtɾi.go",
+      "erronea": "ˈti.go",
+      "descripcion": "tɾ→t",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "tropa",
+      "correcta": "ˈtɾo.pa",
+      "erronea": "ˈto.pa",
+      "descripcion": "tɾ→t",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "trapecio",
+      "correcta": "tɾa.ˈpe.θio",
+      "erronea": "ta.ˈpe.θio",
+      "descripcion": "tɾ→t",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "bravo",
+      "correcta": "ˈbɾa.bo",
+      "erronea": "ˈba.bo",
+      "descripcion": "bɾ→b",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "brazo",
+      "correcta": "ˈbɾa.θo",
+      "erronea": "ˈba.θo",
+      "descripcion": "bɾ→b",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "broma",
+      "correcta": "ˈbɾo.ma",
+      "erronea": "ˈbo.ma",
+      "descripcion": "bɾ→b",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "brida",
+      "correcta": "ˈbɾi.da",
+      "erronea": "ˈbi.da",
+      "descripcion": "bɾ→b",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cabra",
+      "correcta": "ˈka.bɾa",
+      "erronea": "ˈka.ba",
+      "descripcion": "bɾ→b",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "cobre",
+      "correcta": "ˈko.bɾe",
+      "erronea": "ˈko.be",
+      "descripcion": "bɾ→b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "libro",
+      "correcta": "ˈli.bɾo",
+      "erronea": "ˈli.bo",
+      "descripcion": "bɾ→b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "dragón",
+      "correcta": "dɾa.ˈgon",
+      "erronea": "da.ˈgon",
+      "descripcion": "dɾ→d",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "ladrón",
+      "correcta": "la.ˈdɾon",
+      "erronea": "la.ˈdon",
+      "descripcion": "dɾ→d",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "cuadro",
+      "correcta": "ˈkua.dɾo",
+      "erronea": "ˈkua.do",
+      "descripcion": "dɾ→d",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cruz",
+      "correcta": "ˈkɾuθ",
+      "erronea": "ˈkuθ",
+      "descripcion": "kɾ→k",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cráneo",
+      "correcta": "ˈkɾa.ne.o",
+      "erronea": "ˈka.ne.o",
+      "descripcion": "kɾ→k",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "crema",
+      "correcta": "ˈkɾe.ma",
+      "erronea": "ˈke.ma",
+      "descripcion": "kɾ→k",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cristal",
+      "correcta": "kɾis.ˈtal",
+      "erronea": "kis.ˈtal",
+      "descripcion": "kɾ→k",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "secreto",
+      "correcta": "se.ˈkɾe.to",
+      "erronea": "se.ˈke.to",
+      "descripcion": "kɾ→k",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "gracia",
+      "correcta": "ˈgɾa.θia",
+      "erronea": "ˈga.θia",
+      "descripcion": "gɾ→g",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "grande",
+      "correcta": "ˈgɾan.de",
+      "erronea": "ˈgan.de",
+      "descripcion": "gɾ→g",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "grasa",
+      "correcta": "ˈgɾa.sa",
+      "erronea": "ˈga.sa",
+      "descripcion": "gɾ→g",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "gruta",
+      "correcta": "ˈgɾu.ta",
+      "erronea": "ˈgu.ta",
+      "descripcion": "gɾ→g",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "frío",
+      "correcta": "ˈfɾi.o",
+      "erronea": "ˈfi.o",
+      "descripcion": "fɾ→f",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "fresa",
+      "correcta": "ˈfɾe.sa",
+      "erronea": "ˈfe.sa",
+      "descripcion": "fɾ→f",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "fruta",
+      "correcta": "ˈfɾu.ta",
+      "erronea": "ˈfu.ta",
+      "descripcion": "fɾ→f",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "frágil",
+      "correcta": "ˈfɾa.xil",
+      "erronea": "ˈfa.xil",
+      "descripcion": "fɾ→f",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "cofre",
+      "correcta": "ˈko.fɾe",
+      "erronea": "ˈko.fe",
+      "descripcion": "fɾ→f",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "flor",
+      "correcta": "ˈfloɾ",
+      "erronea": "ˈfoɾ",
+      "descripcion": "fl→f",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "flaco",
+      "correcta": "ˈfla.ko",
+      "erronea": "ˈfa.ko",
+      "descripcion": "fl→f",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "flauta",
+      "correcta": "ˈflau.ta",
+      "erronea": "ˈfau.ta",
+      "descripcion": "fl→f",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "plato",
+      "correcta": "ˈpla.to",
+      "erronea": "ˈpa.to",
+      "descripcion": "pl→p",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "pluma",
+      "correcta": "ˈplu.ma",
+      "erronea": "ˈpu.ma",
+      "descripcion": "pl→p",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "pleno",
+      "correcta": "ˈple.no",
+      "erronea": "ˈpe.no",
+      "descripcion": "pl→p",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "suplir",
+      "correcta": "su.ˈpliɾ",
+      "erronea": "su.ˈpiɾ",
+      "descripcion": "pl→p",
+      "cat": "v_inf",
+      "sem": "v_inf"
+    },
+    {
+      "ortografia": "blusa",
+      "correcta": "ˈblu.sa",
+      "erronea": "ˈbu.sa",
+      "descripcion": "bl→b",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "blanco",
+      "correcta": "ˈblan.ko",
+      "erronea": "ˈban.ko",
+      "descripcion": "bl→b",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "bloque",
+      "correcta": "ˈblo.ke",
+      "erronea": "ˈbo.ke",
+      "descripcion": "bl→b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "hablar",
+      "correcta": "a.ˈblaɾ",
+      "erronea": "a.ˈbaɾ",
+      "descripcion": "bl→b",
+      "cat": "v_inf",
+      "sem": "v_inf"
+    },
+    {
+      "ortografia": "clave",
+      "correcta": "ˈkla.be",
+      "erronea": "ˈka.be",
+      "descripcion": "kl→k",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "globo",
+      "correcta": "ˈglo.bo",
+      "erronea": "ˈgo.bo",
+      "descripcion": "gl→g",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "chanclas",
+      "correcta": "ˈʧan.klas",
+      "erronea": "ˈʧan.kas",
+      "descripcion": "kl→k",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "siempre",
+      "correcta": "ˈsiem.pɾe",
+      "erronea": "ˈsiem.pe",
+      "descripcion": "pɾ→p",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "compró",
+      "correcta": "kom.ˈpɾo",
+      "erronea": "kom.ˈpo",
+      "descripcion": "pɾ→p",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "prisa",
+      "correcta": "ˈpɾi.sa",
+      "erronea": "ˈpi.sa",
+      "descripcion": "pɾ→p",
+      "cat": "nf",
+      "sem": "estado"
+    },
+    {
+      "ortografia": "preguntó",
+      "correcta": "pɾe.gun.ˈto",
+      "erronea": "pe.gun.ˈto",
+      "descripcion": "pɾ→p",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "tecla",
+      "correcta": "ˈte.kla",
+      "erronea": "ˈte.ka",
+      "descripcion": "kl→k",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "brazos",
+      "correcta": "ˈbɾa.θos",
+      "erronea": "ˈba.θos",
+      "descripcion": "bɾ→b",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "secretaria",
+      "correcta": "se.kɾe.ˈta.ɾia",
+      "erronea": "se.ke.ˈta.ɾia",
+      "descripcion": "kɾ→k",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "sobre",
+      "correcta": "ˈso.bɾe",
+      "erronea": "ˈso.be",
+      "descripcion": "bɾ→b",
+      "cat": "prep",
+      "sem": "func"
+    },
+    {
+      "ortografia": "pablo",
+      "correcta": "ˈpa.blo",
+      "erronea": "ˈpa.bo",
+      "descripcion": "bl→b",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "comprado",
+      "correcta": "kom.ˈpɾa.do",
+      "erronea": "kom.ˈpa.do",
+      "descripcion": "pɾ→p",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "protegió",
+      "correcta": "pɾo.te.ˈxio",
+      "erronea": "po.te.ˈxio",
+      "descripcion": "pɾ→p",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "traer",
+      "correcta": "tɾa.ˈeɾ",
+      "erronea": "ta.ˈeɾ",
+      "descripcion": "tɾ→t",
+      "cat": "vinf",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "preparó",
+      "correcta": "pɾe.pa.ˈɾo",
+      "erronea": "pe.pa.ˈɾo",
+      "descripcion": "pɾ→p",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "bromista",
+      "correcta": "bɾo.ˈmis.ta",
+      "erronea": "bo.ˈmis.ta",
+      "descripcion": "bɾ→b",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "madre",
+      "correcta": "ˈma.dɾe",
+      "erronea": "ˈma.de",
+      "descripcion": "dɾ→d",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "comprar",
+      "correcta": "kom.ˈpɾaɾ",
+      "erronea": "kom.ˈpaɾ",
+      "descripcion": "pɾ→p",
+      "cat": "vinf",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "profesor",
+      "correcta": "pɾo.fe.ˈsoɾ",
+      "erronea": "po.fe.ˈsoɾ",
+      "descripcion": "pɾ→p",
+      "cat": "nm",
+      "sem": "persona"
+    }
+  ],
+  "simplificacion_nucleo": [
+    {
+      "ortografia": "aire",
+      "correcta": "ˈai.ɾe",
+      "erronea": "ˈa.ɾe",
+      "descripcion": "ai→a",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "baile",
+      "correcta": "ˈbai.le",
+      "erronea": "ˈba.le",
+      "descripcion": "ai→a",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "reina",
+      "correcta": "ˈrei.na",
+      "erronea": "ˈre.na",
+      "descripcion": "ei→e",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "seis",
+      "correcta": "ˈseis",
+      "erronea": "ˈses",
+      "descripcion": "ei→e",
+      "cat": "num",
+      "sem": "num"
+    },
+    {
+      "ortografia": "veinte",
+      "correcta": "ˈbein.te",
+      "erronea": "ˈben.te",
+      "descripcion": "ei→e",
+      "cat": "num",
+      "sem": "num"
+    },
+    {
+      "ortografia": "reino",
+      "correcta": "ˈrei.no",
+      "erronea": "ˈre.no",
+      "descripcion": "ei→e",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "peinado",
+      "correcta": "pei.ˈna.do",
+      "erronea": "pe.ˈna.do",
+      "descripcion": "ei→e",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "traición",
+      "correcta": "tɾai.ˈθon",
+      "erronea": "tɾa.ˈθon",
+      "descripcion": "ai→a",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "piojo",
+      "correcta": "ˈpio.xo",
+      "erronea": "ˈpo.xo",
+      "descripcion": "io→o",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "piano",
+      "correcta": "ˈpia.no",
+      "erronea": "ˈpa.no",
+      "descripcion": "ia→a",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "piedad",
+      "correcta": "pie.ˈdad",
+      "erronea": "pe.ˈdad",
+      "descripcion": "ie→e",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "piedra",
+      "correcta": "ˈpie.dɾa",
+      "erronea": "ˈpe.dɾa",
+      "descripcion": "ie→e",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "pierde",
+      "correcta": "ˈpieɾ.de",
+      "erronea": "ˈpeɾ.de",
+      "descripcion": "ie→e",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "pie",
+      "correcta": "ˈpie",
+      "erronea": "ˈpe",
+      "descripcion": "ie→e",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "bien",
+      "correcta": "ˈbien",
+      "erronea": "ˈben",
+      "descripcion": "ie→e",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "nieve",
+      "correcta": "ˈnie.be",
+      "erronea": "ˈne.be",
+      "descripcion": "ie→e",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "nieto",
+      "correcta": "ˈnie.to",
+      "erronea": "ˈne.to",
+      "descripcion": "ie→e",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "miel",
+      "correcta": "ˈmiel",
+      "erronea": "ˈmel",
+      "descripcion": "ie→e",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "fuego",
+      "correcta": "ˈfue.go",
+      "erronea": "ˈfe.go",
+      "descripcion": "ue→e",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "huevo",
+      "correcta": "ˈue.bo",
+      "erronea": "ˈe.bo",
+      "descripcion": "ue→e",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "puerta",
+      "correcta": "ˈpueɾ.ta",
+      "erronea": "ˈpeɾ.ta",
+      "descripcion": "ue→e",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "pueblo",
+      "correcta": "ˈpue.blo",
+      "erronea": "ˈpe.blo",
+      "descripcion": "ue→e",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "bueno",
+      "correcta": "ˈbue.no",
+      "erronea": "ˈbe.no",
+      "descripcion": "ue→e",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "abuela",
+      "correcta": "a.ˈbue.la",
+      "erronea": "a.ˈbe.la",
+      "descripcion": "ue→e",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "cuero",
+      "correcta": "ˈkue.ɾo",
+      "erronea": "ˈke.ɾo",
+      "descripcion": "ue→e",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cuento",
+      "correcta": "ˈkuen.to",
+      "erronea": "ˈken.to",
+      "descripcion": "ue→e",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "cueva",
+      "correcta": "ˈkue.ba",
+      "erronea": "ˈke.ba",
+      "descripcion": "ue→e",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "juego",
+      "correcta": "ˈxue.go",
+      "erronea": "ˈxe.go",
+      "descripcion": "ue→e",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "duende",
+      "correcta": "ˈduen.de",
+      "erronea": "ˈden.de",
+      "descripcion": "ue→e",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "cuota",
+      "correcta": "ˈkuo.ta",
+      "erronea": "ˈko.ta",
+      "descripcion": "uo→o",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "ciudad",
+      "correcta": "θiu.ˈdad",
+      "erronea": "θu.ˈdad",
+      "descripcion": "iu→u",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "labio",
+      "correcta": "ˈla.bio",
+      "erronea": "ˈla.bo",
+      "descripcion": "io→o",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "cielo",
+      "correcta": "ˈθie.lo",
+      "erronea": "ˈθe.lo",
+      "descripcion": "ie→e",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "audio",
+      "correcta": "ˈau.dio",
+      "erronea": "ˈa.do",
+      "descripcion": "au→a + io→o",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "deidad",
+      "correcta": "dei.ˈdad",
+      "erronea": "de.ˈdad",
+      "descripcion": "ei→e",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "novia",
+      "correcta": "ˈno.bia",
+      "erronea": "ˈno.ba",
+      "descripcion": "ia→a",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "fiesta",
+      "correcta": "ˈfies.ta",
+      "erronea": "ˈfes.ta",
+      "descripcion": "ie→e",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "siempre",
+      "correcta": "ˈsiem.pɾe",
+      "erronea": "ˈsem.pɾe",
+      "descripcion": "ie→e",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "patio",
+      "correcta": "ˈpa.tio",
+      "erronea": "ˈpa.to",
+      "descripcion": "io→o",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "subió",
+      "correcta": "su.ˈbio",
+      "erronea": "su.ˈbo",
+      "descripcion": "io→o",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "sucio",
+      "correcta": "ˈsu.θio",
+      "erronea": "ˈsu.θo",
+      "descripcion": "io→o",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "secretaria",
+      "correcta": "se.kɾe.ˈta.ɾia",
+      "erronea": "se.kɾe.ˈta.ɾa",
+      "descripcion": "ia→a",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "muy",
+      "correcta": "ˈmui",
+      "erronea": "ˈmu",
+      "descripcion": "ui→u",
+      "cat": "adv",
+      "sem": "adv"
+    },
+    {
+      "ortografia": "nuria",
+      "correcta": "ˈnu.ɾia",
+      "erronea": "ˈnu.ɾa",
+      "descripcion": "ia→a",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "tiene",
+      "correcta": "ˈtie.ne",
+      "erronea": "ˈte.ne",
+      "descripcion": "ie→e",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "jaula",
+      "correcta": "ˈxau.la",
+      "erronea": "ˈxa.la",
+      "descripcion": "au→a",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "abuelo",
+      "correcta": "a.ˈbue.lo",
+      "erronea": "a.ˈbe.lo",
+      "descripcion": "ue→e",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "siete",
+      "correcta": "ˈsie.te",
+      "erronea": "ˈse.te",
+      "descripcion": "ie→e",
+      "cat": "num",
+      "sem": "num"
+    },
+    {
+      "ortografia": "habitación",
+      "correcta": "a.bi.ta.ˈθion",
+      "erronea": "a.bi.ta.ˈθon",
+      "descripcion": "io→o",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "bailar",
+      "correcta": "bai.ˈlaɾ",
+      "erronea": "ba.ˈlaɾ",
+      "descripcion": "ai→a",
+      "cat": "vinf",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "juega",
+      "correcta": "ˈxue.ga",
+      "erronea": "ˈxe.ga",
+      "descripcion": "ue→e",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "escribió",
+      "correcta": "es.kɾi.ˈbio",
+      "erronea": "es.kɾi.ˈbo",
+      "descripcion": "io→o",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "luis",
+      "correcta": "ˈluis",
+      "erronea": "ˈlis",
+      "descripcion": "ui→u",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "dio",
+      "correcta": "ˈdio",
+      "erronea": "ˈdo",
+      "descripcion": "io→o",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "colegio",
+      "correcta": "ko.ˈle.xio",
+      "erronea": "ko.ˈle.xo",
+      "descripcion": "io→o",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "quiere",
+      "correcta": "ˈkie.ɾe",
+      "erronea": "ˈke.ɾe",
+      "descripcion": "ie→e",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "nuevos",
+      "correcta": "ˈnue.bos",
+      "erronea": "ˈne.bos",
+      "descripcion": "ue→e",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "cogió",
+      "correcta": "ko.ˈxio",
+      "erronea": "ko.ˈxo",
+      "descripcion": "io→o",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "ayuntamiento",
+      "correcta": "a.ʝun.ta.ˈmien.to",
+      "erronea": "a.ʝun.ta.ˈmen.to",
+      "descripcion": "ie→e",
+      "cat": "nm",
+      "sem": "institución"
+    },
+    {
+      "ortografia": "duerme",
+      "correcta": "ˈdueɾ.me",
+      "erronea": "ˈdeɾ.me",
+      "descripcion": "ue→e",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "mario",
+      "correcta": "ˈma.ɾio",
+      "erronea": "ˈma.ɾo",
+      "descripcion": "io→o",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "juan",
+      "correcta": "ˈxuan",
+      "erronea": "ˈxan",
+      "descripcion": "ua→a",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "estudiantes",
+      "correcta": "es.tu.ˈdian.tes",
+      "erronea": "es.tu.ˈdan.tes",
+      "descripcion": "ia→a",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "decidieron",
+      "correcta": "de.θi.ˈdie.ɾon",
+      "erronea": "de.θi.ˈde.ɾon",
+      "descripcion": "ie→e",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "huelga",
+      "correcta": "ˈuel.ga",
+      "erronea": "ˈel.ga",
+      "descripcion": "ue→e",
+      "cat": "nf",
+      "sem": "evento"
+    },
+    {
+      "ortografia": "historias",
+      "correcta": "is.ˈto.ɾias",
+      "erronea": "is.ˈto.ɾas",
+      "descripcion": "ia→a",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "luisa",
+      "correcta": "ˈlui.sa",
+      "erronea": "ˈlu.sa",
+      "descripcion": "ui→u",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "mientras",
+      "correcta": "ˈmien.tɾas",
+      "erronea": "ˈmen.tɾas",
+      "descripcion": "ie→e",
+      "cat": "adv",
+      "sem": "func"
+    },
+    {
+      "ortografia": "tatuaje",
+      "correcta": "ta.ˈtua.xe",
+      "erronea": "ta.ˈta.xe",
+      "descripcion": "ua→a",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "eduardo",
+      "correcta": "e.ˈduaɾ.do",
+      "erronea": "e.ˈdaɾ.do",
+      "descripcion": "ua→a",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "preciosa",
+      "correcta": "pɾe.ˈθio.sa",
+      "erronea": "pɾe.ˈθo.sa",
+      "descripcion": "io→o",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "puestas",
+      "correcta": "ˈpues.tas",
+      "erronea": "ˈpes.tas",
+      "descripcion": "ue→e",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "tienen",
+      "correcta": "ˈtie.nen",
+      "erronea": "ˈte.nen",
+      "descripcion": "ie→e",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "horario",
+      "correcta": "o.ˈɾa.ɾio",
+      "erronea": "o.ˈɾa.ɾo",
+      "descripcion": "io→o",
+      "cat": "nm",
+      "sem": "tiempo"
+    },
+    {
+      "ortografia": "limpia",
+      "correcta": "ˈlim.pia",
+      "erronea": "ˈlim.pa",
+      "descripcion": "ia→a",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "pidió",
+      "correcta": "pi.ˈdio",
+      "erronea": "pi.ˈdo",
+      "descripcion": "io→o",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "autobús",
+      "correcta": "au.to.ˈbus",
+      "erronea": "a.to.ˈbus",
+      "descripcion": "au→a",
+      "cat": "nm",
+      "sem": "vehículo"
+    },
+    {
+      "ortografia": "agua",
+      "correcta": "ˈa.gua",
+      "erronea": "ˈa.ga",
+      "descripcion": "ua→a",
+      "cat": "nf",
+      "sem": "comida"
+    }
+  ],
+  "omision_ataque": [
+    {
+      "ortografia": "primo",
+      "correcta": "ˈpɾi.mo",
+      "erronea": "ˈi.mo",
+      "descripcion": "pɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "prado",
+      "correcta": "ˈpɾa.do",
+      "erronea": "ˈa.do",
+      "descripcion": "pɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "precio",
+      "correcta": "ˈpɾe.θio",
+      "erronea": "ˈe.θio",
+      "descripcion": "pɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "pradera",
+      "correcta": "pɾa.ˈde.ɾa",
+      "erronea": "a.ˈde.ɾa",
+      "descripcion": "pɾ→∅ɾ",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "tres",
+      "correcta": "ˈtɾes",
+      "erronea": "ˈes",
+      "descripcion": "tɾ→∅ɾ",
+      "cat": "num",
+      "sem": "num"
+    },
+    {
+      "ortografia": "trabajo",
+      "correcta": "tɾa.ˈba.xo",
+      "erronea": "a.ˈba.xo",
+      "descripcion": "tɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "trono",
+      "correcta": "ˈtɾo.no",
+      "erronea": "ˈo.no",
+      "descripcion": "tɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "trigo",
+      "correcta": "ˈtɾi.go",
+      "erronea": "ˈi.go",
+      "descripcion": "tɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "tropa",
+      "correcta": "ˈtɾo.pa",
+      "erronea": "ˈo.pa",
+      "descripcion": "tɾ→∅ɾ",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "brazo",
+      "correcta": "ˈbɾa.θo",
+      "erronea": "ˈa.θo",
+      "descripcion": "bɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "broma",
+      "correcta": "ˈbɾo.ma",
+      "erronea": "ˈo.ma",
+      "descripcion": "bɾ→∅ɾ",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "cabra",
+      "correcta": "ˈka.bɾa",
+      "erronea": "ˈa.ba",
+      "descripcion": "bɾ→∅ɾ",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "cobre",
+      "correcta": "ˈko.bɾe",
+      "erronea": "ˈo.bɾe",
+      "descripcion": "bɾ→∅b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "libro",
+      "correcta": "ˈli.bɾo",
+      "erronea": "ˈi.bo",
+      "descripcion": "bɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "dragón",
+      "correcta": "dɾa.ˈgon",
+      "erronea": "a.ˈgon",
+      "descripcion": "dɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "ladrón",
+      "correcta": "la.ˈdɾon",
+      "erronea": "la.ˈon",
+      "descripcion": "dɾ→∅",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "cuadro",
+      "correcta": "ˈkua.dɾo",
+      "erronea": "ˈa.do",
+      "descripcion": "dɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cruz",
+      "correcta": "ˈkɾuθ",
+      "erronea": "ˈuθ",
+      "descripcion": "kɾ→∅ɾ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cráneo",
+      "correcta": "ˈkɾa.ne.o",
+      "erronea": "ˈa.e.o",
+      "descripcion": "kɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "crema",
+      "correcta": "ˈkɾe.ma",
+      "erronea": "ˈe.ma",
+      "descripcion": "kɾ→∅ɾ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cristal",
+      "correcta": "kɾis.ˈtal",
+      "erronea": "is.ˈtal",
+      "descripcion": "kɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "secreto",
+      "correcta": "se.ˈkɾe.to",
+      "erronea": "se.ˈe.to",
+      "descripcion": "kɾ→∅",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "gracia",
+      "correcta": "ˈgɾa.θia",
+      "erronea": "ˈa.θia",
+      "descripcion": "gɾ→∅ɾ",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "grande",
+      "correcta": "ˈgɾan.de",
+      "erronea": "ˈan.de",
+      "descripcion": "gɾ→∅ɾ",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "grasa",
+      "correcta": "ˈgɾa.sa",
+      "erronea": "ˈa.sa",
+      "descripcion": "gɾ→∅ɾ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "gruta",
+      "correcta": "ˈgɾu.ta",
+      "erronea": "ˈu.ta",
+      "descripcion": "gɾ→∅ɾ",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "frío",
+      "correcta": "ˈfɾi.o",
+      "erronea": "ˈi.o",
+      "descripcion": "fɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "fresa",
+      "correcta": "ˈfɾe.sa",
+      "erronea": "ˈe.sa",
+      "descripcion": "fɾ→∅ɾ",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "fruta",
+      "correcta": "ˈfɾu.ta",
+      "erronea": "ˈu.ta",
+      "descripcion": "fɾ→∅ɾ",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "frágil",
+      "correcta": "ˈfɾa.xil",
+      "erronea": "ˈa.xil",
+      "descripcion": "fɾ→∅ɾ",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "cofre",
+      "correcta": "ˈko.fɾe",
+      "erronea": "ˈo.fe",
+      "descripcion": "fɾ→∅ɾ",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "flor",
+      "correcta": "ˈfloɾ",
+      "erronea": "ˈoɾ",
+      "descripcion": "fl→∅l",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "flaco",
+      "correcta": "ˈfla.ko",
+      "erronea": "ˈa.ko",
+      "descripcion": "fl→∅l",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "flauta",
+      "correcta": "ˈflau.ta",
+      "erronea": "ˈau.ta",
+      "descripcion": "fl→∅l",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "plato",
+      "correcta": "ˈpla.to",
+      "erronea": "ˈa.to",
+      "descripcion": "pl→∅l",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "pluma",
+      "correcta": "ˈplu.ma",
+      "erronea": "ˈu.ma",
+      "descripcion": "pl→∅l",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "blusa",
+      "correcta": "ˈblu.sa",
+      "erronea": "ˈu.sa",
+      "descripcion": "bl→∅l",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "blanco",
+      "correcta": "ˈblan.ko",
+      "erronea": "ˈan.ko",
+      "descripcion": "bl→∅l",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "bloque",
+      "correcta": "ˈblo.ke",
+      "erronea": "ˈo.ke",
+      "descripcion": "bl→∅l",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "hablar",
+      "correcta": "a.ˈblaɾ",
+      "erronea": "a.ˈbaɾ",
+      "descripcion": "bl→∅l",
+      "cat": "v_inf",
+      "sem": "v_inf"
+    },
+    {
+      "ortografia": "clave",
+      "correcta": "ˈkla.be",
+      "erronea": "ˈa.be",
+      "descripcion": "kl→∅l",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "globo",
+      "correcta": "ˈglo.bo",
+      "erronea": "ˈo.bo",
+      "descripcion": "gl→∅g",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "fuego",
+      "correcta": "ˈfue.go",
+      "erronea": "ˈue.go",
+      "descripcion": "f→∅",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "puerta",
+      "correcta": "ˈpueɾ.ta",
+      "erronea": "ˈueɾ.ta",
+      "descripcion": "p→∅",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "pueblo",
+      "correcta": "ˈpue.blo",
+      "erronea": "ˈue.blo",
+      "descripcion": "p→∅",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "bueno",
+      "correcta": "ˈbue.no",
+      "erronea": "ˈue.no",
+      "descripcion": "b→∅",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "cuero",
+      "correcta": "ˈkue.ɾo",
+      "erronea": "ˈue.ɾo",
+      "descripcion": "k→∅",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cuento",
+      "correcta": "ˈkuen.to",
+      "erronea": "ˈuen.to",
+      "descripcion": "k→∅",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "cueva",
+      "correcta": "ˈkue.ba",
+      "erronea": "ˈue.ba",
+      "descripcion": "k→∅",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "piñata",
+      "correcta": "pi.ˈɲa.ta",
+      "erronea": "i.ˈɲa.ta",
+      "descripcion": "p→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "bufanda",
+      "correcta": "bu.ˈfan.da",
+      "erronea": "u.ˈfan.da",
+      "descripcion": "b→∅",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "cigüeña",
+      "correcta": "θi.ˈgue.ɲa",
+      "erronea": "i.ˈgue.ɲa",
+      "descripcion": "θ→∅",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "pijama",
+      "correcta": "pi.ˈxa.ma",
+      "erronea": "i.ˈxa.ma",
+      "descripcion": "p→∅",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "tijeras",
+      "correcta": "ti.ˈxe.ɾas",
+      "erronea": "i.ˈxe.ɾas",
+      "descripcion": "t→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "faro",
+      "correcta": "ˈfa.ɾo",
+      "erronea": "ˈa.ɾo",
+      "descripcion": "f→∅",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "farola",
+      "correcta": "fa.ˈɾo.la",
+      "erronea": "a.ˈɾo.la",
+      "descripcion": "f→∅",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "fiesta",
+      "correcta": "ˈfies.ta",
+      "erronea": "ˈies.ta",
+      "descripcion": "f→∅",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "foca",
+      "correcta": "ˈfo.ka",
+      "erronea": "ˈo.ka",
+      "descripcion": "f→∅",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "fábrica",
+      "correcta": "ˈfa.bɾi.ka",
+      "erronea": "ˈa.bɾi.ka",
+      "descripcion": "f→∅",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "sacacorchos",
+      "correcta": "sa.ka.ˈkoɾ.ʧos",
+      "erronea": "a.ka.ˈkoɾ.ʧos",
+      "descripcion": "s→∅",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "saco",
+      "correcta": "ˈsa.ko",
+      "erronea": "ˈa.ko",
+      "descripcion": "s→∅",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "sereno",
+      "correcta": "se.ˈɾe.no",
+      "erronea": "e.ˈɾe.no",
+      "descripcion": "s→∅",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "sopa",
+      "correcta": "ˈso.pa",
+      "erronea": "ˈo.pa",
+      "descripcion": "s→∅",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "jugaba",
+      "correcta": "xu.ˈga.ba",
+      "erronea": "u.ˈga.ba",
+      "descripcion": "x→∅",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "jugando",
+      "correcta": "xu.ˈgan.do",
+      "erronea": "u.ˈgan.do",
+      "descripcion": "x→∅",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "gusta",
+      "correcta": "ˈgus.ta",
+      "erronea": "ˈus.ta",
+      "descripcion": "g→∅",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "jugar",
+      "correcta": "xu.ˈgaɾ",
+      "erronea": "u.ˈgaɾ",
+      "descripcion": "x→∅",
+      "cat": "vinf",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "sillas",
+      "correcta": "ˈsi.ʝas",
+      "erronea": "ˈi.ʝas",
+      "descripcion": "s→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "gastar",
+      "correcta": "gas.ˈtaɾ",
+      "erronea": "as.ˈtaɾ",
+      "descripcion": "g→∅",
+      "cat": "vinf",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "sembrar",
+      "correcta": "sem.ˈbɾaɾ",
+      "erronea": "em.ˈbɾaɾ",
+      "descripcion": "s→∅",
+      "cat": "vinf",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "sabe",
+      "correcta": "ˈsa.be",
+      "erronea": "ˈa.be",
+      "descripcion": "s→∅",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "jamón",
+      "correcta": "xa.ˈmon",
+      "erronea": "a.ˈmon",
+      "descripcion": "x→∅",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "josé",
+      "correcta": "xo.ˈse",
+      "erronea": "o.ˈse",
+      "descripcion": "x→∅",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "junto",
+      "correcta": "ˈxun.to",
+      "erronea": "ˈun.to",
+      "descripcion": "x→∅",
+      "cat": "adv",
+      "sem": "func"
+    },
+    {
+      "ortografia": "mi",
+      "correcta": "mi",
+      "erronea": "i",
+      "descripcion": "m→∅",
+      "cat": "pron",
+      "sem": "func"
+    },
+    {
+      "ortografia": "tú",
+      "correcta": "tu",
+      "erronea": "u",
+      "descripcion": "t→∅",
+      "cat": "pron",
+      "sem": "func"
+    },
+    {
+      "ortografia": "la",
+      "correcta": "la",
+      "erronea": "a",
+      "descripcion": "l→∅",
+      "cat": "det",
+      "sem": "func"
+    }
+  ],
+  "omision_ataque_silaba": [
+    {
+      "ortografia": "zapato",
+      "correcta": "θa.ˈpa.to",
+      "erronea": "ˈa.to",
+      "descripcion": "θa omitida + p→∅",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "pelota",
+      "correcta": "pe.ˈlo.ta",
+      "erronea": "ˈo.ta",
+      "descripcion": "pe omitida + l→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tomate",
+      "correcta": "to.ˈma.te",
+      "erronea": "ˈa.te",
+      "descripcion": "to omitida + m→∅",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "camisa",
+      "correcta": "ka.ˈmi.sa",
+      "erronea": "ˈi.sa",
+      "descripcion": "ka omitida + m→∅",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "mañana",
+      "correcta": "ma.ˈɲa.na",
+      "erronea": "ˈa.na",
+      "descripcion": "ma omitida + ɲ→∅",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "caballo",
+      "correcta": "ka.ˈba.ʝo",
+      "erronea": "ˈba.o",
+      "descripcion": "ka omitida + ʝ→∅",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "cuchara",
+      "correcta": "ku.ˈʧa.ɾa",
+      "erronea": "ˈa.ɾa",
+      "descripcion": "ku omitida + ʧ→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "botella",
+      "correcta": "bo.ˈte.ʝa",
+      "erronea": "ˈe.a",
+      "descripcion": "bo omitida + t→∅, ʝ→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "conejo",
+      "correcta": "ko.ˈne.xo",
+      "erronea": "ˈe.xo",
+      "descripcion": "ko omitida + n→∅",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "dinero",
+      "correcta": "di.ˈne.ɾo",
+      "erronea": "ˈe.ɾo",
+      "descripcion": "di omitida + n→∅",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "ventana",
+      "correcta": "ben.ˈta.na",
+      "erronea": "ˈa.na",
+      "descripcion": "ben omitida + t→∅",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "maleta",
+      "correcta": "ma.ˈle.ta",
+      "erronea": "ˈe.ta",
+      "descripcion": "ma omitida + l→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "payaso",
+      "correcta": "pa.ˈʝa.so",
+      "erronea": "ˈa.so",
+      "descripcion": "pa omitida + ʝ→∅",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "naranja",
+      "correcta": "na.ˈɾan.xa",
+      "erronea": "ˈan.xa",
+      "descripcion": "na omitida + ɾ→∅",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "mochila",
+      "correcta": "mo.ˈʧi.la",
+      "erronea": "ˈi.la",
+      "descripcion": "mo omitida + ʧ→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tijera",
+      "correcta": "ti.ˈxe.ɾa",
+      "erronea": "ˈe.a",
+      "descripcion": "ti omitida + x→∅, ɾ→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "rodilla",
+      "correcta": "ɾo.ˈdi.ʝa",
+      "erronea": "ˈdi.a",
+      "descripcion": "ɾo omitida + ʝ→∅",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "cebolla",
+      "correcta": "θe.ˈbo.ʝa",
+      "erronea": "ˈbo.a",
+      "descripcion": "θe omitida + ʝ→∅",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "semilla",
+      "correcta": "se.ˈmi.ʝa",
+      "erronea": "ˈmi.a",
+      "descripcion": "se omitida + ʝ→∅",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "tobillo",
+      "correcta": "to.ˈbi.ʝo",
+      "erronea": "ˈi.ʝo",
+      "descripcion": "to omitida + b→∅",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "ballena",
+      "correcta": "ba.ˈʝe.na",
+      "erronea": "ˈe.na",
+      "descripcion": "ba omitida + ʝ→∅",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "galleta",
+      "correcta": "ga.ˈʝe.ta",
+      "erronea": "ˈe.ta",
+      "descripcion": "ga omitida + ʝ→∅",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "bigote",
+      "correcta": "bi.ˈgo.te",
+      "erronea": "ˈo.te",
+      "descripcion": "bi omitida + g→∅",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "tortilla",
+      "correcta": "toɾ.ˈti.ʝa",
+      "erronea": "ˈi.ʝa",
+      "descripcion": "toɾ omitida + t→∅",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "cangrejo",
+      "correcta": "kaŋ.ˈgɾe.xo",
+      "erronea": "ˈe.xo",
+      "descripcion": "kaŋ omitida + gɾ→∅",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "pistola",
+      "correcta": "pis.ˈto.la",
+      "erronea": "ˈo.a",
+      "descripcion": "pis omitida + t→∅, l→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "espada",
+      "correcta": "es.ˈpa.da",
+      "erronea": "ˈa.da",
+      "descripcion": "es omitida + p→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "espejo",
+      "correcta": "es.ˈpe.xo",
+      "erronea": "ˈe.xo",
+      "descripcion": "es omitida + p→∅",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "helado",
+      "correcta": "e.ˈla.do",
+      "erronea": "ˈa.o",
+      "descripcion": "e omitida + l→∅, d→∅",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "jabón",
+      "correcta": "xa.ˈbon",
+      "erronea": "ˈon",
+      "descripcion": "xa omitida + b→∅",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "colchón",
+      "correcta": "kol.ˈʧon",
+      "erronea": "ˈon",
+      "descripcion": "kol omitida + ʧ→∅",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "linterna",
+      "correcta": "lin.ˈteɾ.na",
+      "erronea": "ˈeɾ.na",
+      "descripcion": "lin omitida + t→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "sombrero",
+      "correcta": "som.ˈbɾe.ɾo",
+      "erronea": "ˈe.ɾo",
+      "descripcion": "som omitida + bɾ→∅",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "columna",
+      "correcta": "ko.ˈlum.na",
+      "erronea": "ˈu.na",
+      "descripcion": "ko omitida + l→∅",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "palmera",
+      "correcta": "pal.ˈme.ɾa",
+      "erronea": "ˈe.ɾa",
+      "descripcion": "pal omitida + m→∅",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "banana",
+      "correcta": "ba.ˈna.na",
+      "erronea": "ˈa.na",
+      "descripcion": "ba omitida + n→∅",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "pasillo",
+      "correcta": "pa.ˈsi.ʝo",
+      "erronea": "ˈi.ʝo",
+      "descripcion": "pa omitida + s→∅",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "tortuga",
+      "correcta": "toɾ.ˈtu.ga",
+      "erronea": "ˈu.ga",
+      "descripcion": "toɾ omitida + t→∅",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "calcetín",
+      "correcta": "kal.θe.ˈtin",
+      "erronea": "θe.ˈtin",
+      "descripcion": "kal omitida (sin cambio)",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "piñata",
+      "correcta": "pi.ˈɲa.ta",
+      "erronea": "ˈa.ta",
+      "descripcion": "pi omitida + ɲ→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "bufanda",
+      "correcta": "bu.ˈfan.da",
+      "erronea": "ˈan.da",
+      "descripcion": "bu omitida + f→∅",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "cigüeña",
+      "correcta": "θi.ˈgue.ɲa",
+      "erronea": "ˈue.ɲa",
+      "descripcion": "θi omitida + g→∅",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "pijama",
+      "correcta": "pi.ˈxa.ma",
+      "erronea": "ˈa.ma",
+      "descripcion": "pi omitida + x→∅",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "tijeras",
+      "correcta": "ti.ˈxe.ɾas",
+      "erronea": "ˈe.ɾas",
+      "descripcion": "ti omitida + x→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "nevera",
+      "correcta": "ne.ˈbe.ɾa",
+      "erronea": "ˈe.ɾa",
+      "descripcion": "ne omitida + b→∅",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "muleta",
+      "correcta": "mu.ˈle.ta",
+      "erronea": "ˈe.ta",
+      "descripcion": "mu omitida + l→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "veleta",
+      "correcta": "be.ˈle.ta",
+      "erronea": "ˈe.ta",
+      "descripcion": "be omitida + l→∅",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "melena",
+      "correcta": "me.ˈle.na",
+      "erronea": "ˈe.na",
+      "descripcion": "me omitida + l→∅",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "sereno",
+      "correcta": "se.ˈɾe.no",
+      "erronea": "ˈe.no",
+      "descripcion": "se omitida + ɾ→∅",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "velero",
+      "correcta": "be.ˈle.ɾo",
+      "erronea": "ˈe.ɾo",
+      "descripcion": "be omitida + l→∅",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "secretaria",
+      "correcta": "se.kɾe.ˈta.ɾia",
+      "erronea": "e.ˈta.ɾia",
+      "descripcion": "s→∅ + kɾe omitida",
+      "cat": "nf",
+      "sem": "persona"
+    }
+  ],
+  "simplificacion_nucleo_omision_ataque": [
+    {
+      "ortografia": "baile",
+      "correcta": "ˈbai.le",
+      "erronea": "ˈa.le",
+      "descripcion": "ai→a + b→∅",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "reina",
+      "correcta": "ˈrei.na",
+      "erronea": "ˈe.na",
+      "descripcion": "ei→e + ɾ→∅",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "seis",
+      "correcta": "ˈseis",
+      "erronea": "ˈes",
+      "descripcion": "ei→e + s→∅",
+      "cat": "num",
+      "sem": "num"
+    },
+    {
+      "ortografia": "veinte",
+      "correcta": "ˈbein.te",
+      "erronea": "ˈen.te",
+      "descripcion": "ei→e + b→∅",
+      "cat": "num",
+      "sem": "num"
+    },
+    {
+      "ortografia": "peinado",
+      "correcta": "pei.ˈna.do",
+      "erronea": "pe.ˈa.do",
+      "descripcion": "ei→e + n→∅",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "traición",
+      "correcta": "tɾai.ˈθon",
+      "erronea": "a.ˈθon",
+      "descripcion": "ai→a + tɾ→∅",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "piojo",
+      "correcta": "ˈpio.xo",
+      "erronea": "ˈo.xo",
+      "descripcion": "io→o + p→∅",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "piano",
+      "correcta": "ˈpia.no",
+      "erronea": "ˈa.no",
+      "descripcion": "ia→a + p→∅",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "piedad",
+      "correcta": "pie.ˈdad",
+      "erronea": "e.ˈdad",
+      "descripcion": "ie→e + p→∅",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "piedra",
+      "correcta": "ˈpie.dɾa",
+      "erronea": "ˈe.dɾa",
+      "descripcion": "ie→e + p→∅",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "pierde",
+      "correcta": "ˈpieɾ.de",
+      "erronea": "ˈeɾ.de",
+      "descripcion": "ie→e + p→∅",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "pie",
+      "correcta": "ˈpie",
+      "erronea": "ˈe",
+      "descripcion": "ie→e + p→∅",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "bien",
+      "correcta": "ˈbien",
+      "erronea": "ˈen",
+      "descripcion": "ie→e + b→∅",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "nieve",
+      "correcta": "ˈnie.be",
+      "erronea": "ˈe.be",
+      "descripcion": "ie→e + n→∅",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "nieto",
+      "correcta": "ˈnie.to",
+      "erronea": "ˈe.to",
+      "descripcion": "ie→e + n→∅",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "miel",
+      "correcta": "ˈmiel",
+      "erronea": "ˈel",
+      "descripcion": "ie→e + m→∅",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "fuego",
+      "correcta": "ˈfue.go",
+      "erronea": "ˈe.go",
+      "descripcion": "ue→e + f→∅",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "huevo",
+      "correcta": "ˈue.bo",
+      "erronea": "ˈe.bo",
+      "descripcion": "ue→e (sin ataque)",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "puerta",
+      "correcta": "ˈpueɾ.ta",
+      "erronea": "ˈeɾ.ta",
+      "descripcion": "ue→e + p→∅",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "pueblo",
+      "correcta": "ˈpue.blo",
+      "erronea": "ˈe.blo",
+      "descripcion": "ue→e + p→∅",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "bueno",
+      "correcta": "ˈbue.no",
+      "erronea": "ˈe.no",
+      "descripcion": "ue→e + b→∅",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "abuela",
+      "correcta": "a.ˈbue.la",
+      "erronea": "a.ˈe.la",
+      "descripcion": "ue→e + b→∅",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "cuero",
+      "correcta": "ˈkue.ɾo",
+      "erronea": "ˈe.o",
+      "descripcion": "ue→e + k→∅, ɾ→∅",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cuento",
+      "correcta": "ˈkuen.to",
+      "erronea": "ˈen.to",
+      "descripcion": "ue→e + k→∅",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "cueva",
+      "correcta": "ˈkue.ba",
+      "erronea": "ˈe.ba",
+      "descripcion": "ue→e + k→∅",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "juego",
+      "correcta": "ˈxue.go",
+      "erronea": "ˈe.go",
+      "descripcion": "ue→e + x→∅",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "duende",
+      "correcta": "ˈduen.de",
+      "erronea": "ˈen.de",
+      "descripcion": "ue→e + d→∅",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "cuota",
+      "correcta": "ˈkuo.ta",
+      "erronea": "ˈo.ta",
+      "descripcion": "uo→o + k→∅",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "ciudad",
+      "correcta": "θiu.ˈdad",
+      "erronea": "u.ˈdad",
+      "descripcion": "iu→u + θ→∅",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "labio",
+      "correcta": "ˈla.bio",
+      "erronea": "ˈa.bo",
+      "descripcion": "io→o + l→∅",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "cielo",
+      "correcta": "ˈθie.lo",
+      "erronea": "ˈe.lo",
+      "descripcion": "ie→e + θ→∅",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "audio",
+      "correcta": "ˈau.dio",
+      "erronea": "ˈa.do",
+      "descripcion": "au→a + io→o + d→∅",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "deidad",
+      "correcta": "dei.ˈdad",
+      "erronea": "de.ˈad",
+      "descripcion": "ei→e + d→∅ (2ª sílaba)",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "fiesta",
+      "correcta": "ˈfies.ta",
+      "erronea": "ˈes.ta",
+      "descripcion": "f→∅ + ie→e",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "fábrica",
+      "correcta": "ˈfa.bɾi.ka",
+      "erronea": "ˈa.bi.ka",
+      "descripcion": "f→∅ + bɾ→b",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "siempre",
+      "correcta": "ˈsiem.pɾe",
+      "erronea": "ˈem.pɾe",
+      "descripcion": "s→∅ + ie→e",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "secretaria",
+      "correcta": "se.kɾe.ˈta.ɾia",
+      "erronea": "e.ˈta.ɾa",
+      "descripcion": "s→∅ + kɾe omitida + ia→a",
+      "cat": "nf",
+      "sem": "persona"
+    }
+  ],
+  "sistematico": [
+    {
+      "ortografia": "fábrica",
+      "correcta": "ˈfa.bɾi.ka",
+      "erronea": "ˈxa.bɾi.ka",
+      "descripcion": "f→x",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "padre",
+      "correcta": "ˈpa.dɾe",
+      "erronea": "ˈpa.tɾe",
+      "descripcion": "d→t",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "madre",
+      "correcta": "ˈma.dɾe",
+      "erronea": "ˈna.dɾe",
+      "descripcion": "m→n",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "libro",
+      "correcta": "ˈli.bɾo",
+      "erronea": "ˈɾi.bɾo",
+      "descripcion": "l→ɾ",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tigre",
+      "correcta": "ˈti.gɾe",
+      "erronea": "ˈki.gɾe",
+      "descripcion": "t→k",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "negro",
+      "correcta": "ˈne.gɾo",
+      "erronea": "ˈme.gɾo",
+      "descripcion": "n→m",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "trabaja",
+      "correcta": "tɾa.ˈba.xa",
+      "erronea": "tɾa.ˈba.fa",
+      "descripcion": "x→f",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "plato",
+      "correcta": "ˈpla.to",
+      "erronea": "ˈkla.to",
+      "descripcion": "p→k",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "presa",
+      "correcta": "ˈpɾe.sa",
+      "erronea": "ˈtɾe.sa",
+      "descripcion": "p→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "crema",
+      "correcta": "ˈkɾe.ma",
+      "erronea": "ˈtɾe.ma",
+      "descripcion": "k→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "prima",
+      "correcta": "ˈpɾi.ma",
+      "erronea": "ˈtɾi.ma",
+      "descripcion": "p→t",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "grasa",
+      "correcta": "ˈgɾa.sa",
+      "erronea": "ˈkɾa.sa",
+      "descripcion": "g→k",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "brazo",
+      "correcta": "ˈbɾa.θo",
+      "erronea": "ˈpɾa.θo",
+      "descripcion": "b→p",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "trapo",
+      "correcta": "ˈtɾa.po",
+      "erronea": "ˈdɾa.po",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "gripe",
+      "correcta": "ˈgɾi.pe",
+      "erronea": "ˈkɾi.pe",
+      "descripcion": "g→k",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "broma",
+      "correcta": "ˈbɾo.ma",
+      "erronea": "ˈpɾo.ma",
+      "descripcion": "b→p",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "flota",
+      "correcta": "ˈflo.ta",
+      "erronea": "ˈflo.ɾa",
+      "descripcion": "t→ɾ",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "clavo",
+      "correcta": "ˈkla.bo",
+      "erronea": "ˈgla.bo",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "drama",
+      "correcta": "ˈdɾa.ma",
+      "erronea": "ˈdɾa.na",
+      "descripcion": "m→n",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "trama",
+      "correcta": "ˈtɾa.ma",
+      "erronea": "ˈtɾa.na",
+      "descripcion": "m→n",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "globo",
+      "correcta": "ˈglo.bo",
+      "erronea": "ˈglo.mo",
+      "descripcion": "b→m",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "gato",
+      "correcta": "ˈga.to",
+      "erronea": "ˈga.do",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "mapa",
+      "correcta": "ˈma.pa",
+      "erronea": "ˈma.ba",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "boca",
+      "correcta": "ˈbo.ka",
+      "erronea": "ˈbo.ga",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "lobo",
+      "correcta": "ˈlo.bo",
+      "erronea": "ˈlo.po",
+      "descripcion": "b→p",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "mesa",
+      "correcta": "ˈme.sa",
+      "erronea": "ˈne.sa",
+      "descripcion": "m→n",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "moto",
+      "correcta": "ˈmo.to",
+      "erronea": "ˈmo.ko",
+      "descripcion": "t→k",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "polo",
+      "correcta": "ˈpo.lo",
+      "erronea": "ˈpo.ɾo",
+      "descripcion": "l→ɾ",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "foca",
+      "correcta": "ˈfo.ka",
+      "erronea": "ˈfo.xa",
+      "descripcion": "k→x",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "lago",
+      "correcta": "ˈla.go",
+      "erronea": "ˈla.xo",
+      "descripcion": "g→x",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "sopa",
+      "correcta": "ˈso.pa",
+      "erronea": "ˈso.ɾa",
+      "descripcion": "p→ɾ",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "tapa",
+      "correcta": "ˈta.pa",
+      "erronea": "ˈta.ka",
+      "descripcion": "p→k",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "pino",
+      "correcta": "ˈpi.no",
+      "erronea": "ˈti.no",
+      "descripcion": "p→t",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "lupa",
+      "correcta": "ˈlu.pa",
+      "erronea": "ˈlu.ta",
+      "descripcion": "p→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "fama",
+      "correcta": "ˈfa.ma",
+      "erronea": "ˈθa.ma",
+      "descripcion": "f→θ",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "saco",
+      "correcta": "ˈsa.ko",
+      "erronea": "ˈθa.ko",
+      "descripcion": "s→θ",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cama",
+      "correcta": "ˈka.ma",
+      "erronea": "ˈta.ma",
+      "descripcion": "k→t",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "foca",
+      "correcta": "ˈfo.ka",
+      "erronea": "ˈfo.ta",
+      "descripcion": "k→t",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "Polonia",
+      "correcta": "po.ˈlo.nia",
+      "erronea": "bo.ˈlo.nia",
+      "descripcion": "p→b",
+      "cat": "np",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "boca",
+      "correcta": "ˈbo.ka",
+      "erronea": "ˈpo.ka",
+      "descripcion": "b→p",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "tela",
+      "correcta": "ˈte.la",
+      "erronea": "ˈde.la",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "pala",
+      "correcta": "ˈpa.la",
+      "erronea": "ˈpa.ɾa",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "mano",
+      "correcta": "ˈma.no",
+      "erronea": "ˈma.do",
+      "descripcion": "n→d",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "topo",
+      "correcta": "ˈto.po",
+      "erronea": "ˈto.mo",
+      "descripcion": "p→m",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "loco",
+      "correcta": "ˈlo.ko",
+      "erronea": "ˈɾo.ko",
+      "descripcion": "l→ɾ",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "luna",
+      "correcta": "ˈlu.na",
+      "erronea": "ˈlu.da",
+      "descripcion": "n→d",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "goma",
+      "correcta": "ˈgo.ma",
+      "erronea": "ˈgo.ba",
+      "descripcion": "m→b",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "taza",
+      "correcta": "ˈta.θa",
+      "erronea": "ˈta.na",
+      "descripcion": "θ→n",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "papanata",
+      "correcta": "pa.pa.ˈna.ta",
+      "erronea": "pa.ka.ˈna.ta",
+      "descripcion": "p→k",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "mucho",
+      "correcta": "ˈmu.ʧo",
+      "erronea": "ˈmu.to",
+      "descripcion": "ʧ→t",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "techo",
+      "correcta": "ˈte.ʧo",
+      "erronea": "ˈte.to",
+      "descripcion": "ʧ→t",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "pico",
+      "correcta": "ˈpi.ko",
+      "erronea": "ˈpi.to",
+      "descripcion": "k→t",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "faro",
+      "correcta": "ˈfa.ɾo",
+      "erronea": "ˈxa.ɾo",
+      "descripcion": "f→x",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "espuma",
+      "correcta": "es.ˈpu.ma",
+      "erronea": "es.ˈku.ma",
+      "descripcion": "p→k",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "gafa",
+      "correcta": "ˈga.fa",
+      "erronea": "ˈga.xa",
+      "descripcion": "f→x",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "sacacorchos",
+      "correcta": "ˈsa.ka.koɾ.ʧos",
+      "erronea": "ˈsa.ka.koɾ.tos",
+      "descripcion": "ʧ→t",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "nubarrón",
+      "correcta": "nu.ba.ˈron",
+      "erronea": "nu.pa.ˈron",
+      "descripcion": "b→p",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "murciélago",
+      "correcta": "muɾ.ˈθie.la.go",
+      "erronea": "muɾ.ˈxie.la.go",
+      "descripcion": "θ→x",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "cadena",
+      "correcta": "ka.ˈde.na",
+      "erronea": "ka.ˈte.na",
+      "descripcion": "d→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "aceituna",
+      "correcta": "a.θei.ˈtu.na",
+      "erronea": "a.θei.ˈdu.na",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "chapata",
+      "correcta": "ʧa.ˈpa.ta",
+      "erronea": "ʧa.ˈpa.ka",
+      "descripcion": "t→k",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "copete",
+      "correcta": "ko.ˈpe.te",
+      "erronea": "ko.ˈpe.ke",
+      "descripcion": "t→k",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "camisa",
+      "correcta": "ka.ˈmi.sa",
+      "erronea": "ka.ˈmi.xa",
+      "descripcion": "s→x",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "Málaga",
+      "correcta": "ˈma.la.ga",
+      "erronea": "ˈma.ɾa.ga",
+      "descripcion": "l→ɾ",
+      "cat": "np",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "abuelito",
+      "correcta": "a.bue.ˈli.to",
+      "erronea": "a.bue.ˈɾi.to",
+      "descripcion": "l→ɾ",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "cabo",
+      "correcta": "ˈka.bo",
+      "erronea": "ˈka.po",
+      "descripcion": "b→p",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "aceituna",
+      "correcta": "a.θei.ˈtu.na",
+      "erronea": "a.fei.ˈtu.na",
+      "descripcion": "θ→f",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "palmera",
+      "correcta": "pal.ˈme.ɾa",
+      "erronea": "bal.ˈme.ɾa",
+      "descripcion": "p→b",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "pasillo",
+      "correcta": "pa.ˈsi.ʝo",
+      "erronea": "ba.ˈsi.ʝo",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "payaso",
+      "correcta": "pa.ˈʝa.so",
+      "erronea": "ba.ˈʝa.so",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "pelota",
+      "correcta": "pe.ˈlo.ta",
+      "erronea": "be.ˈlo.ta",
+      "descripcion": "p→b",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "piano",
+      "correcta": "ˈpia.no",
+      "erronea": "ˈbia.no",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "piñata",
+      "correcta": "pi.ˈɲa.ta",
+      "erronea": "bi.ˈɲa.ta",
+      "descripcion": "p→b",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "pluma",
+      "correcta": "ˈplu.ma",
+      "erronea": "ˈblu.ma",
+      "descripcion": "p→b",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "pradera",
+      "correcta": "pɾa.ˈde.ɾa",
+      "erronea": "bɾa.ˈde.ɾa",
+      "descripcion": "p→b",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "prado",
+      "correcta": "ˈpɾa.do",
+      "erronea": "ˈbɾa.do",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "precio",
+      "correcta": "ˈpɾe.θio",
+      "erronea": "ˈbɾe.θio",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "zapato",
+      "correcta": "θa.ˈpa.to",
+      "erronea": "θa.ˈba.to",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "botella",
+      "correcta": "bo.ˈte.ʝa",
+      "erronea": "bo.ˈde.ʝa",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cafetera",
+      "correcta": "ka.fe.ˈte.ɾa",
+      "erronea": "ka.fe.ˈde.ɾa",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "calcetín",
+      "correcta": "kal.θe.ˈtin",
+      "erronea": "kal.θe.ˈdin",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "cuento",
+      "correcta": "ˈkuen.to",
+      "erronea": "ˈkuen.do",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "cuota",
+      "correcta": "ˈkuo.ta",
+      "erronea": "ˈkuo.da",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "fiesta",
+      "correcta": "ˈfies.ta",
+      "erronea": "ˈfies.da",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "flauta",
+      "correcta": "ˈflau.ta",
+      "erronea": "ˈflau.da",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "fruta",
+      "correcta": "ˈfɾu.ta",
+      "erronea": "ˈfɾu.da",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "galleta",
+      "correcta": "ga.ˈʝe.ta",
+      "erronea": "ga.ˈʝe.da",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "linterna",
+      "correcta": "lin.ˈteɾ.na",
+      "erronea": "lin.ˈdeɾ.na",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "muleta",
+      "correcta": "mu.ˈle.ta",
+      "erronea": "mu.ˈle.da",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "nieto",
+      "correcta": "ˈnie.to",
+      "erronea": "ˈnie.do",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "secreto",
+      "correcta": "se.ˈkɾe.to",
+      "erronea": "se.ˈkɾe.do",
+      "descripcion": "t→d",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "tijeras",
+      "correcta": "ti.ˈxe.ɾas",
+      "erronea": "di.ˈxe.ɾas",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tobillo",
+      "correcta": "to.ˈbi.ʝo",
+      "erronea": "do.ˈbi.ʝo",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "tortilla",
+      "correcta": "toɾ.ˈti.ʝa",
+      "erronea": "doɾ.ˈti.ʝa",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "tortuga",
+      "correcta": "toɾ.ˈtu.ga",
+      "erronea": "doɾ.ˈtu.ga",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "trabajo",
+      "correcta": "tɾa.ˈba.xo",
+      "erronea": "dɾa.ˈba.xo",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "tres",
+      "correcta": "ˈtɾes",
+      "erronea": "ˈdɾes",
+      "descripcion": "t→d",
+      "cat": "num",
+      "sem": "num"
+    },
+    {
+      "ortografia": "trigo",
+      "correcta": "ˈtɾi.go",
+      "erronea": "ˈdɾi.go",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "bloque",
+      "correcta": "ˈblo.ke",
+      "erronea": "ˈblo.ge",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cabra",
+      "correcta": "ˈka.bɾa",
+      "erronea": "ˈga.bɾa",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "clave",
+      "correcta": "ˈkla.be",
+      "erronea": "ˈgla.be",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "cobre",
+      "correcta": "ˈko.bɾe",
+      "erronea": "ˈgo.bɾe",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cuchara",
+      "correcta": "ku.ˈʧa.ɾa",
+      "erronea": "gu.ˈʧa.ɾa",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cuero",
+      "correcta": "ˈkue.ɾo",
+      "erronea": "ˈgue.ɾo",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cueva",
+      "correcta": "ˈkue.ba",
+      "erronea": "ˈgue.ba",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "farola",
+      "correcta": "fa.ˈɾo.la",
+      "erronea": "fa.ˈlo.la",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "flor",
+      "correcta": "ˈfloɾ",
+      "erronea": "ˈflol",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "fresa",
+      "correcta": "ˈfɾe.sa",
+      "erronea": "ˈfle.sa",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "frío",
+      "correcta": "ˈfɾi.o",
+      "erronea": "ˈfli.o",
+      "descripcion": "ɾ→l",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "sereno",
+      "correcta": "se.ˈɾe.no",
+      "erronea": "se.ˈle.no",
+      "descripcion": "ɾ→l",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "velero",
+      "correcta": "be.ˈle.ɾo",
+      "erronea": "be.ˈle.lo",
+      "descripcion": "ɾ→l",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "abuela",
+      "correcta": "a.ˈbue.la",
+      "erronea": "a.ˈbue.ɾa",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "blusa",
+      "correcta": "ˈblu.sa",
+      "erronea": "ˈbɾu.sa",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "cielo",
+      "correcta": "ˈθie.lo",
+      "erronea": "ˈθie.ɾo",
+      "descripcion": "l→ɾ",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "miel",
+      "correcta": "ˈmiel",
+      "erronea": "ˈmieɾ",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "audio",
+      "correcta": "ˈau.dio",
+      "erronea": "ˈau.ɾio",
+      "descripcion": "d→ɾ",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "duende",
+      "correcta": "ˈduen.de",
+      "erronea": "ˈɾuen.de",
+      "descripcion": "d→ɾ",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "rodilla",
+      "correcta": "ro.ˈdi.ʝa",
+      "erronea": "ro.ˈɾi.ʝa",
+      "descripcion": "d→ɾ",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "jabón",
+      "correcta": "xa.ˈbon",
+      "erronea": "ka.ˈbon",
+      "descripcion": "x→k",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cigüeña",
+      "correcta": "θi.ˈgue.ɲa",
+      "erronea": "θi.ˈkue.ɲa",
+      "descripcion": "g→k",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "fuego",
+      "correcta": "ˈfue.go",
+      "erronea": "ˈfue.ko",
+      "descripcion": "g→k",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "novia",
+      "correcta": "ˈno.bia",
+      "erronea": "ˈdo.bia",
+      "descripcion": "n→d",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "nube",
+      "correcta": "ˈnu.be",
+      "erronea": "ˈdu.be",
+      "descripcion": "n→d",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "huevo",
+      "correcta": "ˈue.bo",
+      "erronea": "ˈue.mo",
+      "descripcion": "b→m",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "padre",
+      "correcta": "ˈpa.dɾe",
+      "erronea": "ˈba.dɾe",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "pico",
+      "correcta": "ˈpi.ko",
+      "erronea": "ˈbi.ko",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "plato",
+      "correcta": "ˈpla.to",
+      "erronea": "ˈbla.to",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "prima",
+      "correcta": "ˈpɾi.ma",
+      "erronea": "ˈbɾi.ma",
+      "descripcion": "p→b",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "sopa",
+      "correcta": "ˈso.pa",
+      "erronea": "ˈso.ba",
+      "descripcion": "p→b",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "tapa",
+      "correcta": "ˈta.pa",
+      "erronea": "ˈta.ba",
+      "descripcion": "p→b",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "abuelito",
+      "correcta": "a.bue.ˈli.to",
+      "erronea": "a.bue.ˈli.do",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "moto",
+      "correcta": "ˈmo.to",
+      "erronea": "ˈmo.do",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "pelota",
+      "correcta": "pe.ˈlo.ta",
+      "erronea": "pe.ˈlo.da",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "piñata",
+      "correcta": "pi.ˈɲa.ta",
+      "erronea": "pi.ˈɲa.da",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "plato",
+      "correcta": "ˈpla.to",
+      "erronea": "ˈpla.do",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tapa",
+      "correcta": "ˈta.pa",
+      "erronea": "ˈda.pa",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "taza",
+      "correcta": "ˈta.θa",
+      "erronea": "ˈda.θa",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "zapato",
+      "correcta": "θa.ˈpa.to",
+      "erronea": "θa.ˈpa.do",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "cabo",
+      "correcta": "ˈka.bo",
+      "erronea": "ˈga.bo",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "cafetera",
+      "correcta": "ka.fe.ˈte.ɾa",
+      "erronea": "ga.fe.ˈte.ɾa",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "calcetín",
+      "correcta": "kal.θe.ˈtin",
+      "erronea": "gal.θe.ˈtin",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "camisa",
+      "correcta": "ka.ˈmi.sa",
+      "erronea": "ga.ˈmi.sa",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "crema",
+      "correcta": "ˈkɾe.ma",
+      "erronea": "ˈgɾe.ma",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cuento",
+      "correcta": "ˈkuen.to",
+      "erronea": "ˈguen.to",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "cuota",
+      "correcta": "ˈkuo.ta",
+      "erronea": "ˈguo.ta",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "foca",
+      "correcta": "ˈfo.ka",
+      "erronea": "ˈfo.ga",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "fábrica",
+      "correcta": "ˈfa.bɾi.ka",
+      "erronea": "ˈfa.bɾi.ga",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "pico",
+      "correcta": "ˈpi.ko",
+      "erronea": "ˈpi.go",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "sacacorchos",
+      "correcta": "sa.ka.ˈkoɾ.ʧos",
+      "erronea": "sa.ga.ˈkoɾ.ʧos",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "saco",
+      "correcta": "ˈsa.ko",
+      "erronea": "ˈsa.go",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "secreto",
+      "correcta": "se.ˈkɾe.to",
+      "erronea": "se.ˈgɾe.to",
+      "descripcion": "k→g",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "bloque",
+      "correcta": "ˈblo.ke",
+      "erronea": "ˈblo.xe",
+      "descripcion": "k→x",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "boca",
+      "correcta": "ˈbo.ka",
+      "erronea": "ˈbo.xa",
+      "descripcion": "k→x",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "cabo",
+      "correcta": "ˈka.bo",
+      "erronea": "ˈxa.bo",
+      "descripcion": "k→x",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "cabra",
+      "correcta": "ˈka.bɾa",
+      "erronea": "ˈxa.bɾa",
+      "descripcion": "k→x",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "cafetera",
+      "correcta": "ka.fe.ˈte.ɾa",
+      "erronea": "xa.fe.ˈte.ɾa",
+      "descripcion": "k→x",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "calcetín",
+      "correcta": "kal.θe.ˈtin",
+      "erronea": "xal.θe.ˈtin",
+      "descripcion": "k→x",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "camisa",
+      "correcta": "ka.ˈmi.sa",
+      "erronea": "xa.ˈmi.sa",
+      "descripcion": "k→x",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "cobre",
+      "correcta": "ˈko.bɾe",
+      "erronea": "ˈxo.bɾe",
+      "descripcion": "k→x",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cuchara",
+      "correcta": "ku.ˈʧa.ɾa",
+      "erronea": "xu.ˈʧa.ɾa",
+      "descripcion": "k→x",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cuento",
+      "correcta": "ˈkuen.to",
+      "erronea": "ˈxuen.to",
+      "descripcion": "k→x",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "cuero",
+      "correcta": "ˈkue.ɾo",
+      "erronea": "ˈxue.ɾo",
+      "descripcion": "k→x",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cueva",
+      "correcta": "ˈkue.ba",
+      "erronea": "ˈxue.ba",
+      "descripcion": "k→x",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "cuota",
+      "correcta": "ˈkuo.ta",
+      "erronea": "ˈxuo.ta",
+      "descripcion": "k→x",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "fábrica",
+      "correcta": "ˈfa.bɾi.ka",
+      "erronea": "ˈfa.bɾi.xa",
+      "descripcion": "k→x",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "pico",
+      "correcta": "ˈpi.ko",
+      "erronea": "ˈpi.xo",
+      "descripcion": "k→x",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "sacacorchos",
+      "correcta": "sa.ka.ˈkoɾ.ʧos",
+      "erronea": "sa.xa.ˈkoɾ.ʧos",
+      "descripcion": "k→x",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "saco",
+      "correcta": "ˈsa.ko",
+      "erronea": "ˈsa.xo",
+      "descripcion": "k→x",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cabra",
+      "correcta": "ˈka.bɾa",
+      "erronea": "ˈka.bla",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "cafetera",
+      "correcta": "ka.fe.ˈte.ɾa",
+      "erronea": "ka.fe.ˈte.la",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "cobre",
+      "correcta": "ˈko.bɾe",
+      "erronea": "ˈko.ble",
+      "descripcion": "ɾ→l",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "crema",
+      "correcta": "ˈkɾe.ma",
+      "erronea": "ˈkle.ma",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cuchara",
+      "correcta": "ku.ˈʧa.ɾa",
+      "erronea": "ku.ˈʧa.la",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cuero",
+      "correcta": "ˈkue.ɾo",
+      "erronea": "ˈkue.lo",
+      "descripcion": "ɾ→l",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "faro",
+      "correcta": "ˈfa.ɾo",
+      "erronea": "ˈfa.lo",
+      "descripcion": "ɾ→l",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "fruta",
+      "correcta": "ˈfɾu.ta",
+      "erronea": "ˈflu.ta",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "fábrica",
+      "correcta": "ˈfa.bɾi.ka",
+      "erronea": "ˈfa.bli.ka",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "grasa",
+      "correcta": "ˈgɾa.sa",
+      "erronea": "ˈgla.sa",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "libro",
+      "correcta": "ˈli.bɾo",
+      "erronea": "ˈli.blo",
+      "descripcion": "ɾ→l",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "linterna",
+      "correcta": "lin.ˈteɾ.na",
+      "erronea": "lin.ˈtel.na",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "murciélago",
+      "correcta": "muɾ.ˈθie.la.go",
+      "erronea": "mul.ˈθie.la.go",
+      "descripcion": "ɾ→l",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "negro",
+      "correcta": "ˈne.gɾo",
+      "erronea": "ˈne.glo",
+      "descripcion": "ɾ→l",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "palmera",
+      "correcta": "pal.ˈme.ɾa",
+      "erronea": "pal.ˈme.la",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "pradera",
+      "correcta": "pɾa.ˈde.ɾa",
+      "erronea": "pla.ˈde.ɾa",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "prado",
+      "correcta": "ˈpɾa.do",
+      "erronea": "ˈpla.do",
+      "descripcion": "ɾ→l",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "precio",
+      "correcta": "ˈpɾe.θio",
+      "erronea": "ˈple.θio",
+      "descripcion": "ɾ→l",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "prima",
+      "correcta": "ˈpɾi.ma",
+      "erronea": "ˈpli.ma",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "sacacorchos",
+      "correcta": "sa.ka.ˈkoɾ.ʧos",
+      "erronea": "sa.ka.ˈkol.ʧos",
+      "descripcion": "ɾ→l",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "secreto",
+      "correcta": "se.ˈkɾe.to",
+      "erronea": "se.ˈkle.to",
+      "descripcion": "ɾ→l",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "tijeras",
+      "correcta": "ti.ˈxe.ɾas",
+      "erronea": "ti.ˈxe.las",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tortilla",
+      "correcta": "toɾ.ˈti.ʝa",
+      "erronea": "tol.ˈti.ʝa",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "tortuga",
+      "correcta": "toɾ.ˈtu.ga",
+      "erronea": "tol.ˈtu.ga",
+      "descripcion": "ɾ→l",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "bloque",
+      "correcta": "ˈblo.ke",
+      "erronea": "ˈbɾo.ke",
+      "descripcion": "l→ɾ",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "calcetín",
+      "correcta": "kal.θe.ˈtin",
+      "erronea": "kaɾ.θe.ˈtin",
+      "descripcion": "l→ɾ",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "clave",
+      "correcta": "ˈkla.be",
+      "erronea": "ˈkɾa.be",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "farola",
+      "correcta": "fa.ˈɾo.la",
+      "erronea": "fa.ˈɾo.ɾa",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "flauta",
+      "correcta": "ˈflau.ta",
+      "erronea": "ˈfɾau.ta",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "flor",
+      "correcta": "ˈfloɾ",
+      "erronea": "ˈfɾoɾ",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "globo",
+      "correcta": "ˈglo.bo",
+      "erronea": "ˈgɾo.bo",
+      "descripcion": "l→ɾ",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "ladrón",
+      "correcta": "la.ˈdɾon",
+      "erronea": "ɾa.ˈdɾon",
+      "descripcion": "l→ɾ",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "lago",
+      "correcta": "ˈla.go",
+      "erronea": "ˈɾa.go",
+      "descripcion": "l→ɾ",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "linterna",
+      "correcta": "lin.ˈteɾ.na",
+      "erronea": "ɾin.ˈteɾ.na",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "muleta",
+      "correcta": "mu.ˈle.ta",
+      "erronea": "mu.ˈɾe.ta",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "murciélago",
+      "correcta": "muɾ.ˈθie.la.go",
+      "erronea": "muɾ.ˈθie.ɾa.go",
+      "descripcion": "l→ɾ",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "palmera",
+      "correcta": "pal.ˈme.ɾa",
+      "erronea": "paɾ.ˈme.ɾa",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "pelota",
+      "correcta": "pe.ˈlo.ta",
+      "erronea": "pe.ˈɾo.ta",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "plato",
+      "correcta": "ˈpla.to",
+      "erronea": "ˈpɾa.to",
+      "descripcion": "l→ɾ",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "pluma",
+      "correcta": "ˈplu.ma",
+      "erronea": "ˈpɾu.ma",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tela",
+      "correcta": "ˈte.la",
+      "erronea": "ˈte.ɾa",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "velero",
+      "correcta": "be.ˈle.ɾo",
+      "erronea": "be.ˈɾe.ɾo",
+      "descripcion": "l→ɾ",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "pradera",
+      "correcta": "pɾa.ˈde.ɾa",
+      "erronea": "pɾa.ˈɾe.ɾa",
+      "descripcion": "d→ɾ",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "prado",
+      "correcta": "ˈpɾa.do",
+      "erronea": "ˈpɾa.ɾo",
+      "descripcion": "d→ɾ",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "audio",
+      "correcta": "ˈau.dio",
+      "erronea": "ˈau.nio",
+      "descripcion": "d→n",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "duende",
+      "correcta": "ˈduen.de",
+      "erronea": "ˈnuen.de",
+      "descripcion": "d→n",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "pradera",
+      "correcta": "pɾa.ˈde.ɾa",
+      "erronea": "pɾa.ˈne.ɾa",
+      "descripcion": "d→n",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "prado",
+      "correcta": "ˈpɾa.do",
+      "erronea": "ˈpɾa.no",
+      "descripcion": "d→n",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "rodilla",
+      "correcta": "ro.ˈdi.ʝa",
+      "erronea": "ro.ˈni.ʝa",
+      "descripcion": "d→n",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "tijeras",
+      "correcta": "ti.ˈxe.ɾas",
+      "erronea": "ti.ˈke.ɾas",
+      "descripcion": "x→k",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "trabajo",
+      "correcta": "tɾa.ˈba.xo",
+      "erronea": "tɾa.ˈba.ko",
+      "descripcion": "x→k",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "dragón",
+      "correcta": "dɾa.ˈgon",
+      "erronea": "dɾa.ˈkon",
+      "descripcion": "g→k",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "galleta",
+      "correcta": "ga.ˈʝe.ta",
+      "erronea": "ka.ˈʝe.ta",
+      "descripcion": "g→k",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "gato",
+      "correcta": "ˈga.to",
+      "erronea": "ˈka.to",
+      "descripcion": "g→k",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "globo",
+      "correcta": "ˈglo.bo",
+      "erronea": "ˈklo.bo",
+      "descripcion": "g→k",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "lago",
+      "correcta": "ˈla.go",
+      "erronea": "ˈla.ko",
+      "descripcion": "g→k",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "murciélago",
+      "correcta": "muɾ.ˈθie.la.go",
+      "erronea": "muɾ.ˈθie.la.ko",
+      "descripcion": "g→k",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "málaga",
+      "correcta": "ˈma.la.ga",
+      "erronea": "ˈma.la.ka",
+      "descripcion": "g→k",
+      "cat": "np",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "negro",
+      "correcta": "ˈne.gɾo",
+      "erronea": "ˈne.kɾo",
+      "descripcion": "g→k",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "tortuga",
+      "correcta": "toɾ.ˈtu.ga",
+      "erronea": "toɾ.ˈtu.ka",
+      "descripcion": "g→k",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "trigo",
+      "correcta": "ˈtɾi.go",
+      "erronea": "ˈtɾi.ko",
+      "descripcion": "g→k",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "calcetín",
+      "correcta": "kal.θe.ˈtin",
+      "erronea": "kal.θe.ˈtid",
+      "descripcion": "n→d",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "cuento",
+      "correcta": "ˈkuen.to",
+      "erronea": "ˈkued.to",
+      "descripcion": "n→d",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "dragón",
+      "correcta": "dɾa.ˈgon",
+      "erronea": "dɾa.ˈgod",
+      "descripcion": "n→d",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "duende",
+      "correcta": "ˈduen.de",
+      "erronea": "ˈdued.de",
+      "descripcion": "n→d",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "jabón",
+      "correcta": "xa.ˈbon",
+      "erronea": "xa.ˈbod",
+      "descripcion": "n→d",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "ladrón",
+      "correcta": "la.ˈdɾon",
+      "erronea": "la.ˈdɾod",
+      "descripcion": "n→d",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "linterna",
+      "correcta": "lin.ˈteɾ.na",
+      "erronea": "lid.ˈteɾ.na",
+      "descripcion": "n→d",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "negro",
+      "correcta": "ˈne.gɾo",
+      "erronea": "ˈde.gɾo",
+      "descripcion": "n→d",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "nieto",
+      "correcta": "ˈnie.to",
+      "erronea": "ˈdie.to",
+      "descripcion": "n→d",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "nubarrón",
+      "correcta": "nu.ba.ˈron",
+      "erronea": "du.ba.ˈron",
+      "descripcion": "n→d",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "piano",
+      "correcta": "ˈpia.no",
+      "erronea": "ˈpia.do",
+      "descripcion": "n→d",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "sereno",
+      "correcta": "se.ˈɾe.no",
+      "erronea": "se.ˈɾe.do",
+      "descripcion": "n→d",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "abuela",
+      "correcta": "a.ˈbue.la",
+      "erronea": "a.ˈmue.la",
+      "descripcion": "b→m",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "abuelito",
+      "correcta": "a.bue.ˈli.to",
+      "erronea": "a.mue.ˈli.to",
+      "descripcion": "b→m",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "boca",
+      "correcta": "ˈbo.ka",
+      "erronea": "ˈmo.ka",
+      "descripcion": "b→m",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "botella",
+      "correcta": "bo.ˈte.ʝa",
+      "erronea": "mo.ˈte.ʝa",
+      "descripcion": "b→m",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cabo",
+      "correcta": "ˈka.bo",
+      "erronea": "ˈka.mo",
+      "descripcion": "b→m",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "clave",
+      "correcta": "ˈkla.be",
+      "erronea": "ˈkla.me",
+      "descripcion": "b→m",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "cueva",
+      "correcta": "ˈkue.ba",
+      "erronea": "ˈkue.ma",
+      "descripcion": "b→m",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "jabón",
+      "correcta": "xa.ˈbon",
+      "erronea": "xa.ˈmon",
+      "descripcion": "b→m",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "novia",
+      "correcta": "ˈno.bia",
+      "erronea": "ˈno.mia",
+      "descripcion": "b→m",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "nubarrón",
+      "correcta": "nu.ba.ˈron",
+      "erronea": "nu.ma.ˈron",
+      "descripcion": "b→m",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "nube",
+      "correcta": "ˈnu.be",
+      "erronea": "ˈnu.me",
+      "descripcion": "b→m",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "tobillo",
+      "correcta": "to.ˈbi.ʝo",
+      "erronea": "to.ˈmi.ʝo",
+      "descripcion": "b→m",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "trabajo",
+      "correcta": "tɾa.ˈba.xo",
+      "erronea": "tɾa.ˈma.xo",
+      "descripcion": "b→m",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "velero",
+      "correcta": "be.ˈle.ɾo",
+      "erronea": "me.ˈle.ɾo",
+      "descripcion": "b→m",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "camisa",
+      "correcta": "ka.ˈmi.sa",
+      "erronea": "ka.ˈbi.sa",
+      "descripcion": "m→b",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "crema",
+      "correcta": "ˈkɾe.ma",
+      "erronea": "ˈkɾe.ba",
+      "descripcion": "m→b",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "madre",
+      "correcta": "ˈma.dɾe",
+      "erronea": "ˈba.dɾe",
+      "descripcion": "m→b",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "mapa",
+      "correcta": "ˈma.pa",
+      "erronea": "ˈba.pa",
+      "descripcion": "m→b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "mesa",
+      "correcta": "ˈme.sa",
+      "erronea": "ˈbe.sa",
+      "descripcion": "m→b",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "miel",
+      "correcta": "ˈmiel",
+      "erronea": "ˈbiel",
+      "descripcion": "m→b",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "moto",
+      "correcta": "ˈmo.to",
+      "erronea": "ˈbo.to",
+      "descripcion": "m→b",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "muleta",
+      "correcta": "mu.ˈle.ta",
+      "erronea": "bu.ˈle.ta",
+      "descripcion": "m→b",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "murciélago",
+      "correcta": "muɾ.ˈθie.la.go",
+      "erronea": "buɾ.ˈθie.la.go",
+      "descripcion": "m→b",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "málaga",
+      "correcta": "ˈma.la.ga",
+      "erronea": "ˈba.la.ga",
+      "descripcion": "m→b",
+      "cat": "np",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "palmera",
+      "correcta": "pal.ˈme.ɾa",
+      "erronea": "pal.ˈbe.ɾa",
+      "descripcion": "m→b",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "pluma",
+      "correcta": "ˈplu.ma",
+      "erronea": "ˈplu.ba",
+      "descripcion": "m→b",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "prima",
+      "correcta": "ˈpɾi.ma",
+      "erronea": "ˈpɾi.ba",
+      "descripcion": "m→b",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "compró",
+      "correcta": "kom.ˈpɾo",
+      "erronea": "kom.ˈbɾo",
+      "descripcion": "p→b",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "siempre",
+      "correcta": "ˈsiem.pɾe",
+      "erronea": "ˈsiem.bɾe",
+      "descripcion": "p→b",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "columna",
+      "correcta": "ko.ˈlum.na",
+      "erronea": "go.ˈlum.na",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "compró",
+      "correcta": "kom.ˈpɾo",
+      "erronea": "gom.ˈpɾo",
+      "descripcion": "k→g",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "columna",
+      "correcta": "ko.ˈlum.na",
+      "erronea": "xo.ˈlum.na",
+      "descripcion": "k→x",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "compró",
+      "correcta": "kom.ˈpɾo",
+      "erronea": "xom.ˈpɾo",
+      "descripcion": "k→x",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "compró",
+      "correcta": "kom.ˈpɾo",
+      "erronea": "kom.ˈplo",
+      "descripcion": "ɾ→l",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "siempre",
+      "correcta": "ˈsiem.pɾe",
+      "erronea": "ˈsiem.ple",
+      "descripcion": "ɾ→l",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "columna",
+      "correcta": "ko.ˈlum.na",
+      "erronea": "ko.ˈɾum.na",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "columna",
+      "correcta": "ko.ˈlum.na",
+      "erronea": "ko.ˈlum.da",
+      "descripcion": "n→d",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "gata",
+      "correcta": "ˈga.ta",
+      "erronea": "ˈka.ta",
+      "descripcion": "g→k",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "gata",
+      "correcta": "ˈga.ta",
+      "erronea": "ˈga.da",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "tocó",
+      "correcta": "to.ˈko",
+      "erronea": "do.ˈko",
+      "descripcion": "t→d",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "tocó",
+      "correcta": "to.ˈko",
+      "erronea": "to.ˈgo",
+      "descripcion": "k→g",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "prisa",
+      "correcta": "ˈpɾi.sa",
+      "erronea": "ˈbɾi.sa",
+      "descripcion": "p→b",
+      "cat": "nf",
+      "sem": "estado"
+    },
+    {
+      "ortografia": "preguntó",
+      "correcta": "pɾe.gun.ˈto",
+      "erronea": "bɾe.gun.ˈto",
+      "descripcion": "p→b",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "tecla",
+      "correcta": "ˈte.kla",
+      "erronea": "ˈde.kla",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "patio",
+      "correcta": "ˈpa.tio",
+      "erronea": "ˈba.tio",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "patio",
+      "correcta": "ˈpa.tio",
+      "erronea": "ˈpa.dio",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "tenía",
+      "correcta": "te.ˈni.a",
+      "erronea": "de.ˈni.a",
+      "descripcion": "t→d",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "subió",
+      "correcta": "su.ˈbio",
+      "erronea": "su.ˈmio",
+      "descripcion": "b→m",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "gitano",
+      "correcta": "xi.ˈta.no",
+      "erronea": "ki.ˈta.no",
+      "descripcion": "x→k",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "gitano",
+      "correcta": "xi.ˈta.no",
+      "erronea": "xi.ˈda.no",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "corcho",
+      "correcta": "ˈkoɾ.ʧo",
+      "erronea": "ˈgoɾ.ʧo",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "corcho",
+      "correcta": "ˈkoɾ.ʧo",
+      "erronea": "ˈxoɾ.ʧo",
+      "descripcion": "k→x",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "llave",
+      "correcta": "ˈʝa.be",
+      "erronea": "ˈʝa.me",
+      "descripcion": "b→m",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "jaula",
+      "correcta": "ˈxau.la",
+      "erronea": "ˈkau.la",
+      "descripcion": "x→k",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "picoteó",
+      "correcta": "pi.ko.te.ˈo",
+      "erronea": "bi.ko.te.ˈo",
+      "descripcion": "p→b",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "sucio",
+      "correcta": "ˈsu.θio",
+      "erronea": "ˈθu.θio",
+      "descripcion": "s→θ",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "abuelo",
+      "correcta": "a.ˈbue.lo",
+      "erronea": "a.ˈmue.lo",
+      "descripcion": "b→m",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "abuelo",
+      "correcta": "a.ˈbue.lo",
+      "erronea": "a.ˈbue.ɾo",
+      "descripcion": "l→ɾ",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "campo",
+      "correcta": "ˈkam.po",
+      "erronea": "ˈgam.po",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "campo",
+      "correcta": "ˈkam.po",
+      "erronea": "ˈxam.po",
+      "descripcion": "k→x",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "logopeda",
+      "correcta": "lo.go.ˈpe.da",
+      "erronea": "lo.ko.ˈpe.da",
+      "descripcion": "g→k",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "logopeda",
+      "correcta": "lo.go.ˈpe.da",
+      "erronea": "lo.go.ˈbe.da",
+      "descripcion": "p→b",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "logopeda",
+      "correcta": "lo.go.ˈpe.da",
+      "erronea": "lo.go.ˈpe.ta",
+      "descripcion": "d→t",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "pintara",
+      "correcta": "pin.ˈta.ɾa",
+      "erronea": "pin.ˈda.ɾa",
+      "descripcion": "t→d",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "pintara",
+      "correcta": "pin.ˈta.ɾa",
+      "erronea": "pin.ˈta.la",
+      "descripcion": "ɾ→l",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "pintara",
+      "correcta": "pin.ˈta.ɾa",
+      "erronea": "bin.ˈta.ɾa",
+      "descripcion": "p→b",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "amiga",
+      "correcta": "a.ˈmi.ga",
+      "erronea": "a.ˈbi.ga",
+      "descripcion": "m→b",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "gafas",
+      "correcta": "ˈga.fas",
+      "erronea": "ˈga.xas",
+      "descripcion": "f→x",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "lleva",
+      "correcta": "ˈʝe.ba",
+      "erronea": "ˈʝe.ma",
+      "descripcion": "b→m",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "caja",
+      "correcta": "ˈka.xa",
+      "erronea": "ˈga.xa",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "busca",
+      "correcta": "ˈbus.ka",
+      "erronea": "ˈbus.ga",
+      "descripcion": "k→g",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "vecino",
+      "correcta": "be.ˈθi.no",
+      "erronea": "me.ˈθi.no",
+      "descripcion": "b→m",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "parece",
+      "correcta": "pa.ˈɾe.θe",
+      "erronea": "ba.ˈɾe.θe",
+      "descripcion": "p→b",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "vecina",
+      "correcta": "be.ˈθi.na",
+      "erronea": "me.ˈθi.na",
+      "descripcion": "b→m",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "pinta",
+      "correcta": "ˈpin.ta",
+      "erronea": "ˈbin.ta",
+      "descripcion": "p→b",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "cocina",
+      "correcta": "ko.ˈθi.na",
+      "erronea": "go.ˈθi.na",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "llevó",
+      "correcta": "ʝe.ˈbo",
+      "erronea": "ʝe.ˈmo",
+      "descripcion": "b→m",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "perro",
+      "correcta": "ˈpe.ro",
+      "erronea": "ˈbe.ro",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "papel",
+      "correcta": "pa.ˈpel",
+      "erronea": "ba.ˈpel",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "enorme",
+      "correcta": "e.ˈnoɾ.me",
+      "erronea": "e.ˈnoɾ.be",
+      "descripcion": "m→b",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "rosa",
+      "correcta": "ˈro.sa",
+      "erronea": "ˈro.θa",
+      "descripcion": "s→θ",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "está",
+      "correcta": "es.ˈta",
+      "erronea": "es.ˈda",
+      "descripcion": "t→d",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "dejó",
+      "correcta": "de.ˈxo",
+      "erronea": "de.ˈko",
+      "descripcion": "x→k",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "color",
+      "correcta": "ko.ˈloɾ",
+      "erronea": "go.ˈloɾ",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "chico",
+      "correcta": "ˈʧi.ko",
+      "erronea": "ˈti.to",
+      "descripcion": "ʧ→t + k→t",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "chica",
+      "correcta": "ˈʧi.ka",
+      "erronea": "ˈti.ka",
+      "descripcion": "ʧ→t",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "niño",
+      "correcta": "ˈni.ɲo",
+      "erronea": "ˈdi.ɲo",
+      "descripcion": "n→d",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "parque",
+      "correcta": "ˈpaɾ.ke",
+      "erronea": "ˈbaɾ.ke",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "amigo",
+      "correcta": "a.ˈmi.go",
+      "erronea": "a.ˈbi.go",
+      "descripcion": "m→b",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "niña",
+      "correcta": "ˈni.ɲa",
+      "erronea": "ˈdi.ɲa",
+      "descripcion": "n→d",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "hijo",
+      "correcta": "ˈi.xo",
+      "erronea": "ˈi.ko",
+      "descripcion": "x→k",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "vacía",
+      "correcta": "ba.ˈθi.a",
+      "erronea": "ma.ˈθi.a",
+      "descripcion": "b→m",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "parchís",
+      "correcta": "paɾ.ˈʧis",
+      "erronea": "baɾ.ˈʧis",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "madera",
+      "correcta": "ma.ˈde.ɾa",
+      "erronea": "ba.ˈde.ɾa",
+      "descripcion": "m→b",
+      "cat": "nf",
+      "sem": "material"
+    },
+    {
+      "ortografia": "escucha",
+      "correcta": "es.ˈku.ʧa",
+      "erronea": "es.ˈgu.ʧa",
+      "descripcion": "k→g",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "pintada",
+      "correcta": "pin.ˈta.da",
+      "erronea": "bin.ˈta.da",
+      "descripcion": "p→b",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "puso",
+      "correcta": "ˈpu.so",
+      "erronea": "ˈbu.so",
+      "descripcion": "p→b",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "comprar",
+      "correcta": "kom.ˈpɾaɾ",
+      "erronea": "kom.ˈbɾaɾ",
+      "descripcion": "p→b",
+      "cat": "vinf",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "zapatos",
+      "correcta": "θa.ˈpa.tos",
+      "erronea": "θa.ˈba.tos",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "encanta",
+      "correcta": "en.ˈkan.ta",
+      "erronea": "en.ˈkan.da",
+      "descripcion": "t→d",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "pájaro",
+      "correcta": "ˈpa.xa.ɾo",
+      "erronea": "ˈba.xa.ɾo",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "tomaba",
+      "correcta": "to.ˈma.ba",
+      "erronea": "do.ˈma.ba",
+      "descripcion": "t→d",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "leche",
+      "correcta": "ˈle.ʧe",
+      "erronea": "ˈɾe.ʧe",
+      "descripcion": "l→ɾ",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "acompañó",
+      "correcta": "a.kom.pa.ˈɲo",
+      "erronea": "a.kom.ba.ˈɲo",
+      "descripcion": "p→b",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "ese",
+      "correcta": "ˈe.se",
+      "erronea": "ˈe.θe",
+      "descripcion": "s→θ",
+      "cat": "pron",
+      "sem": "func"
+    },
+    {
+      "ortografia": "maría",
+      "correcta": "ma.ˈɾi.a",
+      "erronea": "ba.ˈɾi.a",
+      "descripcion": "m→b",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "pasa",
+      "correcta": "ˈpa.sa",
+      "erronea": "ˈba.sa",
+      "descripcion": "p→b",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "casa",
+      "correcta": "ˈka.sa",
+      "erronea": "ˈga.sa",
+      "descripcion": "k→g",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "evitamos",
+      "correcta": "e.bi.ˈta.mos",
+      "erronea": "e.bi.ˈda.mos",
+      "descripcion": "t→d",
+      "cat": "v1",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "bulos",
+      "correcta": "ˈbu.los",
+      "erronea": "ˈmu.los",
+      "descripcion": "b→m",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "esconde",
+      "correcta": "es.ˈkon.de",
+      "erronea": "es.ˈgon.de",
+      "descripcion": "k→g",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "necesita",
+      "correcta": "ne.θe.ˈsi.ta",
+      "erronea": "ne.θe.ˈsi.da",
+      "descripcion": "t→d",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "coger",
+      "correcta": "ko.ˈxeɾ",
+      "erronea": "go.ˈxeɾ",
+      "descripcion": "k→g",
+      "cat": "vinf",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "adoptan",
+      "correcta": "a.ˈdop.tan",
+      "erronea": "a.ˈdob.tan",
+      "descripcion": "p→b",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "muchos",
+      "correcta": "ˈmu.ʧos",
+      "erronea": "ˈbu.ʧos",
+      "descripcion": "m→b",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "perros",
+      "correcta": "ˈpe.ros",
+      "erronea": "ˈbe.ros",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "perdido",
+      "correcta": "peɾ.ˈdi.do",
+      "erronea": "beɾ.ˈdi.do",
+      "descripcion": "p→b",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "pantalón",
+      "correcta": "pan.ta.ˈlon",
+      "erronea": "ban.ta.ˈlon",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "gatita",
+      "correcta": "ga.ˈti.ta",
+      "erronea": "ga.ˈdi.ta",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "persigue",
+      "correcta": "peɾ.ˈsi.ge",
+      "erronea": "beɾ.ˈsi.ge",
+      "descripcion": "p→b",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "cayó",
+      "correcta": "ka.ˈʝo",
+      "erronea": "ga.ˈʝo",
+      "descripcion": "k→g",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "bote",
+      "correcta": "ˈbo.te",
+      "erronea": "ˈbo.de",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "bromista",
+      "correcta": "bɾo.ˈmis.ta",
+      "erronea": "bɾo.ˈmis.da",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "colocó",
+      "correcta": "ko.lo.ˈko",
+      "erronea": "go.lo.ˈko",
+      "descripcion": "k→g",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "ángel",
+      "correcta": "ˈan.xel",
+      "erronea": "ˈan.xeɾ",
+      "descripcion": "l→ɾ",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "apoyar",
+      "correcta": "a.po.ˈʝaɾ",
+      "erronea": "a.bo.ˈʝaɾ",
+      "descripcion": "p→b",
+      "cat": "vinf",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "película",
+      "correcta": "pe.ˈli.ku.la",
+      "erronea": "be.ˈli.ku.la",
+      "descripcion": "p→b",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "profesor",
+      "correcta": "pɾo.fe.ˈsoɾ",
+      "erronea": "bɾo.fe.ˈsoɾ",
+      "descripcion": "p→b",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "escribe",
+      "correcta": "es.ˈkɾi.be",
+      "erronea": "es.ˈgɾi.be",
+      "descripcion": "k→g",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "niños",
+      "correcta": "ˈni.ɲos",
+      "erronea": "ˈdi.ɲos",
+      "descripcion": "n→d",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "coser",
+      "correcta": "ko.ˈseɾ",
+      "erronea": "go.ˈseɾ",
+      "descripcion": "k→g",
+      "cat": "vinf",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "dicen",
+      "correcta": "ˈdi.θen",
+      "erronea": "ˈni.θen",
+      "descripcion": "d→n",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "tomó",
+      "correcta": "to.ˈmo",
+      "erronea": "do.ˈmo",
+      "descripcion": "t→d",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "negra",
+      "correcta": "ˈne.gɾa",
+      "erronea": "ˈne.gla",
+      "descripcion": "ɾ→l",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "dejé",
+      "correcta": "de.ˈxe",
+      "erronea": "de.ˈke",
+      "descripcion": "x→k",
+      "cat": "v1",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "dibujo",
+      "correcta": "di.ˈbu.xo",
+      "erronea": "di.ˈmu.xo",
+      "descripcion": "b→m",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "hizo",
+      "correcta": "ˈi.θo",
+      "erronea": "ˈi.fo",
+      "descripcion": "θ→f",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "espalda",
+      "correcta": "es.ˈpal.da",
+      "erronea": "es.ˈbal.da",
+      "descripcion": "p→b",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "cena",
+      "correcta": "ˈθe.na",
+      "erronea": "ˈθe.da",
+      "descripcion": "n→d",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "cuñado",
+      "correcta": "ku.ˈɲa.do",
+      "erronea": "gu.ˈɲa.do",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "navidad",
+      "correcta": "na.bi.ˈdad",
+      "erronea": "na.pi.ˈdad",
+      "descripcion": "b→p",
+      "cat": "nf",
+      "sem": "evento"
+    },
+    {
+      "ortografia": "esa",
+      "correcta": "ˈe.sa",
+      "erronea": "ˈe.θa",
+      "descripcion": "s→θ",
+      "cat": "pron",
+      "sem": "func"
+    },
+    {
+      "ortografia": "toca",
+      "correcta": "ˈto.ka",
+      "erronea": "ˈdo.ka",
+      "descripcion": "t→d",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "orquesta",
+      "correcta": "oɾ.ˈkes.ta",
+      "erronea": "oɾ.ˈkes.da",
+      "descripcion": "t→d",
+      "cat": "nf",
+      "sem": "grupo"
+    },
+    {
+      "ortografia": "alberto",
+      "correcta": "al.ˈbeɾ.to",
+      "erronea": "al.ˈbeɾ.do",
+      "descripcion": "t→d",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "usó",
+      "correcta": "u.ˈso",
+      "erronea": "u.ˈθo",
+      "descripcion": "s→θ",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "recortar",
+      "correcta": "re.koɾ.ˈtaɾ",
+      "erronea": "re.xoɾ.ˈtaɾ",
+      "descripcion": "k→x",
+      "cat": "vinf",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "olvidó",
+      "correcta": "ol.bi.ˈdo",
+      "erronea": "ol.mi.ˈdo",
+      "descripcion": "b→m",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "años",
+      "correcta": "ˈa.ɲos",
+      "erronea": "ˈa.ʝos",
+      "descripcion": "ɲ→ʝ",
+      "cat": "nm",
+      "sem": "tiempo"
+    },
+    {
+      "ortografia": "diseño",
+      "correcta": "di.ˈse.ɲo",
+      "erronea": "ni.ˈse.ɲo",
+      "descripcion": "d→n",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "diseñó",
+      "correcta": "di.se.ˈɲo",
+      "erronea": "ni.se.ˈɲo",
+      "descripcion": "d→n",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "pedro",
+      "correcta": "ˈpe.dɾo",
+      "erronea": "ˈbe.dɾo",
+      "descripcion": "p→b",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "conoce",
+      "correcta": "ko.ˈno.θe",
+      "erronea": "go.ˈno.θe",
+      "descripcion": "k→g",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "candado",
+      "correcta": "kan.ˈda.do",
+      "erronea": "gan.ˈda.do",
+      "descripcion": "k→g",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "belén",
+      "correcta": "be.ˈlen",
+      "erronea": "me.ˈlen",
+      "descripcion": "b→m",
+      "cat": "np",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "intenso",
+      "correcta": "in.ˈten.so",
+      "erronea": "in.ˈten.fo",
+      "descripcion": "s→f",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "hace",
+      "correcta": "ˈa.θe",
+      "erronea": "ˈa.se",
+      "descripcion": "θ→s",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "paella",
+      "correcta": "pa.ˈe.ʝa",
+      "erronea": "ba.ˈe.ʝa",
+      "descripcion": "p→b",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "conductor",
+      "correcta": "kon.duk.ˈtoɾ",
+      "erronea": "kon.duk.ˈdoɾ",
+      "descripcion": "t→d",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "untó",
+      "correcta": "un.ˈto",
+      "erronea": "un.ˈdo",
+      "descripcion": "t→d",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "barra",
+      "correcta": "ˈba.ra",
+      "erronea": "ˈma.ra",
+      "descripcion": "b→m",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "nido",
+      "correcta": "ˈni.do",
+      "erronea": "ˈni.no",
+      "descripcion": "d→n",
+      "cat": "nm",
+      "sem": "lugar"
+    }
+  ],
+  "sistematico_simplificacion_nucleo": [
+    {
+      "ortografia": "aire",
+      "correcta": "ˈai.ɾe",
+      "erronea": "ˈa.de",
+      "descripcion": "ai→a + ɾ→d",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "baile",
+      "correcta": "ˈbai.le",
+      "erronea": "ˈpa.le",
+      "descripcion": "ai→a + b→p",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "seis",
+      "correcta": "ˈseis",
+      "erronea": "ˈtes",
+      "descripcion": "ei→e + s→t",
+      "cat": "num",
+      "sem": "num"
+    },
+    {
+      "ortografia": "veinte",
+      "correcta": "ˈbein.te",
+      "erronea": "ˈpen.te",
+      "descripcion": "ei→e + b→p",
+      "cat": "num",
+      "sem": "num"
+    },
+    {
+      "ortografia": "reino",
+      "correcta": "ˈrei.no",
+      "erronea": "ˈle.no",
+      "descripcion": "ei→e + ɾ→l",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "peinado",
+      "correcta": "pei.ˈna.do",
+      "erronea": "be.ˈna.do",
+      "descripcion": "ei→e + p→b",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "traición",
+      "correcta": "tɾai.ˈθon",
+      "erronea": "dɾa.ˈθon",
+      "descripcion": "ai→a + t→d",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "piojo",
+      "correcta": "ˈpio.xo",
+      "erronea": "ˈbo.xo",
+      "descripcion": "io→o + p→b",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "piano",
+      "correcta": "ˈpia.no",
+      "erronea": "ˈba.no",
+      "descripcion": "ia→a + p→b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "piedad",
+      "correcta": "pie.ˈdad",
+      "erronea": "pe.ˈtad",
+      "descripcion": "ie→e + d→t",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "piedra",
+      "correcta": "ˈpie.dɾa",
+      "erronea": "ˈte.dɾa",
+      "descripcion": "ie→e + p→t",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "pierde",
+      "correcta": "ˈpieɾ.de",
+      "erronea": "ˈteɾ.de",
+      "descripcion": "ie→e + p→t",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "pie",
+      "correcta": "ˈpie",
+      "erronea": "ˈte",
+      "descripcion": "ie→e + p→t",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "bien",
+      "correcta": "ˈbien",
+      "erronea": "ˈpen",
+      "descripcion": "ie→e + b→p",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "nieve",
+      "correcta": "ˈnie.be",
+      "erronea": "ˈme.be",
+      "descripcion": "ie→e + n→m",
+      "cat": "nf",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "nieto",
+      "correcta": "ˈnie.to",
+      "erronea": "ˈme.to",
+      "descripcion": "ie→e + n→m",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "miel",
+      "correcta": "ˈmiel",
+      "erronea": "ˈbel",
+      "descripcion": "ie→e + m→b",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "fuego",
+      "correcta": "ˈfue.go",
+      "erronea": "ˈxe.go",
+      "descripcion": "ue→e + f→x",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "huevo",
+      "correcta": "ˈue.bo",
+      "erronea": "ˈe.po",
+      "descripcion": "ue→e + b→p",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "puerta",
+      "correcta": "ˈpueɾ.ta",
+      "erronea": "ˈbeɾ.ta",
+      "descripcion": "ue→e + p→b",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "pueblo",
+      "correcta": "ˈpue.blo",
+      "erronea": "ˈbe.blo",
+      "descripcion": "ue→e + p→b",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "bueno",
+      "correcta": "ˈbue.no",
+      "erronea": "ˈpe.no",
+      "descripcion": "ue→e + b→p",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "abuela",
+      "correcta": "a.ˈbue.la",
+      "erronea": "a.ˈpe.la",
+      "descripcion": "ue→e + b→p",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "cuero",
+      "correcta": "ˈkue.ɾo",
+      "erronea": "ˈte.lo",
+      "descripcion": "ue→e + k→t, ɾ→l",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cuento",
+      "correcta": "ˈkuen.to",
+      "erronea": "ˈten.to",
+      "descripcion": "ue→e + k→t",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "cueva",
+      "correcta": "ˈkue.ba",
+      "erronea": "ˈte.ba",
+      "descripcion": "ue→e + k→t",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "juego",
+      "correcta": "ˈxue.go",
+      "erronea": "ˈke.go",
+      "descripcion": "ue→e + x→k",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "cuota",
+      "correcta": "ˈkuo.ta",
+      "erronea": "ˈko.ta",
+      "descripcion": "uo→o (sin cambio consonántico)",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "ciudad",
+      "correcta": "θiu.ˈdad",
+      "erronea": "xu.ˈdad",
+      "descripcion": "iu→u + θ→x",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "cambio",
+      "correcta": "ˈkam.bio",
+      "erronea": "ˈgam.bo",
+      "descripcion": "io→o + k→g",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "cielo",
+      "correcta": "ˈθie.lo",
+      "erronea": "ˈθe.ɾo",
+      "descripcion": "ie→e + l→ɾ",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "audio",
+      "correcta": "ˈau.dio",
+      "erronea": "ˈa.to",
+      "descripcion": "au→a + io→o + d→t",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "nuria",
+      "correcta": "ˈnu.ɾia",
+      "erronea": "ˈnu.la",
+      "descripcion": "ɾ→l + ia→a",
+      "cat": "np",
+      "sem": "persona"
+    }
+  ],
+  "sistematico_simplificacion_ataque": [
+    {
+      "ortografia": "fábrica",
+      "correcta": "ˈfa.bɾi.ka",
+      "erronea": "ˈxa.bi.ka",
+      "descripcion": "bɾ→b + f→x",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "padre",
+      "correcta": "ˈpa.dɾe",
+      "erronea": "ˈpa.te",
+      "descripcion": "dɾ→d + d→t",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "madre",
+      "correcta": "ˈma.dɾe",
+      "erronea": "ˈna.de",
+      "descripcion": "dɾ→d + m→n",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "libro",
+      "correcta": "ˈli.bɾo",
+      "erronea": "ˈɾi.bo",
+      "descripcion": "bɾ→b + l→ɾ",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "tigre",
+      "correcta": "ˈti.gɾe",
+      "erronea": "ˈki.ge",
+      "descripcion": "gɾ→g + t→k",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "negro",
+      "correcta": "ˈne.gɾo",
+      "erronea": "ˈme.go",
+      "descripcion": "gɾ→g + n→m",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "trabaja",
+      "correcta": "tɾa.ˈba.xa",
+      "erronea": "ta.ˈba.fa",
+      "descripcion": "tɾ→t + x→f",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "plato",
+      "correcta": "ˈpla.to",
+      "erronea": "ˈka.to",
+      "descripcion": "pl→p + p→k",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "clase",
+      "correcta": "ˈkla.se",
+      "erronea": "ˈta.se",
+      "descripcion": "kl→k + k→t",
+      "cat": "nf",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "presa",
+      "correcta": "ˈpɾe.sa",
+      "erronea": "ˈte.sa",
+      "descripcion": "pɾ→p + p→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "crema",
+      "correcta": "ˈkɾe.ma",
+      "erronea": "ˈte.ma",
+      "descripcion": "kɾ→k + k→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "prima",
+      "correcta": "ˈpɾi.ma",
+      "erronea": "ˈti.ma",
+      "descripcion": "pɾ→p + p→t",
+      "cat": "nf",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "grasa",
+      "correcta": "ˈgɾa.sa",
+      "erronea": "ˈka.sa",
+      "descripcion": "gɾ→g + g→k",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "brazo",
+      "correcta": "ˈbɾa.θo",
+      "erronea": "ˈpa.θo",
+      "descripcion": "bɾ→b + b→p",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "trapo",
+      "correcta": "ˈtɾa.po",
+      "erronea": "ˈda.po",
+      "descripcion": "tɾ→t + t→d",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "gripe",
+      "correcta": "ˈgɾi.pe",
+      "erronea": "ˈki.pe",
+      "descripcion": "gɾ→g + g→k",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "broma",
+      "correcta": "ˈbɾo.ma",
+      "erronea": "ˈpo.ma",
+      "descripcion": "bɾ→b + b→p",
+      "cat": "nf",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "flota",
+      "correcta": "ˈflo.ta",
+      "erronea": "ˈfo.ɾa",
+      "descripcion": "fl→f + t→ɾ",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "clavo",
+      "correcta": "ˈkla.bo",
+      "erronea": "ˈga.bo",
+      "descripcion": "kl→k + k→g",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "drama",
+      "correcta": "ˈdɾa.ma",
+      "erronea": "ˈda.na",
+      "descripcion": "dɾ→d + m→n",
+      "cat": "nm",
+      "sem": "abstracto"
+    },
+    {
+      "ortografia": "trama",
+      "correcta": "ˈtɾa.ma",
+      "erronea": "ˈta.na",
+      "descripcion": "tɾ→t + m→n",
+      "cat": "v3",
+      "sem": "v3"
+    },
+    {
+      "ortografia": "globo",
+      "correcta": "ˈglo.bo",
+      "erronea": "ˈgo.mo",
+      "descripcion": "gl→g + b→m",
+      "cat": "nm",
+      "sem": "objeto"
+    }
+  ],
+  "sistematico_omision_ataque": [
+    {
+      "ortografia": "gato",
+      "correcta": "ˈga.to",
+      "erronea": "ˈa.do",
+      "descripcion": "g→∅ + t→d",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "mapa",
+      "correcta": "ˈma.pa",
+      "erronea": "ˈa.ba",
+      "descripcion": "m→∅ + p→b",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "boca",
+      "correcta": "ˈbo.ka",
+      "erronea": "ˈo.ga",
+      "descripcion": "b→∅ + k→g",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "lobo",
+      "correcta": "ˈlo.bo",
+      "erronea": "ˈo.po",
+      "descripcion": "l→∅ + b→p",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "mesa",
+      "correcta": "ˈme.sa",
+      "erronea": "ˈe.ta",
+      "descripcion": "m→∅ + s→t",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "moto",
+      "correcta": "ˈmo.to",
+      "erronea": "ˈo.ko",
+      "descripcion": "m→∅ + t→k",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "polo",
+      "correcta": "ˈpo.lo",
+      "erronea": "ˈo.ɾo",
+      "descripcion": "p→∅ + l→ɾ",
+      "cat": "nm",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "foca",
+      "correcta": "ˈfo.ka",
+      "erronea": "ˈo.xa",
+      "descripcion": "f→∅ + k→x",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "lago",
+      "correcta": "ˈla.go",
+      "erronea": "ˈa.xo",
+      "descripcion": "l→∅ + g→x",
+      "cat": "nm",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "sopa",
+      "correcta": "ˈso.pa",
+      "erronea": "ˈo.ɾa",
+      "descripcion": "s→∅ + p→ɾ",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "tapa",
+      "correcta": "ˈta.pa",
+      "erronea": "ˈa.ka",
+      "descripcion": "t→∅ + p→k",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "pino",
+      "correcta": "ˈpi.no",
+      "erronea": "ˈi.mo",
+      "descripcion": "p→∅ + n→m",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "lupa",
+      "correcta": "ˈlu.pa",
+      "erronea": "ˈu.ta",
+      "descripcion": "l→∅ + p→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "saco",
+      "correcta": "ˈsa.ko",
+      "erronea": "ˈa.ko",
+      "descripcion": "s→∅ (sin cambio)",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "faro",
+      "correcta": "ˈfa.ɾo",
+      "erronea": "ˈxa.o",
+      "descripcion": "f→x + ɾ→∅",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "gafa",
+      "correcta": "ˈga.fa",
+      "erronea": "ˈa.xa",
+      "descripcion": "g→∅ + f→x",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "mucho",
+      "correcta": "ˈmu.ʧo",
+      "erronea": "ˈu.to",
+      "descripcion": "m→∅ + ʧ→t",
+      "cat": "adj",
+      "sem": "adj"
+    },
+    {
+      "ortografia": "techo",
+      "correcta": "ˈte.ʧo",
+      "erronea": "ˈe.to",
+      "descripcion": "t→∅ + ʧ→t",
+      "cat": "nm",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "pico",
+      "correcta": "ˈpi.ko",
+      "erronea": "ˈi.to",
+      "descripcion": "p→∅ + k→t",
+      "cat": "nm",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cama",
+      "correcta": "ˈka.ma",
+      "erronea": "ˈa.ma",
+      "descripcion": "k→∅ (sin cambio)",
+      "cat": "nf",
+      "sem": "mueble"
+    },
+    {
+      "ortografia": "sopa",
+      "correcta": "ˈso.pa",
+      "erronea": "ˈo.ta",
+      "descripcion": "s→∅ + p→t",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "foca",
+      "correcta": "ˈfo.ka",
+      "erronea": "ˈo.ta",
+      "descripcion": "f→∅ + k→t",
+      "cat": "nf",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "boca",
+      "correcta": "ˈbo.ka",
+      "erronea": "ˈo.ga",
+      "descripcion": "b→∅ + k→g",
+      "cat": "nf",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "tela",
+      "correcta": "ˈte.la",
+      "erronea": "ˈe.ɾa",
+      "descripcion": "t→∅ + l→ɾ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "pala",
+      "correcta": "ˈpa.la",
+      "erronea": "ˈa.ɾa",
+      "descripcion": "p→∅ + l→ɾ",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "topo",
+      "correcta": "ˈto.po",
+      "erronea": "ˈo.mo",
+      "descripcion": "t→∅ + p→m",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "goma",
+      "correcta": "ˈgo.ma",
+      "erronea": "ˈo.ba",
+      "descripcion": "g→∅ + m→b",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "taza",
+      "correcta": "ˈta.θa",
+      "erronea": "ˈa.na",
+      "descripcion": "t→∅ + θ→n",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "cadena",
+      "correcta": "ka.ˈde.na",
+      "erronea": "a.ˈte.na",
+      "descripcion": "k→∅ + d→t",
+      "cat": "nf",
+      "sem": "objeto"
+    },
+    {
+      "ortografia": "aceituna",
+      "correcta": "a.θei.ˈtu.na",
+      "erronea": "a.ei.ˈdu.na",
+      "descripcion": "θ→∅ + t→d",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "chapata",
+      "correcta": "ʧa.ˈpa.ta",
+      "erronea": "a.ˈka.ta",
+      "descripcion": "ʧ→∅ + p→k",
+      "cat": "nf",
+      "sem": "comida"
+    },
+    {
+      "ortografia": "camisa",
+      "correcta": "ka.ˈmi.sa",
+      "erronea": "a.ˈni.sa",
+      "descripcion": "k→∅ + m→n",
+      "cat": "nf",
+      "sem": "ropa"
+    },
+    {
+      "ortografia": "Málaga",
+      "correcta": "ˈma.la.ga",
+      "erronea": "ˈa.ɾa.ga",
+      "descripcion": "m→∅ + l→ɾ",
+      "cat": "np",
+      "sem": "lugar"
+    },
+    {
+      "ortografia": "abuelito",
+      "correcta": "a.bue.ˈli.to",
+      "erronea": "a.ue.ˈɾi.to",
+      "descripcion": "b→∅ + l→ɾ",
+      "cat": "nm",
+      "sem": "persona"
+    },
+    {
+      "ortografia": "nubarrón",
+      "correcta": "nu.ba.ˈron",
+      "erronea": "u.pa.ˈron",
+      "descripcion": "n→∅ + b→p",
+      "cat": "nm",
+      "sem": "naturaleza"
+    },
+    {
+      "ortografia": "moño",
+      "correcta": "ˈmo.ɲo",
+      "erronea": "ˈo.no",
+      "descripcion": "m→∅ + ɲ→n",
+      "cat": "nm",
+      "sem": "cuerpo"
+    },
+    {
+      "ortografia": "murciélago",
+      "correcta": "muɾ.ˈθie.la.go",
+      "erronea": "uɾ.ˈxie.la.go",
+      "descripcion": "m→∅ + θ→x",
+      "cat": "nm",
+      "sem": "animal"
+    },
+    {
+      "ortografia": "profesora",
+      "correcta": "pɾo.fe.ˈso.ɾa",
+      "erronea": "o.pe.ˈto.la",
+      "descripcion": "pɾ→∅ + f→p + s→t + ɾ→l",
+      "cat": "nf",
+      "sem": "persona"
+    }
+  ],
+  "omision_coda": [
+    {
+      "ortografia": "un",
+      "correcta": "un",
+      "erronea": "u",
+      "descripcion": "n→∅",
+      "cat": "det",
+      "sem": "func"
+    },
+    {
+      "ortografia": "en",
+      "correcta": "en",
+      "erronea": "e",
+      "descripcion": "n→∅",
+      "cat": "prep",
+      "sem": "func"
+    },
+    {
+      "ortografia": "con",
+      "correcta": "kon",
+      "erronea": "ko",
+      "descripcion": "n→∅",
+      "cat": "prep",
+      "sem": "func"
+    },
+    {
+      "ortografia": "comer",
+      "correcta": "ko.ˈmeɾ",
+      "erronea": "ko.ˈme",
+      "descripcion": "ɾ→∅",
+      "cat": "vinf",
+      "sem": "v3"
+    }
+  ]
+}
