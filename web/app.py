@@ -3817,31 +3817,41 @@ async def _lali_ejercicio_informe_errores_impl(
 
     # ── Format errors ─────────────────────────────────────────────────────────
     TIPO_LABEL = {
-        'metatesis':                            ('palabra',   'Metátesis'),
-        'asimilacion_regresiva':                ('palabra',   'Asimilación regresiva'),
-        'asimilacion_progresiva':               ('palabra',   'Asimilación progresiva'),
-        'omision_silaba_atona':                 ('palabra',   'Omisión de sílaba pretónica'),
-        'asim_omision_silaba':                  ('palabra',   'Asimilación + omisión de sílaba'),
-        'simplificacion_ataque':                ('silaba',    'Simplificación de ataque'),
-        'simplificacion_nucleo':                ('silaba',    'Simplificación de núcleo'),
-        'omision_ataque':                       ('silaba',    'Omisión de ataque'),
-        'omision_ataque_silaba':                ('silaba',    'Omisión de ataque y sílaba'),
-        'simplificacion_nucleo_omision_ataque': ('silaba',    'Simplificación de núcleo + omisión ataque'),
-        'sistematico':                          ('sistemico', 'Error sistémico'),
-        'sistematico_simplificacion_nucleo':    ('sistemico', 'Sistémico + simplificación núcleo'),
-        'sistematico_simplificacion_ataque':    ('sistemico', 'Sistémico + simplificación ataque'),
-        'sistematico_omision_ataque':           ('sistemico', 'Sistémico + omisión ataque'),
-        'omision_coda':                         ('silaba',    'Omisión de coda'),
+        'metatesis':             ('palabra',   'Metátesis'),
+        'asimilacion_regresiva': ('palabra',   'Asimilación regresiva'),
+        'asimilacion_progresiva':('palabra',   'Asimilación progresiva'),
+        'omision_silaba_atona':  ('palabra',   'Omisión de sílaba pretónica'),
+        'simplificacion_ataque': ('silaba',    'Simplificación de ataque'),
+        'simplificacion_nucleo': ('silaba',    'Simplificación de núcleo'),
+        'omision_ataque':        ('silaba',    'Omisión de ataque'),
+        'omision_coda':          ('silaba',    'Omisión de coda'),
+        'sistematico':           ('sistemico', 'Error sistémico'),
+    }
+    # Compound types → two separate error entries
+    COMPOUND_SPLIT = {
+        'asim_omision_silaba':                  [('palabra',   'Asimilación regresiva'),
+                                                 ('palabra',   'Omisión de sílaba pretónica')],
+        'omision_ataque_silaba':                 [('palabra',   'Omisión de sílaba pretónica'),
+                                                 ('silaba',    'Omisión de ataque')],
+        'simplificacion_nucleo_omision_ataque':  [('silaba',    'Simplificación de núcleo'),
+                                                 ('silaba',    'Omisión de ataque')],
+        'sistematico_simplificacion_nucleo':     [('sistemico', 'Error sistémico'),
+                                                 ('silaba',    'Simplificación de núcleo')],
+        'sistematico_simplificacion_ataque':     [('sistemico', 'Error sistémico'),
+                                                 ('silaba',    'Simplificación de ataque')],
+        'sistematico_omision_ataque':            [('sistemico', 'Error sistémico'),
+                                                 ('silaba',    'Omisión de ataque')],
     }
 
     errores_fmt = []
     for ent in selected:
-        cat_tipo, subtipo = TIPO_LABEL.get(ent['banco_tipo'], ('sistemico', ent['banco_tipo']))
-        errores_fmt.append({
-            'tipo': cat_tipo,
-            'subtipo': subtipo,
-            'detalle': f"{ent['descripcion']} en \'{ent['ortografia']}\'"
-        })
+        detalle = f"{ent['descripcion']} en \'{ent['ortografia']}\'"
+        if ent['banco_tipo'] in COMPOUND_SPLIT:
+            for cat_tipo, subtipo in COMPOUND_SPLIT[ent['banco_tipo']]:
+                errores_fmt.append({'tipo': cat_tipo, 'subtipo': subtipo, 'detalle': detalle})
+        else:
+            cat_tipo, subtipo = TIPO_LABEL.get(ent['banco_tipo'], ('sistemico', ent['banco_tipo']))
+            errores_fmt.append({'tipo': cat_tipo, 'subtipo': subtipo, 'detalle': detalle})
 
     _log_eulalia_event("exercise_start", {
         "exercise": "informe_errores",
