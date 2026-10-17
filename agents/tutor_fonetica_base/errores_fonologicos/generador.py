@@ -7,6 +7,13 @@ Cada función devuelve la transcripción modificada y la lista de errores aplica
 
 import random
 from copy import deepcopy
+
+# Ataques complejos válidos en español (consonante + /ɾ/ o /l/)
+_ATAQUES_COMPLEJOS_VALIDOS = frozenset([
+    ('p', 'ɾ'), ('b', 'ɾ'), ('f', 'ɾ'), ('g', 'ɾ'), ('k', 'ɾ'), ('d', 'ɾ'), ('t', 'ɾ'),
+    ('p', 'l'), ('b', 'l'), ('f', 'l'), ('g', 'l'), ('k', 'l'),
+])
+
 from .inventario import (
     FONEMAS, CONSONANTES, VOCALES, ESCALA_MODO, ESCALA_LUGAR,
     es_consonante, es_vocal, rasgos, fonemas_similares, fonemas_por_rasgo,
@@ -263,16 +270,22 @@ def error_asimilacion_progresiva(palabra: Palabra, rng: random.Random = None) ->
     for si, sil in enumerate(p.silabas):
         n_atq = len(sil.ataque)
         for fi, f in enumerate(sil.fonemas):
-            fonemas_planos.append((si, fi, f, fi < n_atq))
+            fonemas_planos.append((si, fi, f, fi < n_atq, n_atq))
 
     candidatos = []
     for i in range(1, len(fonemas_planos)):
-        si_prev, fi_prev, f_prev, in_atq_prev = fonemas_planos[i - 1]
-        si_curr, fi_curr, f_curr, in_atq_curr = fonemas_planos[i]
+        si_prev, fi_prev, f_prev, in_atq_prev, _ = fonemas_planos[i - 1]
+        si_curr, fi_curr, f_curr, in_atq_curr, n_atq_curr = fonemas_planos[i]
         if es_consonante(f_prev) and es_consonante(f_curr) and f_prev != f_curr:
             # Skip pairs within the same onset cluster (e.g. /bl/ → /bb/)
             if si_prev == si_curr and in_atq_prev and in_atq_curr:
                 continue
+            # Si f_curr es la primera consonante de un ataque complejo, verificar que
+            # reemplazarla por f_prev produce un ataque complejo válido en español
+            if in_atq_curr and fi_curr == 0 and n_atq_curr > 1:
+                second_atq = p.silabas[si_curr].ataque[1]
+                if (f_prev, second_atq) not in _ATAQUES_COMPLEJOS_VALIDOS:
+                    continue
             candidatos.append((si_curr, fi_curr, f_curr, f_prev))
 
     if not candidatos:
@@ -284,21 +297,32 @@ def error_asimilacion_progresiva(palabra: Palabra, rng: random.Random = None) ->
 
 
 def error_metátesis(palabra: Palabra, rng: random.Random = None) -> tuple[Palabra, dict]:
-    """Intercambia el contenido fonémico de dos sílabas adyacentes manteniendo el acento en su posición original."""
+    """Metátesis: intercambia el ataque completo de dos sílabas adyacentes.
+    Ejemplo: /ˈfa.bɾi.ka/ → /ˈbɾa.fi.ka/ (/f/ ↔ /bɾ/).
+    Ejemplo: /ˈne.gɾo/ → /ˈgɾe.no/ (/n/ ↔ /gɾ/).
+    Solo aplica cuando ambas sílabas tienen ataque distinto.
+    """
     rng = rng or random.Random()
     p = deepcopy(palabra)
     if len(p.silabas) < 2:
         return p, None
-    si = rng.randint(0, len(p.silabas) - 2)
-    sil1_str = str(p.silabas[si])
-    sil2_str = str(p.silabas[si + 1])
-    # Preserve stress positions before the swap
-    t1 = p.silabas[si].tonica
-    t2 = p.silabas[si + 1].tonica
-    p.silabas[si], p.silabas[si + 1] = p.silabas[si + 1], p.silabas[si]
-    p.silabas[si].tonica = t1
-    p.silabas[si + 1].tonica = t2
-    return p, {'tipo': 'metatesis', 'descripcion': f'Metátesis silábica: /{sil1_str}/ ↔ /{sil2_str}/'}
+
+    candidatos = [
+        i for i in range(len(p.silabas) - 1)
+        if p.silabas[i].ataque and p.silabas[i + 1].ataque
+        and p.silabas[i].ataque != p.silabas[i + 1].ataque
+    ]
+
+    if not candidatos:
+        return p, None
+
+    i = rng.choice(candidatos)
+    s1, s2 = p.silabas[i], p.silabas[i + 1]
+    f1 = ''.join(s1.ataque)
+    f2 = ''.join(s2.ataque)
+    s1.ataque, s2.ataque = s2.ataque[:], s1.ataque[:]
+
+    return p, {'tipo': 'metatesis', 'descripcion': f'Metátesis: /{f1}/ ↔ /{f2}/'}
 
 
 def error_omision_silaba_atona(palabra: Palabra, rng: random.Random = None) -> tuple[Palabra, dict]:

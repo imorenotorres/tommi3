@@ -1,0 +1,265 @@
+Metátesis (intercambio de ataques entre sílabas adyacentes)
+
+Palabra	Correcta   Errónea  Descripción   
+fábrica	ˈfa.bɾi.ka	ˈbɾa.fi.ka	f	↔	bɾ
+padre	ˈpa.dɾe	ˈda.pɾe	p	↔	dɾ
+madre	ˈma.dɾe	ˈdɾa.me	m	↔	dɾ
+libro	ˈli.bɾo	ˈbɾi.lo	l	↔	bɾ
+tigre	ˈti.gɾe	ˈgɾi.te	t	↔	gɾ
+negro	ˈne.gɾo	ˈgɾe.no	n	↔	gɾ
+grande ˈgɾan.de	ˈdan.gɾe	gɾ	↔	d
+trabaja	tɾa.ˈba.xa	ba.ˈtɾa.xa	tɾ	↔	b
+plato	ˈpla.to	ˈta.plo	pl	↔	t
+clase	ˈkla.se	ˈsa.kle	kl	↔	s
+presa	ˈpɾe.sa	ˈse.pɾa	pɾ	↔	s
+crema	ˈkɾe.ma	ˈme.kɾa	kɾ	↔	m
+prima	ˈpɾi.ma	ˈmi.pɾa	pɾ	↔	m
+grasa	ˈgɾa.sa	ˈsa.gɾa	gɾ	↔	s
+brazo	ˈbɾa.θo	ˈθa.bɾo	bɾ	↔	θ
+trapo	ˈtɾa.po	ˈpa.tɾo	tɾ	↔	p
+droga	ˈdɾo.ga	ˈgo.dɾa	dɾ	↔	g
+gripe	ˈgɾi.pe	ˈpi.gɾe	gɾ	↔	p
+broma	ˈbɾo.ma	ˈmo.bɾa	bɾ	↔	m
+flota	ˈflo.ta	ˈta.flo	fl	↔	t
+clavo	ˈkla.bo	ˈba.klo	kl	↔	b
+drama	ˈdɾa.ma	ˈma.dɾa	dɾ	↔	m
+trama	ˈtɾa.ma	ˈma.tɾa	tɾ	↔	m
+globo	ˈglo.bo	ˈbo.glo	gl	↔	b
+franjaˈfɾan.xa	ˈxan.fɾa	fɾ	↔	x
+gato 	ˈga.to	 	ˈta.go	 	g	↔	t
+mapa 	ˈma.pa	 	ˈpa.ma	 	m	↔	p
+boca 	ˈbo.ka	 	ˈko.ba	 	b	↔	k
+lobo 	ˈlo.bo	 	ˈbo.lo	 	l	↔	b
+mesa 	ˈme.sa	 	ˈse.ma	 	m	↔	s
+moto 	ˈmo.to	 	ˈto.mo	 	m	↔	t
+polo 	ˈpo.lo	 	ˈlo.po	 	p	↔	l
+foca 	ˈfo.ka	 	ˈko.fo	 	f	↔	k
+lago 	ˈla.go	 	ˈga.lo	 	l	↔	g
+sopa 	ˈso.pa	 	ˈpo.so	 	s	↔	p
+tapa 	ˈta.pa	 	ˈpa.ta	 	t	↔	p
+pino 	ˈpi.no	 	ˈni.po	 	p	↔	n
+lupa 	ˈlu.pa	 	ˈpu.la	 	l	↔	p
+fama 	ˈfa.ma	 	ˈma.fa	 	f	↔	m
+saco 	ˈsa.ko	 	ˈka.so	 	s	↔	k
+camino ka.ˈmi.no mi.ˈka.no k	↔	m
+maleta ma.ˈle.ta la.ˈme.ta m	↔	l
+pelota pe.ˈlo.ta le.ˈpo.ta p	↔	l
+tomate to.ˈma.te mo.ˈta.te t	↔	m
+zapato θa.ˈpa.to pa.ˈθa.to θ	↔	p
+maleta ma.ˈle.ta la.ˈme.ta m	↔	l
+cebolla	θe.ˈbo.ʝa bo.ˈθe.ʝa θ	↔	b
+botella	bo.ˈte.ʝa to.ˈbe.ʝa b	↔	t
+caballo	ka.ˈba.ʝo ba.ˈka.ʝo k	↔	b
+conejo ko.ˈne.xo no.ˈke.xo k	↔	n
+
+
+Asimilación regresiva (C₁ cambia por influencia de C₂ siguiente)
+Palabra	Correcta	  Errónea   Descripción
+mojigato 	mo.xi.ˈga.to	mo.xi.ˈta.to	    	g→t
+zapato 	θa.ˈpa.to	θaˈta.to	    	p→t	
+cama 	ˈka.ma	ˈma.ma	    	k→m
+mapa 	ˈma.pa	ˈpa.pa	    	m→p
+sopa 	ˈso.pa	ˈpo.pa	    	s→p
+foca 	ˈfo.ka	ˈko.ka	    	f→k
+polonia 	po.ˈlo.nia	lo.ˈlo.nia	    	p→l
+boca 	ˈbo.ka	ˈko.ka	    	b→k
+tela 	ˈte.la	ˈle.la	    	t→l
+pala 	ˈpa.la	ˈla.la	    	p→l
+mano 	ˈma.no	ˈna.no	    	m→n
+sino 	ˈsi.no	ˈni.no	    	s→n
+topo 	ˈto.po	ˈpo.po	    	t→p
+loco 	ˈlo.ko	ˈko.ko	    	l→k
+luna 	ˈlu.na	ˈnu.na	    	l→n
+mesa 	ˈme.sa	ˈse.sa	    	m→s
+goma 	ˈgo.ma	ˈmo.ma	    	g→m
+taza 	ˈta.θa	ˈθa.θa	    	t→θ
+papanata 	pa.pa.ˈna.ta	pa.pa.ˈta.ta	    	n→t
+mucho	ˈmu.ʧo	ˈʧu.ʧo	    	m→ʧ
+techo	ˈte.ʧo	ˈʧe.ʧo	    	t→ʧ
+pico 	ˈpi.ko	ˈki.ko	    	p→k
+lupa 	ˈlu.pa	ˈpu.pa	    	l→p
+cafétera 	ka.fe.ˈte.ɾa	fa.fe.ˈte.ɾa	    	k→f
+faro 	ˈfa.ɾo	ˈɾa.ɾo	    	f→ɾ
+espuma 	es.ˈpu.ma	es.ˈmu.ma	    	p→m
+moto 	ˈmo.to	ˈto.to	    	m→t
+gafa 	ˈga.fa	ˈfa.fa	    	g→f
+sacacorchos 	ˈsa.ka.koɾ.ʧos	ka.ka.ˈkoɾ.ʧos	    	s→k
+nubarrón 	nu.ba.ˈron	ˈbu.ba.ˈron	    	n→b
+murciélago 	muɾ.ˈθie.la.go	muɾ.ˈθie.ˈga.go	    	l→g
+moño 	ˈmo.ɲo	ˈɲo.ɲo	    	m→ɲ
+cadena 	ka.ˈde.na	ka.ˈne.na	    	d→n
+aceituna 	a.θei.ˈtu.na	a.θei.ˈnu.na	    	t→n
+chapata 	ʧaˈpa.ta	ʧa.ˈta.ta	    	p→t
+copete 	ko.ˈpe.te	po.pe.te	    	k→p
+camisa 	kaˈmi.sa	ka.ˈsi.sa	    	m→s
+Málaga 	ˈma.la.ga	ˈma.la.la	    	g→l
+abuelito 	a.bue.ˈli.to	a.bue.ˈti.to	    	l→t
+cabo 	ˈka.bo	ˈba.bo	    	k→b
+pata 	ˈpa.ta	ˈta.ta	    	p→t
+loma 	ˈlo.ma	ˈmo.ma	    	l→m
+camilo 	ka.ˈmi.lo	ka.ˈli.lo	    	m→l
+timo 	ˈti.mo	ˈmi.mo	    	t→m
+asilo 	a.ˈsi.lo	a.ˈli.lo	    	s→l
+teléfono 	te.ˈle.fo.no  te.ˈfe.fo.no	l→f
+kilo 	ˈki.lo	ˈli.lo	    	k→l
+bulo 	ˈbu.lo	ˈlu.lo	    	b→l
+fajita 	fa.ˈxi.ta	xa.ˈxi.ta	    	f→x	
+botella bo.ˈte.ʝa  bo.ˈʝe.ʝa  t→ʝ
+conejo  ko.ˈne.xo ˈko.ˈxe.xo  n→x
+
+Asimilación progresiva (C₂ cambia por influencia de C₁ anterior)
+Palabra	Correcta	Errónea Descripción
+gato 	ˈga.to	ˈga.go	t→g
+zapato  θa.ˈpa.to  θa.ˈpa.po  t→p
+zapato  θa.ˈpa.to  θa.ˈθa.to  p→θ
+cama 	ˈka.ma	ˈka.ka	m→k
+mapa 	ˈma.pa	ˈma.ma	p→m
+sopa 	ˈso.pa	ˈso.so	p→s
+foca 	ˈfo.ka	ˈfo.fa	k→f
+polo 	ˈpo.lo	ˈpo.po	l→p
+boca 	ˈbo.ka	ˈbo.ba	k→b
+tela 	ˈte.la	ˈte.ta	l→t
+pala 	ˈpa.la	ˈpa.pa	l→p
+manita 	ma.ˈni.ta	ma.ˈni.na	t→n
+loco 	ˈlo.ko	ˈlo.lo	k→l
+lunita 	ˈlu.ni.ta	lu.ˈli.ta	n→l
+mesita 	me.ˈsi.ta	me.ˈmi.ta	s→m
+goma 	ˈgo.ma	ˈgo.ga	m→g
+taza 	ˈta.θa	ˈta.ta	θ→t
+farola 	fa.ˈɾo.la	fa.fo.la	ɾ→f
+techo	ˈte.ʧo	ˈte.to	ʧ→t
+pico 	ˈpi.ko	ˈpi.po	k→p
+lupa 	ˈlu.pa	ˈlu.la	p→l
+cafétera 	ka.fe.ˈte.ɾa	ka.ˈke.ˈte.ɾa	f→k
+nube 	ˈnu.be	ˈnu.ne	b→n
+lago 	ˈla.go	ˈla.lo	g→l
+tema 	ˈte.ma	ˈte.ta	m→t
+copa 	ˈko.pa	ˈko.ka	p→k
+misa 	ˈmi.sa	ˈmi.ma	s→m
+seta 	ˈse.ta	ˈse.sa	t→s
+puma 	ˈpu.ma	ˈpu.pa	m→p
+moto 	ˈmo.to	ˈmo.mo	t→m
+nata 	ˈna.ta	ˈna.na	t→n
+topo 	ˈto.po	ˈto.to	p→t
+bata 	ˈba.ta	ˈba.ba	t→b
+loma 	ˈlo.ma	ˈlo.la	m→l
+mula 	ˈmu.la	ˈmu.ma	l→m
+cabo 	ˈka.bo	ˈka.ko	b→k
+gafa 	ˈga.fa	ˈga.ga	f→g
+filo 	ˈfi.lo	ˈfi.fo	l→f
+kilo 	ˈki.lo	ˈki.ko	l→k
+timo 	ˈti.mo	ˈti.to	m→t
+silo 	ˈsi.lo	ˈsi.so	l→s
+pajita 	pa.ˈxi.ta	pa.ˈxi.xa	t→x
+moño 	ˈmo.ɲo	ˈmo.mo	ɲ→m
+casilla 	ˈka.si.ʝa	ˈka.ˈʝi.ʝa	n→t
+bulo 	ˈbu.lo	ˈbu.bo	l→b
+saco 	ˈsa.ko	ˈsa.so	k→s
+camisa  ka.ˈmi.sa ka.ˈmi.ma s→m
+mañana  ma.ˈɲa.na ma.ˈɲa.ɲa n→ɲ
+caballo ka.ˈba.ʝo  ka.ˈba.bo  ʝ→b
+cuchara ku.ˈʧa.ɾa  ku.ˈka.ɾa ʧ→k
+
+
+Omisión de sílaba átona pretónica
+Palabra  Correcta   Errónea Sílaba omitida
+zapato	θa.ˈpa.to	ˈpa.to θa
+pelota	pe.ˈlo.ta	ˈlo.ta pe
+tomate	to.ˈma.te	ˈma.te to
+camisa	ka.ˈmi.sa	ˈmi.sa ka
+mañana	ma.ˈɲa.na	ɲa.na ma
+caballoka.ˈba.ʝo	ˈba.ʝoka
+cucharaku.ˈʧa.ɾa	ˈʧa.ɾa ku
+botellabo.ˈte.ʝa	ˈte.ʝa bo
+conejo	ko.ˈne.xo	ˈne.xo ko
+dinero	di.ˈne.ɾo	ˈne.ɾo di
+ventana ben.ˈta.naˈta.na ben
+maleta	ma.ˈle.ta	ˈle.tama
+payaso	pa.ˈʝa.so	ˈʝa.sopa
+naranja na.ˈɾan.xaˈɾan.xa	na
+mochilamo.ˈʧi.la	ˈʧi.lamo
+tijera	ti.ˈxe.ɾa	ˈxe.ɾati
+rodillaɾo.ˈdi.ʝa	ˈdi.ʝaɾo
+cebollaθe.ˈbo.ʝa	ˈbo.ʝaθe
+semillase.ˈmi.ʝa	ˈmi.ʝase
+tobilloto.ˈbi.ʝo	ˈbi.ʝoto
+ballenaba.ˈʝe.na	ˈʝe.naba
+galletaga.ˈʝe.ta	ˈʝe.taga
+bigote	bi.ˈgo.te	ˈgo.tebi
+tortilla	toɾ.ˈti.ʝaˈ ti.ʝa toɾ
+cangrejo	kaŋ.ˈgɾe.xo	ˈgɾe.xo	kaŋ
+pistola pis.ˈto.la ˈto.la pis
+espada	es.ˈpa.ða	ˈpa.ða es
+espejo	es.ˈpe.xo	ˈpe.xo es
+helado	e.ˈla.ðo	ˈla.ðo e
+jabón 	xa.ˈbon	 	ˈbon	xa
+colchón kol.ˈʧon	ˈʧon	kol
+linterna	lin.ˈteɾ.na	ˈteɾ.na	lin
+sombrero	som.ˈbɾe.ɾo	ˈbɾe.ɾo	som
+columna ko.ˈlum.naˈlum.na	ko
+palmera pal.ˈme.ɾaˈme.ɾa pal
+banana	ba.ˈna.na	ˈna.na ba
+pasillo pa.ˈsi.ʝo	ˈsi.ʝo pa
+tortuga toɾ.ˈtu.gaˈtu.ga toɾ
+calcetín	kal.θe.ˈtin	θe.ˈtin	kal
+piñata	pi.ˈɲa.ta	ˈɲa.ta pi
+bufanda bu.ˈfan.daˈfan.da	bu
+cigüeña θi.ˈgwe.ɲa ˈgwe.ɲa	θi
+pijama	pi.ˈxa.ma	ˈxa.ma pi
+tijeras ti.ˈxe.ɾas ˈxe.ɾas	ti
+nevera	ne.ˈbe.ɾa	ˈbe.ɾa ne
+muleta	mu.ˈle.ta	ˈle.ta mu
+veleta	be.ˈle.ta	ˈle.ta be
+melena	me.ˈle.na	ˈle.na me
+sereno	se.ˈɾe.no	ˈɾe.no se
+velero	be.ˈle.ɾo	ˈle.ɾo be
+
+
+Asimilación y Omisión de sílaba átona pretónica
+Palabra  Correcta   Errónea Sílaba omitida
+zapato  θa.ˈpa.to ˈpa.po
+pelota  pe.ˈlo.ta ˈto.ta
+tomate  to.ˈma.te ˈta.te
+camisa  ka.ˈmi.sa ˈsi.sa
+mañana  ma.ˈɲa.na ˈna na
+caballo ka.ˈba.ʝo  ˈba.bo
+cuchara ku.ˈʧa.ɾa  ˈʧa.ʧa
+botella bo.ˈte.ʝa  ˈʝe.ʝa
+conejo  ko.ˈne.xo ˈne.no
+dinero  di.ˈne.ɾo ˈne.no
+ventana ben.ˈta.na ˈna.na
+maleta  ma.ˈle.ta ˈte.ta 
+payaso  pa.ˈʝa.so ˈʝa.ʝo
+naranja na.ˈɾan.xa ˈxan.xa
+mochilamo.ˈʧi.la  ˈʧi.ʧa
+tijera  ti.ˈxe.ɾa ˈxe.xa
+rodilla ɾo.ˈdi.ʝa  ˈʝi.ʝa
+cebolla θe.ˈbo.ʝa  ˈʝo.ʝa
+semilla se.ˈmi.ʝa  ˈʝi.ʝa
+tobillo to.ˈbi.ʝo  ˈʝi.ʝo
+ballena ba.ˈʝe.na  ˈʝe.na
+galleta ga.ˈʝe.ta  ˈʝe.ta
+bigote  bi.ˈgo.te ˈgo.te
+tortilla  toɾ.ˈti.ʝaˈ ʝi.ʝa
+cangrejo  kaŋ.ˈgɾe.xo ˈxe.xo
+pistola pis.ˈto.la ˈto.ta
+espada  es.ˈpa.ða ˈda.da
+espejo  es.ˈpe.xo ˈpe.xo
+helado  e.ˈla.ðo  ˈla.lo
+linterna  lin.ˈteɾ.na ˈneɾ.na
+columna ko.ˈlum.na ˈlum.la
+palmera pal.ˈme.ɾa ˈme.ma
+pasillo pa.ˈsi.ʝo ˈʝi.ʝo
+tortuga toɾ.ˈtu.ga ˈgu.ga
+calcetín  kal.θe.ˈtin te.ˈtin
+piñata  pi.ˈɲa.ta ˈta.ta
+bufanda bu.ˈfan.daˈfan.fa
+cigüeña θi.ˈgwe.ɲa ˈgwe.ga
+pijama  pi.ˈxa.ma ˈxa.xa
+tijeras ti.ˈxe.ɾas ˈxe.sas
+nevera  ne.ˈbe.ɾa ˈɾe.ɾa
+muleta  mu.ˈle.ta ˈte.ta
+veleta  be.ˈle.ta ˈte.ta
+melena  me.ˈle.na ˈle.la
+sereno  se.ˈɾe.no ˈne.no
+velero  be.ˈle.ɾo ˈle.lo

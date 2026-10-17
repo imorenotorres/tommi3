@@ -3643,277 +3643,204 @@ async def lali_ejercicio_transcripcion(request: Request, nivel: int = Query(1, g
 @app.get("/api/public-agent/eulalia/ejercicio-informe-errores")
 async def lali_ejercicio_informe_errores(
     request: Request,
-    num_errores: int = Query(8, ge=3, le=12),
+    num_errores: int = Query(12, ge=1, le=18),
     seed: int = Query(None),
     categorias: str = Query(""),
+    oracion_id: int = Query(None),
 ):
-    """Generate a phonological error report exercise dynamically."""
+    """Generate a phonological error report exercise from curated sentence bank."""
     import random
-    import sys
-
-    base_dir = Path(__file__).parent.parent / "agents" / "tutor_fonetica_base"
-    if str(base_dir) not in sys.path:
-        sys.path.insert(0, str(base_dir))
-    from transcriptor import transcribir
-    from errores_fonologicos.generador import generar_errores
+    import json as _json
+    import re as _re
 
     rng = random.Random(seed)
 
-    # Parse category filter
+    # ── Load sentence bank and error banco ────────────────────────────────────
+    oraciones_path = (Path(__file__).parent.parent
+                      / "agents" / "eulalia" / "data" / "banco_oraciones_informe.json")
+    banco_path = (Path(__file__).parent.parent
+                  / "agents" / "eulalia" / "data" / "banco_errores_fonologicos.json")
+    with open(oraciones_path, "r", encoding="utf-8") as f:
+        oraciones = _json.load(f)
+    with open(banco_path, "r", encoding="utf-8") as f:
+        banco = _json.load(f)
+
+    # ── Category → allowed banco keys ────────────────────────────────────────
+    KEYS_PALABRA = ['metatesis', 'asimilacion_regresiva', 'asimilacion_progresiva',
+                    'omision_silaba_atona', 'asim_omision_silaba']
+    KEYS_SILABA  = ['simplificacion_ataque', 'simplificacion_nucleo', 'omision_ataque',
+                    'omision_ataque_silaba', 'simplificacion_nucleo_omision_ataque', 'omision_coda']
+    KEYS_SISTEM  = ['sistematico', 'sistematico_simplificacion_nucleo',
+                    'sistematico_simplificacion_ataque', 'sistematico_omision_ataque']
+
     cats = [c.strip() for c in categorias.split(',') if c.strip()] if categorias else []
-    apply_phonological = not cats or any(c in ('cuantitativo', 'silaba', 'palabra', 'sistemico') for c in cats)
-    apply_word_omission = not cats or 'palabra' in cats or 'cuantitativo' in cats
-    add_ritmico = not cats or 'ritmico' in cats or 'cuantitativo' in cats
+    apply_phonological = not cats or any(c in ('cuantitativo', 'silaba', 'palabra', 'sistemico')
+                                         for c in cats)
 
-    # Bank of sentences (ortographic)
-    ORACIONES = [
-        "La mariposa bonita vuela por el jardín grande con flores",
-        "Mi hermana pequeña compra tres platos blancos en la tienda",
-        "El niño pequeño tiene un perro grande que corre mucho por la plaza",
-        "El tren sale a las tres de la tarde con mi amigo Pedro",
-        "Dame el plato grande de la mesa blanca con la cuchara",
-        "Los pájaros cantan en las ramas del árbol grande del parque",
-        "La casa de mi abuela está en la calle estrecha del pueblo grande",
-        "El zapato rojo de la entrada está roto y sucio como un trapo",
-        "La profesora explica la lección a los estudiantes del primer grupo",
-        "El gato blanco duerme en la cama grande de mi hermana",
-        "Quiero un vaso de agua fresca con un poco de limón",
-        "El médico receta unas pastillas para el dolor de cabeza",
-        "La chica rubia lleva una chaqueta verde y zapatos negros",
-        "Mi padre trabaja en la fábrica grande que está cerca del río",
-        "El perro del vecino ladra cuando viene el cartero a las tres",
-        "La enfermera atiende con cuidado al paciente que está dormido",
-        "Los niños juegan en la plaza grande del barrio con sus amigos",
-        "El anciano camina despacio bajo un cielo gris y frío",
-        "Mi madre prepara la comida mientras escucha la radio en la cocina",
-        "El maestro pone un examen difícil sobre gramática y fonología",
-        "Las flores del jardín crecen con la lluvia de primavera",
-        "El autobús sale del centro a las cuatro de la tarde",
-        "La ventana grande de la clase da a la calle principal del pueblo",
-        "El carpintero trabaja con madera de roble para hacer la mesa",
-        "Los alumnos practican la transcripción fonológica en clase de lingüística",
-        "La biblioteca del campus está abierta los fines de semana por la tarde",
-        "El río que pasa por la ciudad tiene un puente de piedra muy antiguo",
-        "Mi vecina tiene tres gatos blancos y un perro grande y negro",
-        "El director del colegio habla con los padres sobre el plan de estudios",
-        "La farmacia de la esquina cierra los domingos por la tarde",
-        "El electricista repara el cable roto que está cerca de la puerta",
-        "La cocinera prepara un plato especial con verduras frescas del mercado",
-        "El pintor trabaja en un cuadro grande con colores muy brillantes",
-        "La secretaria escribe una carta urgente para el director del centro",
-        "Los bomberos apagan el fuego que empezó en la cocina del restaurante",
-        "Mi primo estudia medicina en la universidad de la capital del país",
-        "El fontanero arregla el grifo roto del cuarto de baño del segundo piso",
-        "La cantante tiene una voz bonita que gusta a todo el público",
-        "El cartero reparte las cartas por la mañana en todas las calles del barrio",
-        "La policía busca al ladrón que robó en la tienda de la esquina",
-    ]
+    if not apply_phonological:
+        allowed_tipos = []
+    elif not cats or 'cuantitativo' in cats:
+        allowed_tipos = list(banco.keys())
+    else:
+        allowed_tipos = []
+        if 'palabra'   in cats: allowed_tipos += KEYS_PALABRA
+        if 'silaba'    in cats: allowed_tipos += KEYS_SILABA
+        if 'sistemico' in cats: allowed_tipos += KEYS_SISTEM
 
-    oracion = rng.choice(ORACIONES)
-    correcta = transcribir(oracion)
-    if isinstance(correcta, tuple):
-        # Fallback if transcription fails
-        oracion = "El niño pequeño tiene un perro grande"
-        correcta = transcribir(oracion)
+    # ── Build word index: lower_ort → list of banco entries ───────────────────
+    word_index: dict = {}
+    for tipo in allowed_tipos:
+        for e in banco.get(tipo, []):
+            key = e['ortografia'].lower()
+            word_index.setdefault(key, []).append({**e, 'banco_tipo': tipo})
 
-    # Apply errors using patient profiles
-    palabras_ort = oracion.split()
-    # Strip outer '/' markers so indices align with palabras_ort
-    palabras_fon = [p for p in correcta.strip().split(' ') if p.strip() and p.strip() != '/']
+    # ── Pick a sentence that has at least one matching target word ─────────────
+    if oracion_id is not None:
+        chosen = next((c for c in oraciones if c['id'] == oracion_id), None)
+    else:
+        oraciones_shuffled = list(oraciones)
+        rng.shuffle(oraciones_shuffled)
+        chosen = None
+        for cand in oraciones_shuffled:
+            if any(w.lower() in word_index for w in cand['target_words']):
+                chosen = cand
+            break
+    if chosen is None:
+        chosen = oraciones_shuffled[0]
 
-    # Patient profiles: consistent error tendencies
-    PERFILES = {
-        'lenicion': {
-            'tipos': ['sonorizacion', 'omision_coda', 'simplificacion_ataque',
-                      'simplificacion_nucleo', 'omision_silaba_atona', 'lenicion'],
-            'desc': 'Perfil de lenición: tendencia a debilitar sonidos'
-        },
-        'forticion': {
-            'tipos': ['ensordecimiento', 'forticion', 'posteriorización',
-                      'simplificacion_ataque'],
-            'desc': 'Perfil de fortición: tendencia a reforzar sonidos'
-        },
-        'mixto': {
-            'tipos': ['sonorizacion', 'ensordecimiento', 'adelantamiento',
-                      'simplificacion_ataque', 'omision_coda', 'omision_silaba_atona',
-                      'simplificacion_nucleo'],
-            'desc': 'Perfil mixto'
-        }
+    texto = chosen['oracion']
+
+    # ── Sample target words to receive errors (up to num_errores) ─────────────
+    valid_targets = [w.lower() for w in chosen['target_words'] if w.lower() in word_index]
+    rng.shuffle(valid_targets)
+    selected_targets = valid_targets[:num_errores]
+
+    # Pick one banco entry per selected target (no repeated ortografía)
+    # For words with CC onsets, prefer simplificacion_ataque entries
+    _VALID_CC = {'pɾ','bɾ','tɾ','dɾ','kɾ','gɾ','fɾ','pl','bl','kl','gl','fl'}
+    def _has_cc_onset(fon):
+        import re as _re2
+        for syl in fon.split('.'):
+            s = syl.lstrip('ˈˌ')
+            m = _re2.match(r'^([^aeiouáéíóúɐɨɯɑæœøɒɐəɘɜɝɤɨɪɫɴɵɶɷɸɹɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓˈˌːˑ]{2,})', s)
+            if m and m.group(1) in _VALID_CC:
+                return True
+        return False
+
+    target_entries: dict = {}
+    for w in selected_targets:
+        candidates = list(word_index[w])
+        # Check first available correcta for CC onset
+        simp_atq = [c for c in candidates if c['banco_tipo'] == 'simplificacion_ataque']
+        if simp_atq:
+            fon_w = candidates[0]['correcta']
+            if _has_cc_onset(fon_w):
+                candidates = simp_atq
+        rng.shuffle(candidates)
+        target_entries[w] = candidates[0]
+
+    # ── Import transcriptor ───────────────────────────────────────────────────
+    base_dir = Path(__file__).parent.parent / "agents" / "tutor_fonetica_base"
+    if str(base_dir) not in sys.path:
+        sys.path.insert(0, str(base_dir))
+    from transcriptor import transcribir_palabra
+
+    # ── Tokenize sentence and build token list ────────────────────────────────
+    # tokens: (ort_display, fon_correct, fon_produced, error_entry_or_None, is_sent_end)
+    tokens = []
+    for raw in _re.split(r'\s+', texto.strip()):
+        is_sent_end = raw.endswith('.')
+        clean = _re.sub(r'^[¡¿\(\[\'\"«]+|[.,;:!?\)\]\'\"»]+$', '', raw)
+        if not clean:
+            continue
+        key = clean.lower()
+        if key in target_entries:
+            e = target_entries[key]
+            tokens.append((clean, e['correcta'], e['erronea'], e, is_sent_end))
+        else:
+            fon = transcribir_palabra(key)
+            if not fon or isinstance(fon, tuple):
+                fon = key
+            tokens.append((clean, fon, fon, None, is_sent_end))
+
+    # ── Assemble strings ──────────────────────────────────────────────────────
+    ort_str   = texto
+    # Add sentence-boundary pause marker # after each period-terminated sub-sentence
+    fon_corrs = [t[1] + (' #' if t[4] else '') for t in tokens]
+    fon_prods = [t[2] + (' #' if t[4] else '') for t in tokens]
+    errs_map  = [t[3] for t in tokens]
+    selected  = [e for e in errs_map if e is not None]
+
+    corr_str = '/ ' + ' '.join(fon_corrs) + ' /'
+
+    prod_str = '/ ' + ' '.join(fon_prods) + ' /'
+
+    # ── PFC / PPC ─────────────────────────────────────────────────────────────
+    def _phons(s):
+        return ''.join(c for c in s.replace('ˈ', '').replace('.', '').replace(' ', '').replace('/', '')
+                       if c.isalpha() or c in 'θʝʧɲɾβðɣ')
+
+    def _edist(a, b):
+        a, b = list(a), list(b)
+        n, m = len(a), len(b)
+        dp = list(range(m + 1))
+        for i in range(1, n + 1):
+            nd = [i] + [0] * m
+            for j in range(1, m + 1):
+                nd[j] = dp[j-1] if a[i-1] == b[j-1] else 1 + min(dp[j], nd[j-1], dp[j-1])
+            dp = nd
+        return dp[m]
+
+    total_phons = len(_phons(' '.join(fon_corrs)))
+    err_phons   = sum(_edist(_phons(fon_corrs[i]), _phons(fon_prods[i]))
+                      for i, e in enumerate(errs_map) if e is not None)
+    pfc = max(0, round((total_phons - err_phons) / total_phons * 100)) if total_phons else 100
+
+    total_words   = len([t for t in tokens if len(t[0]) > 2])
+    words_con_err = len(set(t[0] for t, e in zip(tokens, errs_map) if e is not None))
+    ppc = max(0, round((total_words - words_con_err) / total_words * 100)) if total_words else 100
+
+    # ── Format errors ─────────────────────────────────────────────────────────
+    TIPO_LABEL = {
+        'metatesis':                            ('palabra',   'Metátesis'),
+        'asimilacion_regresiva':                ('palabra',   'Asimilación regresiva'),
+        'asimilacion_progresiva':               ('palabra',   'Asimilación progresiva'),
+        'omision_silaba_atona':                 ('palabra',   'Omisión de sílaba pretónica'),
+        'asim_omision_silaba':                  ('palabra',   'Asimilación + omisión de sílaba'),
+        'simplificacion_ataque':                ('silaba',    'Simplificación de ataque'),
+        'simplificacion_nucleo':                ('silaba',    'Simplificación de núcleo'),
+        'omision_ataque':                       ('silaba',    'Omisión de ataque'),
+        'omision_ataque_silaba':                ('silaba',    'Omisión de ataque y sílaba'),
+        'simplificacion_nucleo_omision_ataque': ('silaba',    'Simplificación de núcleo + omisión ataque'),
+        'sistematico':                          ('sistemico', 'Error sistémico'),
+        'sistematico_simplificacion_nucleo':    ('sistemico', 'Sistémico + simplificación núcleo'),
+        'sistematico_simplificacion_ataque':    ('sistemico', 'Sistémico + simplificación ataque'),
+        'sistematico_omision_ataque':           ('sistemico', 'Sistémico + omisión ataque'),
+        'omision_coda':                         ('silaba',    'Omisión de coda'),
     }
 
-    perfil_nombre = rng.choice(list(PERFILES.keys()))
-    perfil = PERFILES[perfil_nombre]
-    tipos_preferidos = perfil['tipos']
-
-    # Map selected categories to tipos for generar_errores
-    if not cats or 'cuantitativo' in cats:
-        tipos_para_generar = tipos_preferidos
-    else:
-        tipo_cats = [c for c in cats if c in ('silaba', 'palabra', 'sistemico')]
-        tipos_para_generar = tipo_cats if tipo_cats else tipos_preferidos
-
-    # Pre-select which content-word positions will receive errors (spread across sentence)
-    _content_idx = [
-        i for i, pf in enumerate(palabras_fon)
-        if pf.strip() and (
-            pf.strip().count('.') + 1 >= 2 or
-            len(pf.strip().replace('ˈ', '').replace('.', '')) > 3
-        )
-    ]
-    rng.shuffle(_content_idx)
-    _error_targets = set(_content_idx[:num_errores])
-
-    # First pass: apply phonological errors to content words
-    producidas = []
-    todos_errores = []
-    errores_ritmicos = []
-    palabras_con_error = set()
-
-    # Function words that can be omitted in lenition profile
-    _PALABRAS_ATONAS = {'el', 'la', 'los', 'las', 'un',
-                        'de', 'en', 'con', 'por', 'sin', 'a', 'y', 'que', 'del', 'al',
-                        'me', 'te', 'se', 'lo', 'le', 'nos', 'os', 'les',
-                        'mi', 'tu', 'su', 'mis', 'tus', 'sus',
-                        'he', 'has', 'ha', 'han', 'es', 'fue'}
-
-    for idx, pf in enumerate(palabras_fon):
-        pf_clean = pf.strip()
-        if not pf_clean:
-            continue
-        n_sil = pf_clean.count('.') + 1
-        is_content = n_sil >= 2 or (len(pf_clean.replace("ˈ", "").replace(".", "")) > 3)
-        word_ort_lower = palabras_ort[idx].lower() if idx < len(palabras_ort) else ''
-
-        # Lenition profile: occasional omission of function words
-        if (apply_word_omission
-                and perfil_nombre == 'lenicion'
-                and word_ort_lower in _PALABRAS_ATONAS
-                and not is_content
-                and len(todos_errores) < num_errores
-                and rng.random() < 0.25):
-            word_ort = palabras_ort[idx] if idx < len(palabras_ort) else '?'
-            todos_errores.append({
-                'tipo': 'omision_palabra_atona',
-                'categoria': 'palabra',
-                'palabra': word_ort,
-                'descripcion': f"Omisión de palabra átona: '{word_ort}'"
-            })
-            palabras_con_error.add(idx)
-            # Don't add this word to producidas (it's omitted)
-            continue
-
-        if apply_phonological and is_content and idx in _error_targets:
-            # Words with complex onsets (tɾ, pɾ, bɾ, kɾ, gɾ, pl, bl, fl, etc.) get 2 errors
-            has_complex_onset = any(c in pf_clean for c in ['ɾ', 'l'] if pf_clean.find(c) > 0)
-            n_err_word = 2 if has_complex_onset and rng.random() < 0.6 else 1
-            n_err_word = min(n_err_word, num_errores - len(todos_errores))
-
-            # Use profile-consistent error types
-            prod, errs = generar_errores(pf_clean, tipos=tipos_para_generar,
-                                          num_errores=n_err_word, seed=rng.randint(0, 100000))
-
-            if errs and prod != pf_clean:
-                word_ort = palabras_ort[idx] if idx < len(palabras_ort) else '?'
-                palabras_con_error.add(idx)
-                for e in errs:
-                    e['palabra'] = word_ort
-                    if e['tipo'] in ('sonorizacion', 'ensordecimiento', 'adelantamiento',
-                                     'posteriorización', 'nasalizacion', 'desnasalizacion',
-                                     'lenicion', 'forticion'):
-                        e['categoria'] = 'sistemico'
-                    elif e['tipo'] in ('omision_ataque', 'simplificacion_ataque',
-                                       'simplificacion_nucleo', 'omision_coda'):
-                        e['categoria'] = 'silaba'
-                    elif e['tipo'] in ('asimilacion_regresiva', 'asimilacion_progresiva',
-                                       'metátesis', 'omision_silaba_atona'):
-                        e['categoria'] = 'palabra'
-                    else:
-                        e['categoria'] = 'sistemico'
-                    todos_errores.append(e)
-                producidas.append(prod)
-                continue
-
-        producidas.append(pf_clean)
-
-    # Second pass: rhythmic errors on words WITHOUT phonological errors
-    palabras_sin_error = [i for i in range(len(producidas))
-                          if i not in palabras_con_error
-                          and producidas[i].strip()
-                          and producidas[i] != '#'
-                          and (producidas[i].count('.') + 1) >= 2]
-    rng.shuffle(palabras_sin_error)
-    max_ritmicos = rng.randint(1, max(1, min(3, len(palabras_sin_error)))) if add_ritmico else 0
-
-    for idx in palabras_sin_error[:max_ritmicos]:
-        pf = producidas[idx]
-        if not pf or pf == '#':
-            continue
-        word_ort = palabras_ort[idx] if idx < len(palabras_ort) else '?'
-        n_sil = pf.count('.') + 1
-        r = rng.random()
-
-        if r < 0.33 and n_sil >= 3:
-            sils = pf.split('.')
-            split_at = rng.randint(1, len(sils) - 1)
-            producidas[idx] = '.'.join(sils[:split_at]) + ' # ' + '.'.join(sils[split_at:])
-            errores_ritmicos.append(f"Pausa indebida dentro de '{word_ort}'")
-        elif r < 0.66 and n_sil >= 2:
-            sils = pf.split('.')
-            first_sil = sils[0].replace('ˈ', '')
-            producidas[idx] = first_sil + '.' + pf
-            errores_ritmicos.append(f"Titubeo (repetición de sílaba) en '{word_ort}'")
-        elif idx < len(producidas) - 1:
-            producidas.insert(idx + 1, '#')
-            errores_ritmicos.append(f"Pausa indebida después de '{word_ort}'")
-
-    producido_str = '/ ' + ' '.join(producidas) + ' /'
-
-    # Calculate PFC and PPC
-    fonemas_correcta = [c for c in correcta.replace('/', '').replace(' ', '').replace('.', '').replace('ˈ', '') if c.isalpha() or c in 'θʝʧɲɾ']
-    total_fonemas = len(fonemas_correcta)
-    fonemas_erroneos = len(todos_errores)
-    pfc = round((total_fonemas - fonemas_erroneos) / total_fonemas * 100) if total_fonemas > 0 else 100
-
-    total_palabras = len([p for p in palabras_ort if len(p) > 2])
-    palabras_con_error = len(set(e.get('palabra', '') for e in todos_errores))
-    ppc = round((total_palabras - palabras_con_error) / total_palabras * 100) if total_palabras > 0 else 100
-
-    ritmicos = '. '.join(errores_ritmicos) if errores_ritmicos else 'Ninguno'
-
-    # Format errors for the frontend
     errores_fmt = []
-    for e in todos_errores:
-        subtipo_map = {
-            'sonorizacion': 'Sonorización', 'ensordecimiento': 'Ensordecimiento',
-            'adelantamiento': 'Adelantamiento', 'posteriorizacion': 'Posteriorización',
-            'nasalizacion': 'Nasalización', 'desnasalizacion': 'Desnasalización',
-            'lenicion': 'Lenición', 'forticion': 'Fortición',
-            'omision_ataque': 'Omisión de ataque', 'simplificacion_ataque': 'Simplificación de ataque',
-            'simplificacion_nucleo': 'Simplificación de núcleo', 'omision_coda': 'Omisión de coda',
-            'asimilacion_regresiva': 'Asimilación regresiva', 'asimilacion_progresiva': 'Asimilación progresiva',
-            'metátesis': 'Metátesis', 'omision_silaba_atona': 'Omisión de sílaba pretónica',
-            'omision_palabra_atona': 'Omisión de palabra átona',
-        }
+    for ent in selected:
+        cat_tipo, subtipo = TIPO_LABEL.get(ent['banco_tipo'], ('sistemico', ent['banco_tipo']))
         errores_fmt.append({
-            'tipo': e.get('categoria', 'sistemico'),
-            'subtipo': subtipo_map.get(e['tipo'], e['tipo']),
-            'detalle': e.get('descripcion', '') + " en '" + e.get('palabra', '') + "'"
+            'tipo': cat_tipo,
+            'subtipo': subtipo,
+            'detalle': f"{ent['descripcion']} en \'{ent['ortografia']}\'"
         })
 
     _log_eulalia_event("exercise_start", {
         "exercise": "informe_errores",
         "num_errores": num_errores,
         "categorias": categorias or "todas",
-        "client_ip": request.client.host if request.client else "unknown",
+        "client_ip": "proxy",
     })
     return {
-        'ortografia': oracion,
-        'producido': producido_str,
-        'correcta': correcta,
+        'ortografia': ort_str,
+        'producido': prod_str,
+        'correcta': corr_str,
         'pfc': pfc,
         'ppc': ppc,
         'errores': errores_fmt,
-        'ritmicos': ritmicos
     }
 
 

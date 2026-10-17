@@ -73,16 +73,15 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
 
 <div class="container">
     <h2>Informe de errores fonológicos</h2>
-    <p class="subtitle">Analiza la producción de un paciente siguiendo los pasos del informe: transcripción correcta, medidas cuantitativas, errores cualitativos y errores rítmicos.</p>
+    <p class="subtitle">Analiza la producción de un paciente siguiendo los pasos del informe: transcripción correcta, medidas cuantitativas y errores cualitativos.</p>
 
     <div style="margin-bottom:12px;">
         <p style="font-size:12px;color:#64748b;font-weight:600;margin-bottom:6px;">Tipo de errores a practicar (selecciona uno o varios):</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <span class="cat-pill" data-cat="cuantitativo" onclick="toggleCat(this)">Cuantitativos</span>
-            <span class="cat-pill" data-cat="palabra" onclick="toggleCat(this)">De palabra</span>
-            <span class="cat-pill" data-cat="silaba" onclick="toggleCat(this)">De sílaba</span>
-            <span class="cat-pill" data-cat="sistemico" onclick="toggleCat(this)">Sistémicos</span>
-            <span class="cat-pill" data-cat="ritmico" onclick="toggleCat(this)">Rítmicos</span>
+            <span class="cat-pill active" data-cat="palabra" onclick="toggleCat(this)">De palabra</span>
+            <span class="cat-pill active" data-cat="silaba" onclick="toggleCat(this)">De sílaba</span>
+            <span class="cat-pill active" data-cat="sistemico" onclick="toggleCat(this)">Sistémicos</span>
         </div>
     </div>
 
@@ -162,15 +161,6 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
         <div style="margin-top:8px;"><button class="btn btn-secondary" onclick="checkStep3()">Comprobar paso 3</button></div>
     </div>
 
-    <!-- Step 4: Errores rítmicos -->
-    <div class="step locked" id="step4">
-        <div class="step-header"><div class="step-num">4</div><div class="step-title">Errores rítmicos</div></div>
-        <div class="step-desc">¿Hay pausas indebidas (#), titubeos, autocorrecciones o lentitud articulatoria?</div>
-        <textarea id="resp-ritmicos" rows="2" placeholder="Describe los errores rítmicos, o escribe 'ninguno'"></textarea>
-        <div class="solution" id="sol-ritmicos"></div>
-        <div style="margin-top:8px;"><button class="btn btn-secondary" onclick="checkStep4()">Comprobar paso 4</button></div>
-    </div>
-
     <!-- Results -->
     <div class="results-bar" id="results-bar">
         <h3>Resultado del informe</h3>
@@ -236,8 +226,7 @@ function addErrorRow(tipo) {
 
     div.innerHTML =
         '<select>' + options + '</select>' +
-        '<input type="text" placeholder="Fonema(s) afectado(s): ej. /k/→/t/" style="font-size:12px;" onfocus="lastFocusedInput=this">' +
-        '<input type="text" placeholder="Palabra afectada" style="font-size:12px;max-width:120px;" onfocus="lastFocusedInput=this">' +
+        '<input type="text" placeholder="ej. m > n en mapa" style="font-size:12px;" onfocus="lastFocusedInput=this">' +
         '<button class="remove-btn" onclick="this.parentElement.remove()">✕</button>';
     container.appendChild(div);
 }
@@ -252,12 +241,11 @@ function getSelectedCats() {
 
 function getActiveSteps() {
     var cats = getSelectedCats();
-    if (!cats.length) return {s2: true, s3: true, s4: true};
+    if (!cats.length) return {s2: true, s3: true, s3_palabra: true, s3_silaba: true, s3_sistemico: true};
     return {
         s2: cats.indexOf('cuantitativo') >= 0,
         s3: cats.some(function(c) { return c === 'silaba' || c === 'palabra' || c === 'sistemico'; })
             || cats.indexOf('cuantitativo') >= 0,
-        s4: cats.indexOf('ritmico') >= 0 || cats.indexOf('cuantitativo') >= 0,
         s3_palabra: cats.indexOf('palabra') >= 0 || cats.indexOf('cuantitativo') >= 0 || !cats.length,
         s3_silaba:  cats.indexOf('silaba')  >= 0 || cats.indexOf('cuantitativo') >= 0 || !cats.length,
         s3_sistemico: cats.indexOf('sistemico') >= 0 || cats.indexOf('cuantitativo') >= 0 || !cats.length
@@ -304,8 +292,8 @@ async function generateExercise() {
     // Show/hide steps based on active categories
     document.getElementById('step1').className = 'step';
     document.getElementById('step1').style.display = '';
-    var stepMap = {step2: st.s2, step3: st.s3, step4: st.s4};
-    ['step2','step3','step4'].forEach(function(id) {
+    var stepMap = {step2: st.s2, step3: st.s3};
+    ['step2','step3'].forEach(function(id) {
         var el = document.getElementById(id);
         el.className = 'step locked';
         el.style.display = stepMap[id] ? '' : 'none';
@@ -320,8 +308,7 @@ async function generateExercise() {
     document.getElementById('resp-transcripcion').className = '';
     document.getElementById('resp-pfc').value = '';
     document.getElementById('resp-ppc').value = '';
-    document.getElementById('resp-ritmicos').value = '';
-    ['sol-transcripcion','sol-cuantitativo','sol-cualitativos','sol-ritmicos'].forEach(function(id) {
+    ['sol-transcripcion','sol-cuantitativo','sol-cualitativos'].forEach(function(id) {
         document.getElementById(id).className = 'solution';
         document.getElementById(id).textContent = '';
     });
@@ -331,10 +318,10 @@ async function generateExercise() {
     document.getElementById('results-bar').style.display = 'none';
     document.getElementById('action-bar').style.display = 'none';
     _errorCounter = 0;
-    _score = {step1: 0, step2: 0, step3: 0, step4: 0};
+    _score = {step1: 0, step2: 0, step3: 0};
 }
 
-var _score = {step1: 0, step2: 0, step3: 0, step4: 0};
+var _score = {step1: 0, step2: 0, step3: 0};
 
 function checkStep1() {
     var inp = document.getElementById('resp-transcripcion');
@@ -349,14 +336,35 @@ function checkStep1() {
         var st = getActiveSteps();
         if (st.s2) document.getElementById('step2').className = 'step';
         else if (st.s3) document.getElementById('step3').className = 'step';
-        else if (st.s4) document.getElementById('step4').className = 'step';
         else showResults();
     } else {
         inp.className = 'incorrect';
-        sol.textContent = 'Correcto: ' + currentExercise.correcta;
-        sol.className = 'solution show';
         _score.step1 = 0;
-        // Failed prerequisite — show zero and stop
+
+        // Word-level comparison
+        var ortWords = currentExercise.ortografia.split(/\s+/).map(function(w) {
+            return w.replace(/^[¡¿«"'(]+|[.,;:!?»"')]+$/g, '');
+        }).filter(Boolean);
+        var expWords = currentExercise.correcta.replace(/\//g, '').replace(/#/g, '').trim().split(/\s+/).filter(Boolean);
+        var userWords = inp.value.replace(/\//g, '').replace(/#/g, '').trim().split(/\s+/).filter(Boolean);
+
+        var normW = function(w) { return w.replace(/ˈ/g,'').replace(/ˌ/g,'').replace(/ː/g,'').toLowerCase(); };
+        var wrongWords = [];
+        var html = '<div style="font-size:12px;color:#64748b;margin-bottom:6px;">Transcripción correcta (en rojo, las palabras con error):</div>';
+        html += '<div style="font-size:14px;font-family:\'Doulos SIL\',serif;line-height:2;">';
+        expWords.forEach(function(expW, i) {
+            var userW = userWords[i] || '';
+            var ok = normW(expW) === normW(userW);
+            if (!ok && i < ortWords.length) wrongWords.push(ortWords[i]);
+            html += '<span style="margin-right:6px;' + (ok ? 'color:#166534;' : 'color:#dc2626;font-weight:700;') + '">' + expW + '</span>';
+        });
+        html += '</div>';
+        if (wrongWords.length > 0) {
+            html += '<div style="margin-top:6px;font-size:12px;color:#dc2626;">Palabras con error: <strong>' + wrongWords.join(', ') + '</strong></div>';
+        }
+        sol.innerHTML = html;
+        sol.className = 'solution show';
+
         document.getElementById('step1').className = 'step done';
         showResults();
     }
@@ -384,7 +392,6 @@ function checkStep2() {
     document.getElementById('step2').className = 'step done';
     var st = getActiveSteps();
     if (st.s3) document.getElementById('step3').className = 'step';
-    else if (st.s4) document.getElementById('step4').className = 'step';
     else showResults();
 }
 
@@ -397,38 +404,51 @@ function checkStep3() {
         var rows = document.getElementById('errores-' + tipo).querySelectorAll('.error-row');
         rows.forEach(function(row) {
             var select = row.querySelector('select');
-            var inputs = row.querySelectorAll('input');
-            if (select.value) {
-                userErrors.push({tipo: tipo, subtipo: select.value, detalle: (inputs[0] || {}).value || ''});
+            var input  = row.querySelector('input');
+            if (select && select.value) {
+                userErrors.push({tipo: tipo, subtipo: select.value, detalle: input ? input.value : ''});
             }
         });
     });
 
+    // Normalize helper: lowercase, strip accents, treat > and → as equivalent
+    var normDetail = function(s) {
+        return (s || '').toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/→/g, '>').replace(/\s*>\s*/g, '>');
+    };
+
+    // Extract expected word from detalle string "X>Y en 'word'"
+    var extractWord = function(detalle) {
+        var m = detalle.match(/en ['"]?([a-záéíóúñü]+)['"]?/i);
+        return m ? m[1].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
+    };
+
+    // Extract phoneme change from detalle string "X>Y en …" → "x>y"
+    var extractChange = function(detalle) {
+        var m = detalle.match(/^([^\s]+)/);
+        return m ? m[1] : '';
+    };
+
     // Compare with expected
     var expectedErrors = currentExercise.errores || [];
     var matched = 0;
-
-    // Match: tipo + subtipo + detalle must all match
     var usedExpected = [];
     var usedUser = [];
     expectedErrors.forEach(function(exp, ei) {
         var found = false;
+        var expNorm   = normDetail(exp.detalle);
+        var expWord   = extractWord(expNorm);
+        var expChange = extractChange(expNorm);  // e.g. "b>m"
         userErrors.forEach(function(u, ui) {
             if (found || usedUser.indexOf(ui) >= 0) return;
             if (u.tipo !== exp.tipo || u.subtipo !== exp.subtipo) return;
-            // Check detalle: normalize and compare key parts
-            var expDetail = (exp.detalle || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            var userDetail = (u.detalle || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            if (!userDetail) return; // Empty detail = not valid
-            // Extract key phonemes/syllables from expected detail
-            var expParts = expDetail.match(/\/[^/]+\//g) || [];
-            var hasAllParts = expParts.length === 0 || expParts.every(function(p) {
-                return userDetail.indexOf(p) >= 0;
-            });
-            // Also check if the word is mentioned
-            var expWord = (exp.palabra || '').toLowerCase();
-            var hasWord = !expWord || userDetail.indexOf(expWord) >= 0;
-            if (hasAllParts || hasWord) {
+            var userNorm = normDetail(u.detalle);
+            if (!userNorm) return;
+            // Must mention the word (or the word's phoneme change)
+            var hasWord   = expWord   ? userNorm.indexOf(expWord) >= 0   : true;
+            var hasChange = expChange ? userNorm.indexOf(expChange) >= 0 : true;
+            if (hasWord || hasChange) {
                 found = true;
                 usedExpected.push(ei);
                 usedUser.push(ui);
@@ -442,54 +462,29 @@ function checkStep3() {
     var rawScore = expectedErrors.length > 0 ? matched / expectedErrors.length : (userErrors.length === 0 ? 1 : 0);
     _score.step3 = Math.max(0, rawScore - extras * 0.2);
 
-    // Show solution
-    var solText = 'Errores esperados:\n';
-    expectedErrors.forEach(function(e) {
-        solText += '• ' + e.tipo + ' — ' + e.subtipo + ': ' + e.detalle + '\n';
-    });
-    if (expectedErrors.length === 0) solText += '(Ningún error cualitativo)\n';
-    solText += '\nTu respuesta: ' + matched + '/' + expectedErrors.length + ' errores identificados correctamente.';
-    if (extras > 0) solText += ' (' + extras + ' error(es) de más)';
-    if (matched < expectedErrors.length) {
-        var missing = expectedErrors.length - matched;
-        solText += '\n⚠️ ' + missing + ' error(es) sin identificar o sin detalle suficiente. Recuerda indicar los fonemas o sílabas afectados.';
+    // Show colored solution
+    var html = '<div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:6px;">Errores esperados:</div>';
+    if (expectedErrors.length === 0) {
+        html += '<div style="font-size:12px;color:#166534;padding:4px 8px;background:#f0fdf4;border-radius:6px;">✓ Ningún error cualitativo</div>';
+    } else {
+        expectedErrors.forEach(function(e, ei) {
+            var isMatched = usedExpected.indexOf(ei) >= 0;
+            var detalleDisplay = (e.detalle || '').replace(/→/g, ' > ');
+            if (isMatched) {
+                html += '<div style="font-size:12px;padding:4px 8px;border-radius:6px;background:#f0fdf4;color:#166534;margin-bottom:3px;">✓ ' + e.subtipo + ': ' + detalleDisplay + '</div>';
+            } else {
+                html += '<div style="font-size:12px;padding:4px 8px;border-radius:6px;background:#fef2f2;color:#dc2626;margin-bottom:3px;">✗ ' + e.subtipo + ': ' + detalleDisplay + '</div>';
+            }
+        });
     }
-    sol.textContent = solText;
-    sol.style.whiteSpace = 'pre-line';
+    html += '<div style="margin-top:8px;font-size:12px;color:#475569;">' + matched + '/' + expectedErrors.length + ' errores identificados correctamente.';
+    if (extras > 0) html += ' <span style="color:#b45309;">⚠ ' + extras + ' error(es) de más.</span>';
+    html += '</div>';
+    sol.innerHTML = html;
+    sol.style.whiteSpace = '';
     sol.className = 'solution show';
 
     document.getElementById('step3').className = 'step done';
-    var st = getActiveSteps();
-    if (st.s4) document.getElementById('step4').className = 'step';
-    else showResults();
-}
-
-function checkStep4() {
-    var inp = document.getElementById('resp-ritmicos');
-    var sol = document.getElementById('sol-ritmicos');
-
-    var expected = (currentExercise.ritmicos || 'Ninguno').toLowerCase();
-    var userAns = inp.value.trim().toLowerCase();
-
-    // Simple check: if expected is "ninguno", accept "ninguno/no/no hay"
-    var isNone = expected.indexOf('ninguno') >= 0;
-    if (isNone) {
-        var userNone = userAns.indexOf('ninguno') >= 0 || userAns === 'no' || userAns.indexOf('no hay') >= 0;
-        _score.step4 = userNone ? 1 : 0;
-        inp.className = userNone ? 'correct' : 'incorrect';
-    } else {
-        // Check if user mentions key elements (pausas, #, titubeos)
-        var hasKey = userAns.indexOf('pausa') >= 0 || userAns.indexOf('#') >= 0 || userAns.indexOf('titubeo') >= 0;
-        _score.step4 = hasKey ? 1 : 0;
-        inp.className = hasKey ? 'correct' : 'incorrect';
-    }
-
-    sol.textContent = 'Respuesta esperada: ' + currentExercise.ritmicos;
-    sol.className = 'solution show';
-
-    document.getElementById('step4').className = 'step done';
-
-    // Show final results
     showResults();
 }
 
@@ -502,14 +497,13 @@ function showResults() {
         detailText = 'La transcripción correcta es un prerrequisito. Sin ella, la calificación es 0.';
     } else {
         var st = getActiveSteps();
-        var w2 = st.s2 ? 30 : 0, w3 = st.s3 ? 50 : 0, w4 = st.s4 ? 20 : 0;
-        var wTotal = w2 + w3 + w4 || 100;
-        var s2n = w2 / wTotal * 100, s3n = w3 / wTotal * 100, s4n = w4 / wTotal * 100;
-        pct = Math.round(_score.step2 * s2n + _score.step3 * s3n + _score.step4 * s4n);
+        var w2 = st.s2 ? 30 : 0, w3 = st.s3 ? 70 : 0;
+        var wTotal = w2 + w3 || 100;
+        var s2n = w2 / wTotal * 100, s3n = w3 / wTotal * 100;
+        pct = Math.round(_score.step2 * s2n + _score.step3 * s3n);
         var parts = [];
         if (st.s2) parts.push('Cuantitativo: ' + Math.round(_score.step2 * s2n) + '/' + Math.round(s2n));
         if (st.s3) parts.push('Cualitativo: '  + Math.round(_score.step3 * s3n) + '/' + Math.round(s3n));
-        if (st.s4) parts.push('Rítmico: '      + Math.round(_score.step4 * s4n) + '/' + Math.round(s4n));
         detailText = parts.join(' | ');
     }
 
