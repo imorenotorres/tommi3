@@ -494,7 +494,8 @@ var EXERCISES_TODOS = [
      target:"/ˈni.ɲo/", produced:"/ˈni.no/",
      type:"sistemico", rasgo:"lugar",
      rasgo_correct:"palatal", rasgo_produced:"alveolar",
-     explanation:"La palatal /ɲ/ se sustituye por la alveolar /n/ (lugar más anterior)."},
+     explanation:"La palatal /ɲ/ se sustituye por la alveolar /n/ (lugar más anterior).",
+     alt_interp:"⚠️ Este caso admite dos interpretaciones: error sistémico de lugar (palatal→alveolar) o asimilación progresiva (el /n/ de /ni/ arrastra al /ɲ/ posterior). En un examen conviene mencionar ambas."},
     {nivel:"sistemico", word:"loco",
      target:"/ˈlo.ko/", produced:"/ˈlo.xo/",
      type:"sistemico", rasgo:"modo",
@@ -740,6 +741,10 @@ function checkAll() {
             }
         }
 
+        if (item.alt_interp) {
+            fb.innerHTML += '<br><span style="color:#475569;font-size:12px;margin-top:6px;display:block;padding:6px 8px;background:#f1f5f9;border-radius:6px;">' + item.alt_interp + '</span>';
+        }
+
         earned += itemEarned;
         byGroup[item.type].earned += itemEarned;
     });
@@ -798,6 +803,9 @@ function showSolutions() {
         }
         sel.className = 'answer-select correct';
         fb.innerHTML = _correctAnswer(item);
+        if (item.alt_interp) {
+            fb.innerHTML += '<br><span style="color:#475569;font-size:12px;margin-top:6px;display:block;padding:6px 8px;background:#f1f5f9;border-radius:6px;">' + item.alt_interp + '</span>';
+        }
     });
 }
 
