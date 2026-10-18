@@ -284,8 +284,10 @@ async function generateExercise() {
             nErr = 8;  // cuantitativo-only
         } else if (cats.length === 0 || cats.length > 1) {
             nErr = 8 + Math.floor(Math.random() * 3);  // 8-10 for all / multiple types
+        } else if (cats[0] === 'sistemico') {
+            nErr = 12;  // systemic errors need more to be pedagogically useful
         } else {
-            nErr = 5;  // single specific category
+            nErr = 5 + Math.floor(Math.random() * 4);  // 5-8 for palabra/silaba
         }
         var catParam = cats.length ? '&categorias=' + cats.join(',') : '';
         var res = await fetch('/api/public-agent/eulalia/ejercicio-informe-errores?num_errores=' + nErr + '&seed=' + Math.floor(Math.random() * 100000) + catParam);

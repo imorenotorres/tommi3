@@ -3716,12 +3716,22 @@ async def _lali_ejercicio_informe_errores_impl(
         oraciones_shuffled = list(oraciones)
         rng.shuffle(oraciones_shuffled)
         chosen = None
-        for cand in oraciones_shuffled:
-            if any(w.lower() in word_index for w in cand['target_words']):
-                chosen = cand
-            break
+        # Score each sentence by number of matching target words; prefer sentences
+        # with enough coverage to satisfy num_errores, then fall back to best available
+        def _coverage(cand):
+            return sum(1 for w in cand['target_words'] if w.lower() in word_index)
+        candidates_with_coverage = sorted(
+            ((c, _coverage(c)) for c in oraciones_shuffled),
+            key=lambda x: -x[1]
+        )
+        # Pick randomly among sentences with enough coverage; fall back to best
+        sufficient = [c for c, cov in candidates_with_coverage if cov >= num_errores]
+        if sufficient:
+            chosen = rng.choice(sufficient)
+        elif candidates_with_coverage:
+            chosen = candidates_with_coverage[0][0]
     if chosen is None:
-        chosen = oraciones_shuffled[0]
+        chosen = oraciones[0]
 
     texto = chosen['oracion']
 

@@ -4645,14 +4645,6 @@
       "sem": "abstracto"
     },
     {
-      "ortografia": "flota",
-      "correcta": "ˈflo.ta",
-      "erronea": "ˈflo.ɾa",
-      "descripcion": "t→ɾ",
-      "cat": "v3",
-      "sem": "v3"
-    },
-    {
       "ortografia": "clavo",
       "correcta": "ˈkla.bo",
       "erronea": "ˈgla.bo",
@@ -4755,14 +4747,6 @@
       "descripcion": "g→x",
       "cat": "nm",
       "sem": "lugar"
-    },
-    {
-      "ortografia": "sopa",
-      "correcta": "ˈso.pa",
-      "erronea": "ˈso.ɾa",
-      "descripcion": "p→ɾ",
-      "cat": "nf",
-      "sem": "comida"
     },
     {
       "ortografia": "tapa",
@@ -4889,14 +4873,6 @@
       "correcta": "ˈgo.ma",
       "erronea": "ˈgo.ba",
       "descripcion": "m→b",
-      "cat": "nf",
-      "sem": "objeto"
-    },
-    {
-      "ortografia": "taza",
-      "correcta": "ˈta.θa",
-      "erronea": "ˈta.na",
-      "descripcion": "θ→n",
       "cat": "nf",
       "sem": "objeto"
     },
@@ -7739,6 +7715,24 @@
       "descripcion": "d→n",
       "cat": "nm",
       "sem": "lugar"
+    },
+    {
+      "ortografia": "flota",
+      "correcta": "ˈflo.ta",
+      "erronea": "ˈflo.ka",
+      "descripcion": "t→k"
+    },
+    {
+      "ortografia": "flota",
+      "correcta": "ˈflo.ta",
+      "erronea": "ˈflo.da",
+      "descripcion": "t→d"
+    },
+    {
+      "ortografia": "taza",
+      "correcta": "ˈta.θa",
+      "erronea": "ˈta.sa",
+      "descripcion": "θ→s"
     }
   ],
   "sistematico_simplificacion_nucleo": [
@@ -8137,14 +8131,6 @@
       "sem": "abstracto"
     },
     {
-      "ortografia": "flota",
-      "correcta": "ˈflo.ta",
-      "erronea": "ˈfo.ɾa",
-      "descripcion": "fl→f + t→ɾ",
-      "cat": "v3",
-      "sem": "v3"
-    },
-    {
       "ortografia": "clavo",
       "correcta": "ˈkla.bo",
       "erronea": "ˈga.bo",
@@ -8249,14 +8235,6 @@
       "descripcion": "l→∅ + g→x",
       "cat": "nm",
       "sem": "lugar"
-    },
-    {
-      "ortografia": "sopa",
-      "correcta": "ˈso.pa",
-      "erronea": "ˈo.ɾa",
-      "descripcion": "s→∅ + p→ɾ",
-      "cat": "nf",
-      "sem": "comida"
     },
     {
       "ortografia": "tapa",
@@ -8375,14 +8353,6 @@
       "correcta": "ˈgo.ma",
       "erronea": "ˈo.ba",
       "descripcion": "g→∅ + m→b",
-      "cat": "nf",
-      "sem": "objeto"
-    },
-    {
-      "ortografia": "taza",
-      "correcta": "ˈta.θa",
-      "erronea": "ˈa.na",
-      "descripcion": "t→∅ + θ→n",
       "cat": "nf",
       "sem": "objeto"
     },
