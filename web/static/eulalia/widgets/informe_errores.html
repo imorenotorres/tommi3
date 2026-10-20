@@ -112,7 +112,7 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
     <div class="step locked" id="step1">
         <div class="step-header"><div class="step-num">1</div><div class="step-title">Transcripción fonológica correcta</div></div>
         <div class="step-desc">Escribe la transcripción fonológica de lo que debería haber dicho el paciente. <strong>Este paso es un prerrequisito: si no es correcta, la calificación será 0.</strong></div>
-        <textarea id="resp-transcripcion" rows="2" placeholder="/ ... /" onfocus="lastFocusedInput=this" style="resize:none;"></textarea>
+        <textarea id="resp-transcripcion" rows="2" placeholder="/ ... # ... / (usa # para marcar el límite entre oraciones)" onfocus="lastFocusedInput=this" style="resize:none;"></textarea>
         <div class="solution" id="sol-transcripcion"></div>
         <div style="margin-top:8px;"><button class="btn btn-secondary" onclick="checkStep1()">Comprobar paso 1</button></div>
     </div>
@@ -371,18 +371,26 @@ function checkStep1() {
         var ortWords = currentExercise.ortografia.split(/\s+/).map(function(w) {
             return w.replace(/^[¡¿«"'(]+|[.,;:!?»"')]+$/g, '');
         }).filter(Boolean);
-        var expWords = currentExercise.correcta.replace(/\//g, '').replace(/#/g, '').trim().split(/\s+/).filter(Boolean);
+        // Keep # markers in expWords for display; strip from userWords
+        var expWords = currentExercise.correcta.replace(/\//g, '').trim().split(/\s+/).filter(Boolean);
         var userWords = inp.value.replace(/\//g, '').replace(/#/g, '').trim().split(/\s+/).filter(Boolean);
 
         var normW = function(w) { return w.replace(/ˈ/g,'').replace(/ˌ/g,'').replace(/ː/g,'').toLowerCase(); };
         var wrongWords = [];
         var html = '<div style="font-size:12px;color:#64748b;margin-bottom:6px;">Transcripción correcta (en rojo, las palabras con error):</div>';
         html += '<div style="font-size:14px;font-family:\'Doulos SIL\',serif;line-height:2;">';
-        expWords.forEach(function(expW, i) {
-            var userW = userWords[i] || '';
+        var userIdx = 0, ortIdx = 0;
+        expWords.forEach(function(expW) {
+            if (expW === '#') {
+                html += '<span style="margin:0 4px;color:#94a3b8;">#</span>';
+                return;
+            }
+            var userW = userWords[userIdx] || '';
             var ok = normW(expW) === normW(userW);
-            if (!ok && i < ortWords.length) wrongWords.push(ortWords[i]);
+            if (!ok && ortIdx < ortWords.length) wrongWords.push(ortWords[ortIdx]);
             html += '<span style="margin-right:6px;' + (ok ? 'color:#166534;' : 'color:#dc2626;font-weight:700;') + '">' + expW + '</span>';
+            userIdx++;
+            ortIdx++;
         });
         html += '</div>';
         if (wrongWords.length > 0) {

@@ -119,7 +119,7 @@
   },
   {
     "id": 6,
-    "oracion": "el vecino escribió un secreto en la mesa. mi vecina lleva la linterna al parque. mi amigo Luis dejó el zapato a la farola",
+    "oracion": "el vecino escribió un secreto en la mesa. mi vecina lleva la linterna al parque. mi amigo Luis puso el zapato junto a la farola",
     "target_words": [
       "secreto",
       "mesa",
@@ -133,11 +133,12 @@
       "parque",
       "amigo",
       "luis",
-      "dejó",
+      "puso",
       "mi",
       "la",
       "un",
-      "en"
+      "en",
+      "junto"
     ]
   },
   {

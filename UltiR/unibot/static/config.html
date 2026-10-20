@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UniBot — Configuración</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #2D3876; padding: 14px 24px; display: flex; align-items: center; gap: 16px; }
+.header-title { color: #fff; font-weight: 700; font-size: 17px; }
+.header-sub { color: rgba(255,255,255,0.6); font-size: 13px; }
+.header a { color: rgba(255,255,255,0.75); font-size: 13px; text-decoration: none; margin-left: auto; }
+.header a:hover { color: #fff; }
+
+.container { max-width: 760px; margin: 0 auto; padding: 32px 20px; display: flex; flex-direction: column; gap: 28px; }
+
+.card { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 24px; }
+.card-title { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 18px;
+    display: flex; align-items: center; gap: 8px; }
+
+.form-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.form-row:last-child { margin-bottom: 0; }
+label { font-size: 13px; font-weight: 600; color: #374151; }
+label .hint { font-weight: 400; color: #94a3b8; margin-left: 6px; }
+input[type="text"], textarea, select {
+    border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;
+    font-family: inherit; font-size: 14px; outline: none; width: 100%;
+    transition: border-color 0.2s;
+}
+input[type="text"]:focus, textarea:focus, select:focus { border-color: #4f5fd5; }
+textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+textarea.tall { min-height: 140px; }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px;
+    border-radius: 8px; border: none; cursor: pointer; font-family: inherit;
+    font-size: 14px; font-weight: 600; transition: all 0.2s; }
+.btn-primary { background: #4f5fd5; color: #fff; }
+.btn-primary:hover { background: #3b4ac4; }
+.btn-primary:disabled { background: #cbd5e1; cursor: default; }
+.btn-ghost { background: transparent; color: #64748b; border: 1.5px solid #e2e8f0; }
+.btn-ghost:hover { border-color: #94a3b8; color: #374151; }
+.btn-danger { background: #fee2e2; color: #dc2626; border: 1.5px solid #fecaca; }
+.btn-danger:hover { background: #fecaca; }
+
+.save-bar { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+.save-status { font-size: 13px; color: #22c55e; display: none; }
+
+/* Upload zone */
+.upload-zone {
+    border: 2px dashed #cbd5e1; border-radius: 10px; padding: 28px;
+    text-align: center; cursor: pointer; transition: all 0.2s; background: #f8fafc;
+}
+.upload-zone:hover, .upload-zone.drag { border-color: #4f5fd5; background: #eef2ff; }
+.upload-zone p { font-size: 14px; color: #64748b; margin-top: 8px; }
+.upload-zone .formats { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+input[type="file"] { display: none; }
+
+/* Docs list */
+.docs-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.doc-item { display: flex; align-items: center; gap: 10px; background: #f8fafc;
+    border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; }
+.doc-icon { font-size: 20px; flex-shrink: 0; }
+.doc-info { flex: 1; min-width: 0; }
+.doc-name { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.doc-size { font-size: 11px; color: #94a3b8; }
+.doc-del { background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 18px;
+    padding: 2px 6px; border-radius: 4px; line-height: 1; }
+.doc-del:hover { background: #fee2e2; color: #dc2626; }
+
+.uploading { font-size: 13px; color: #64748b; display: none; align-items: center; gap: 8px; }
+.uploading.show { display: flex; }
+.spinner { width: 16px; height: 16px; border: 2px solid #e2e8f0; border-top-color: #4f5fd5;
+    border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.no-docs { font-size: 13px; color: #94a3b8; text-align: center; padding: 16px; }
+
+.preview-link { margin-top: 8px; }
+.preview-link a { font-size: 13px; color: #4f5fd5; text-decoration: none; }
+.preview-link a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">UniBot — Configuración</div>
+    <div class="header-sub" id="course-label"></div>
+  </div>
+  <a href="/lti/unibot/chat" target="_blank">Ver como alumno ↗</a>
+</div>
+
+<div class="container">
+
+  <!-- API key -->
+  <div class="card" id="apikey-card">
+    <div class="card-title">🔑 Clave de API (Mistral)</div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:16px;">
+      Introduce tu clave de API de Mistral para que el bot pueda responder. La clave se guarda en el servidor y no es visible para los estudiantes.
+    </p>
+    <div id="apikey-status" style="display:none;margin-bottom:14px;font-size:13px;padding:8px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;color:#15803d;">
+      ✓ Clave configurada
+      <button onclick="deleteApiKey()" style="margin-left:12px;background:none;border:none;color:#dc2626;cursor:pointer;font-size:12px;text-decoration:underline;">Eliminar</button>
+    </div>
+    <div class="form-row">
+      <label>Nueva clave <span class="hint">déjalo en blanco para mantener la actual</span></label>
+      <input type="password" id="api_key" placeholder="••••••••••••••••••••••••" maxlength="200" autocomplete="new-password">
+    </div>
+  </div>
+
+  <!-- Bot identity -->
+  <div class="card">
+    <div class="card-title">🤖 Identidad del bot</div>
+    <div class="form-row">
+      <label>Nombre del bot</label>
+      <input type="text" id="bot_name" placeholder="UniBot" maxlength="40">
+    </div>
+    <div class="form-row">
+      <label>Descripción breve <span class="hint">se incluye en el prompt del sistema</span></label>
+      <input type="text" id="description" placeholder="Asistente para Biología del Desarrollo, Grado de Biología" maxlength="200">
+    </div>
+    <div class="form-row">
+      <label>Mensaje de bienvenida</label>
+      <input type="text" id="welcome_message" placeholder="Hola, soy tu tutor virtual. ¿En qué puedo ayudarte?" maxlength="300">
+    </div>
+    <div class="form-row">
+      <label>Idioma de respuesta</label>
+      <select id="language">
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="it">Italiano</option>
+        <option value="sq">Shqip (albanés)</option>
+        <option value="fi">Suomi (finés)</option>
+        <option value="lt">Lietuvių (lituano)</option>
+        <option value="nl">Nederlands (holandés)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- System prompt -->
+  <div class="card">
+    <div class="card-title">📝 Instrucciones del sistema <span style="font-weight:400;font-size:13px;color:#94a3b8;">(opcional)</span></div>
+    <div class="form-row">
+      <label>Prompt personalizado <span class="hint">si está vacío se usa el prompt por defecto</span></label>
+      <textarea class="tall" id="system_prompt" placeholder="Eres un tutor experto en Biología del Desarrollo. Responde solo sobre los temas del curso. Si no encuentras la respuesta en el material, dilo claramente..."></textarea>
+    </div>
+    <div class="form-row">
+      <label>Longitud máxima de respuesta <span class="hint">tokens (200–1500)</span></label>
+      <input type="text" id="max_tokens" placeholder="600" maxlength="4">
+    </div>
+    <div class="save-bar">
+      <button class="btn btn-primary" id="save-btn" onclick="saveConfig()">Guardar configuración</button>
+      <span class="save-status" id="save-status">✓ Guardado</span>
+    </div>
+  </div>
+
+  <!-- Documents -->
+  <div class="card">
+    <div class="card-title">📚 Documentos del curso</div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:16px;">
+      Sube los materiales del curso (apuntes, guías, resúmenes). El bot usará estos documentos para responder.
+      Máximo 20 archivos, 5 MB cada uno.
+    </p>
+
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+      <div style="font-size:32px;">📄</div>
+      <p>Haz clic o arrastra archivos aquí</p>
+      <div class="formats">TXT · PDF · MD</div>
+    </div>
+    <input type="file" id="file-input" accept=".txt,.pdf,.md" multiple>
+
+    <div class="uploading" id="uploading">
+      <div class="spinner"></div>
+      <span id="uploading-name">Subiendo...</span>
+    </div>
+
+    <div class="docs-list" id="docs-list"></div>
+  </div>
+
+</div>
+
+<script>
+var courseId = '';
+
+async function init() {
+    var [sessRes, cfgRes] = await Promise.all([
+        fetch('/lti/unibot/api/session'),
+        fetch('/lti/unibot/api/bot-config'),
+    ]);
+    var sess = await sessRes.json();
+    var cfg = await cfgRes.json();
+
+    document.getElementById('course-label').textContent = sess.course_name || '';
+    document.getElementById('bot_name').value = cfg.bot_name || '';
+    document.getElementById('description').value = cfg.description || '';
+    document.getElementById('welcome_message').value = cfg.welcome_message || '';
+    document.getElementById('system_prompt').value = cfg.system_prompt || '';
+    document.getElementById('max_tokens').value = cfg.max_tokens || 600;
+    document.getElementById('language').value = cfg.language || 'es';
+
+    var keyStatus = document.getElementById('apikey-status');
+    if (cfg.api_key_configured) keyStatus.style.display = 'block';
+    else keyStatus.style.display = 'none';
+
+    await loadDocs();
+}
+
+async function saveConfig() {
+    var btn = document.getElementById('save-btn');
+    btn.disabled = true;
+    var mt = parseInt(document.getElementById('max_tokens').value) || 600;
+    mt = Math.max(200, Math.min(1500, mt));
+    try {
+        await fetch('/lti/unibot/api/bot-config', {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                bot_name: document.getElementById('bot_name').value.trim() || 'UniBot',
+                description: document.getElementById('description').value.trim(),
+                welcome_message: document.getElementById('welcome_message').value.trim(),
+                system_prompt: document.getElementById('system_prompt').value.trim(),
+                max_tokens: mt,
+                language: document.getElementById('language').value,
+                api_key: document.getElementById('api_key').value.trim(),
+            })
+        });
+        document.getElementById('api_key').value = '';
+        var newKey = document.getElementById('api_key').value;
+        // Refresh key status
+        var cfgRes2 = await fetch('/lti/unibot/api/bot-config');
+        var cfg2 = await cfgRes2.json();
+        var keyStatus = document.getElementById('apikey-status');
+        if (cfg2.api_key_configured) keyStatus.style.display = 'block';
+        else keyStatus.style.display = 'none';
+
+        var status = document.getElementById('save-status');
+        status.style.display = 'inline';
+        setTimeout(function() { status.style.display = 'none'; }, 2500);
+    } catch(e) {
+        alert('Error al guardar: ' + e.message);
+    }
+    btn.disabled = false;
+}
+
+async function loadDocs() {
+    var res = await fetch('/lti/unibot/api/docs');
+    var data = await res.json();
+    var list = document.getElementById('docs-list');
+    list.innerHTML = '';
+    if (!data.docs || !data.docs.length) {
+        list.innerHTML = '<div class="no-docs">No hay documentos cargados todavía.</div>';
+        return;
+    }
+    data.docs.forEach(function(doc) {
+        var item = document.createElement('div');
+        item.className = 'doc-item';
+        var icon = doc.name.endsWith('.pdf') ? '📕' : doc.name.endsWith('.md') ? '📝' : '📄';
+        var kb = (doc.size / 1024).toFixed(1);
+        item.innerHTML =
+            '<span class="doc-icon">' + icon + '</span>' +
+            '<div class="doc-info"><div class="doc-name" title="' + doc.name + '">' + doc.name + '</div>' +
+            '<div class="doc-size">' + kb + ' KB</div></div>' +
+            '<button class="doc-del" title="Eliminar" onclick="deleteDoc(\'' + doc.name.replace(/'/g, "\\'") + '\')">✕</button>';
+        list.appendChild(item);
+    });
+}
+
+async function deleteDoc(name) {
+    if (!confirm('¿Eliminar "' + name + '"?')) return;
+    await fetch('/lti/unibot/api/docs/' + encodeURIComponent(name), {method: 'DELETE'});
+    await loadDocs();
+}
+
+// File upload
+var fileInput = document.getElementById('file-input');
+fileInput.addEventListener('change', function() {
+    uploadFiles(this.files);
+    this.value = '';
+});
+
+var zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', function() { zone.classList.remove('drag'); });
+zone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    zone.classList.remove('drag');
+    uploadFiles(e.dataTransfer.files);
+});
+
+async function uploadFiles(files) {
+    var uploading = document.getElementById('uploading');
+    var uploadingName = document.getElementById('uploading-name');
+
+    for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        uploadingName.textContent = 'Subiendo ' + file.name + '…';
+        uploading.classList.add('show');
+
+        var form = new FormData();
+        form.append('file', file);
+        try {
+            var res = await fetch('/lti/unibot/api/upload', {method: 'POST', body: form});
+            var data = await res.json();
+            if (data.error) alert('Error: ' + data.error);
+        } catch(e) {
+            alert('Error al subir ' + file.name + ': ' + e.message);
+        }
+    }
+    uploading.classList.remove('show');
+    await loadDocs();
+}
+
+async function deleteApiKey() {
+    if (!confirm('¿Eliminar la clave de API? El bot dejará de funcionar para los estudiantes.')) return;
+    await fetch('/lti/unibot/api/api-key', {method: 'DELETE'});
+    document.getElementById('apikey-status').style.display = 'none';
+}
+
+init();
+</script>
+</body>
+</html>

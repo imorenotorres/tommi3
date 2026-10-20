@@ -461,6 +461,10 @@ app.mount("/uma-holiday-tracker/static", StaticFiles(directory=SCRIPT_DIR / "app
 # Mount UltiR (UNINOVIS LTI Repository) tools
 from UltiR.redaccion.lti_provider import router as lti_redaccion_router
 app.include_router(lti_redaccion_router)
+from UltiR.redaccion_jev.lti_provider import router as lti_redaccion_jev_router
+app.include_router(lti_redaccion_jev_router)
+from UltiR.unibot.lti_provider import router as lti_unibot_router
+app.include_router(lti_unibot_router)
 from UltiR.fonesp.lti_provider import router as lti_fonesp_router
 app.include_router(lti_fonesp_router)
 from UltiR.proyecto.lti_provider import router as lti_proyecto_router

@@ -453,9 +453,9 @@ def _es_diptongo(v1: str, v2: str) -> bool:
 ATONAS = {
     # Artículos
     'el', 'la', 'lo', 'los', 'las', 'un',
-    # Preposiciones
-    'de', 'del', 'a', 'al', 'en', 'con', 'por', 'para', 'sin', 'hacia', 'hasta',
-    'desde', 'entre', 'sobre', 'tras',
+    # Preposiciones monosílabas (las bisílabas como "para", "hacia", "desde",
+    # "entre", "sobre", "hasta" tienen sílaba tónica y NO son átonas)
+    'de', 'del', 'a', 'al', 'en', 'con', 'por', 'sin', 'tras',
     # Pronombres clíticos
     'me', 'te', 'se', 'le', 'les', 'nos', 'os',
     # Posesivos átonos
@@ -467,12 +467,15 @@ ATONAS = {
 }
 
 
-def acentuar(silabas: list[str], palabra_original: str, pos_tilde: int) -> int:
+def acentuar(silabas: list[str], palabra_original: str, pos_tilde: int,
+             isolated: bool = False) -> int:
     """Determina qué sílaba lleva el acento y retorna su índice.
 
     Retorna -1 si la palabra es átona.
+    Si isolated=True, ignora la lista ATONAS (palabras transcritas en aislamiento
+    siempre llevan acento léxico, aunque sean átonas en el habla continua).
     """
-    if palabra_original.lower().strip() in ATONAS:
+    if not isolated and palabra_original.lower().strip() in ATONAS:
         return -1
 
     if not silabas:
@@ -607,8 +610,12 @@ def validar_silabas(silabas: list[str], palabra: str) -> str | None:
 # PASO 5: Formateo final
 # ═══════════════════════════════════════════════════════════════════════
 
-def transcribir_palabra(palabra: str) -> str | tuple:
+def transcribir_palabra(palabra: str, isolated: bool = True) -> str | tuple:
     """Transcribe una palabra ortográfica a notación fonológica.
+
+    isolated=True (defecto): la palabra se transcribe en aislamiento; las palabras
+    funcionaleseñaladas en ATONAS reciben su acento léxico (ˈpa.ɾa, ˈkon…).
+    isolated=False: comportamiento de frase continua; palabras en ATONAS no reciben acento.
 
     Returns:
         str con la transcripción si es válida, o
@@ -635,7 +642,7 @@ def transcribir_palabra(palabra: str) -> str | tuple:
     if error:
         return (None, error)
 
-    acento_idx = acentuar(silabas, palabra, pos_tilde)
+    acento_idx = acentuar(silabas, palabra, pos_tilde, isolated=isolated)
 
     # Formatear con puntos y acento
     resultado = []
@@ -674,7 +681,7 @@ def transcribir(frase: str) -> str | tuple:
             if transcripciones and transcripciones[-1] != '|':
                 transcripciones.append('|')
         else:
-            t = transcribir_palabra(tok)
+            t = transcribir_palabra(tok, isolated=False)
             if isinstance(t, tuple):
                 errores.append(t[1])
             elif t:

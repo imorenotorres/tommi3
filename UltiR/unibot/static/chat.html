@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UniBot</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b;
+    display: flex; flex-direction: column; }
+
+.header { background: #2D3876; padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0; }
+.bot-avatar { width: 36px; height: 36px; border-radius: 50%; background: #4f5fd5;
+    display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.header-info { flex: 1; min-width: 0; }
+.bot-name { color: #fff; font-weight: 700; font-size: 16px; }
+.course-name { color: rgba(255,255,255,0.6); font-size: 12px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+
+.messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.msg { display: flex; gap: 10px; max-width: 80%; }
+.msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.msg.bot  { align-self: flex-start; }
+
+.msg-avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.msg.bot  .msg-avatar { background: #4f5fd5; color: #fff; }
+.msg.user .msg-avatar { background: #e2e8f0; color: #475569; }
+
+.msg-bubble { padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.6;
+    max-width: 100%; word-wrap: break-word; }
+.msg.bot  .msg-bubble { background: #fff; border: 1px solid #e2e8f0; border-radius: 4px 14px 14px 14px; }
+.msg.user .msg-bubble { background: #4f5fd5; color: #fff; border-radius: 14px 4px 14px 14px; }
+
+.msg-bubble p + p { margin-top: 8px; }
+.msg-bubble ul, .msg-bubble ol { padding-left: 18px; margin-top: 4px; }
+.msg-bubble code { background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 12px; }
+.msg.user .msg-bubble code { background: rgba(255,255,255,0.2); }
+
+.sources { margin-top: 6px; font-size: 11px; color: #94a3b8; display: flex; gap: 4px; flex-wrap: wrap; }
+.source-tag { background: #f1f5f9; border-radius: 4px; padding: 1px 6px; }
+
+.typing-indicator { display: flex; gap: 4px; padding: 6px 2px; }
+.typing-dot { width: 7px; height: 7px; border-radius: 50%; background: #94a3b8;
+    animation: bounce 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+
+.input-bar { flex-shrink: 0; background: #fff; border-top: 1px solid #e2e8f0;
+    padding: 12px 16px; display: flex; gap: 10px; align-items: flex-end; }
+textarea#msg-input {
+    flex: 1; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 10px 14px;
+    font-family: inherit; font-size: 14px; line-height: 1.5; resize: none; max-height: 140px;
+    outline: none; transition: border-color 0.2s; overflow-y: auto;
+}
+textarea#msg-input:focus { border-color: #4f5fd5; }
+button#send-btn {
+    width: 40px; height: 40px; border-radius: 50%; border: none; background: #4f5fd5;
+    color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background 0.2s; font-size: 18px;
+}
+button#send-btn:hover:not(:disabled) { background: #3b4ac4; }
+button#send-btn:disabled { background: #cbd5e1; cursor: default; }
+
+.empty-state { text-align: center; color: #94a3b8; margin: auto; padding: 40px 20px; }
+.empty-state .welcome { font-size: 15px; color: #475569; margin-top: 8px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="bot-avatar" id="bot-avatar">🤖</div>
+  <div class="header-info">
+    <div class="bot-name" id="bot-name">UniBot</div>
+    <div class="course-name" id="course-name"></div>
+  </div>
+</div>
+
+<div class="messages" id="messages">
+  <div class="empty-state" id="empty-state">
+    <div style="font-size:48px;">🤖</div>
+    <div class="welcome" id="welcome-msg"></div>
+  </div>
+</div>
+
+<div class="input-bar">
+  <textarea id="msg-input" rows="1" placeholder="Escribe tu pregunta..." maxlength="2000"></textarea>
+  <button id="send-btn" title="Enviar">&#9658;</button>
+</div>
+
+<script>
+var history = [];
+var botName = 'UniBot';
+var streaming = false;
+
+// Auto-resize textarea
+var input = document.getElementById('msg-input');
+input.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+});
+input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+document.getElementById('send-btn').addEventListener('click', sendMessage);
+
+// Load session + config
+async function init() {
+    try {
+        var [sessRes, cfgRes] = await Promise.all([
+            fetch('/lti/unibot/api/session'),
+            fetch('/lti/unibot/api/bot-config')
+        ]);
+        var sess = await sessRes.json();
+        var cfg = await cfgRes.json();
+
+        botName = cfg.bot_name || 'UniBot';
+        document.getElementById('bot-name').textContent = botName;
+        document.getElementById('course-name').textContent = sess.course_name || '';
+        document.getElementById('bot-avatar').textContent = botName.charAt(0).toUpperCase();
+        document.title = botName;
+
+        var welcome = cfg.welcome_message || '';
+        if (welcome) {
+            document.getElementById('welcome-msg').textContent = welcome;
+        }
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+function addMessage(role, content, sources) {
+    var empty = document.getElementById('empty-state');
+    if (empty) empty.remove();
+
+    var msgs = document.getElementById('messages');
+    var div = document.createElement('div');
+    div.className = 'msg ' + role;
+
+    var avatarChar = role === 'bot' ? (botName.charAt(0).toUpperCase() || '🤖') : '👤';
+    var bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+
+    if (role === 'bot') {
+        bubble.innerHTML = renderMarkdown(content);
+    } else {
+        bubble.textContent = content;
+    }
+
+    if (sources && sources.length) {
+        var srcDiv = document.createElement('div');
+        srcDiv.className = 'sources';
+        srcDiv.innerHTML = '📎 ' + sources.map(function(s) {
+            return '<span class="source-tag">' + s + '</span>';
+        }).join('');
+        bubble.appendChild(srcDiv);
+    }
+
+    div.innerHTML = '<div class="msg-avatar">' + avatarChar + '</div>';
+    div.appendChild(bubble);
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return bubble;
+}
+
+function addTyping() {
+    var empty = document.getElementById('empty-state');
+    if (empty) empty.remove();
+
+    var msgs = document.getElementById('messages');
+    var div = document.createElement('div');
+    div.className = 'msg bot';
+    div.id = 'typing-msg';
+    var avatarChar = botName.charAt(0).toUpperCase() || '🤖';
+    div.innerHTML =
+        '<div class="msg-avatar">' + avatarChar + '</div>' +
+        '<div class="msg-bubble"><div class="typing-indicator">' +
+        '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>' +
+        '</div></div>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+}
+
+function renderMarkdown(text) {
+    // Basic markdown: bold, italic, inline code, newlines
+    return text
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`(.+?)`/g, '<code>$1</code>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>')
+        .replace(/^/, '<p>').replace(/$/, '</p>');
+}
+
+async function sendMessage() {
+    if (streaming) return;
+    var text = input.value.trim();
+    if (!text) return;
+
+    input.value = '';
+    input.style.height = 'auto';
+    document.getElementById('send-btn').disabled = true;
+    streaming = true;
+
+    addMessage('user', text);
+    history.push({role: 'user', content: text});
+
+    var typingEl = addTyping();
+    var bubble = null;
+    var fullText = '';
+    var finalSources = [];
+
+    try {
+        var resp = await fetch('/lti/unibot/api/chat/stream', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: text, history: history.slice(-12)})
+        });
+
+        if (!resp.ok) throw new Error('Error ' + resp.status);
+
+        var reader = resp.body.getReader();
+        var decoder = new TextDecoder();
+        var buf = '';
+
+        while (true) {
+            var result = await reader.read();
+            if (result.done) break;
+            buf += decoder.decode(result.value, {stream: true});
+            var lines = buf.split('\n');
+            buf = lines.pop();
+
+            for (var line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                var raw = line.slice(6).trim();
+                if (raw === '[DONE]') break;
+                try {
+                    var evt = JSON.parse(raw);
+                    if (evt.error) throw new Error(evt.error);
+                    if (evt.sources) { finalSources = evt.sources; continue; }
+                    if (evt.token) {
+                        if (!bubble) {
+                            typingEl.remove();
+                            typingEl = null;
+                            var msgs = document.getElementById('messages');
+                            var div = document.createElement('div');
+                            div.className = 'msg bot';
+                            var avatarChar = botName.charAt(0).toUpperCase() || '🤖';
+                            bubble = document.createElement('div');
+                            bubble.className = 'msg-bubble';
+                            bubble.innerHTML = '<p></p>';
+                            div.innerHTML = '<div class="msg-avatar">' + avatarChar + '</div>';
+                            div.appendChild(bubble);
+                            msgs.appendChild(div);
+                        }
+                        fullText += evt.token;
+                        bubble.innerHTML = renderMarkdown(fullText);
+                        document.getElementById('messages').scrollTop = 999999;
+                    }
+                } catch(parseErr) { /* skip */ }
+            }
+        }
+
+        // Add sources if any
+        if (bubble && finalSources.length) {
+            var srcDiv = document.createElement('div');
+            srcDiv.className = 'sources';
+            srcDiv.innerHTML = '📎 ' + finalSources.map(function(s) {
+                return '<span class="source-tag">' + s + '</span>';
+            }).join('');
+            bubble.appendChild(srcDiv);
+        }
+
+        history.push({role: 'assistant', content: fullText});
+
+    } catch(e) {
+        if (typingEl) typingEl.remove();
+        addMessage('bot', 'Lo siento, ha ocurrido un error. Por favor inténtalo de nuevo.');
+    }
+
+    streaming = false;
+    document.getElementById('send-btn').disabled = false;
+    input.focus();
+}
+
+init();
+</script>
+</body>
+</html>
