@@ -6,6 +6,10 @@ at most one directory person. The assignee tracks their own status, chosen
 from the configurable list in status.json; superusers may also update the
 status of any task or contact. Both status.json and dashboard_units.json
 are editable only by superusers with a @uma.es login.
+
+Tasks (not contacts) may also carry "steps": sub-tasks with a title,
+deadline and a status from the same list, shown only inside the task.
+Anyone who may edit the task may change a step's status.
 """
 
 import json
@@ -163,6 +167,13 @@ class AssigneeInput(BaseModel):
     # the current assignee or a superuser — see _resolve_assignee_status
 
 
+class StepInput(BaseModel):
+    id: Optional[str] = None  # existing step id, or None for a new step
+    title: str
+    status: Optional[str] = None  # defaults to the first status in status.json
+    deadline: str = ""  # "YYYY-MM-DD" or ""
+
+
 class TaskBody(BaseModel):
     title: str
     description: str = ""
@@ -181,6 +192,9 @@ class TaskBody(BaseModel):
     # task just because it couldn't resolve the assignee to resend.
     clear_assignee: bool = False
     link: str = ""  # must start with "http://" or "https://" if set
+    # Sub-tasks shown only inside the task. On PUT, omitting `steps` leaves
+    # the existing ones untouched; an empty list removes them all.
+    steps: Optional[List[StepInput]] = None
 
 
 class StatusBody(BaseModel):
@@ -297,6 +311,28 @@ def _resolve_assignee_status(old_assignee: Optional[dict], body_assignee: Assign
     if keep_progress:
         return old_assignee["status"], old_assignee["updated_at"]
     return _default_status_id(), now
+
+
+def _build_steps(body_steps: List[StepInput], old_steps: list, now: str) -> list:
+    """Turn submitted steps into stored ones, keeping the id (and status
+    timestamp, when the status is unchanged) of steps that already existed."""
+    old_by_id = {s["id"]: s for s in old_steps}
+    steps = []
+    for s in body_steps:
+        title = s.title.strip()
+        if not title:
+            raise HTTPException(400, "Every step needs a title")
+        status = s.status or _default_status_id()
+        _validate_status(status)
+        old = old_by_id.get(s.id) if s.id else None
+        steps.append({
+            "id": old["id"] if old else "step" + uuid.uuid4().hex[:8],
+            "title": title,
+            "status": status,
+            "deadline": s.deadline,
+            "updated_at": old["updated_at"] if old and old["status"] == status else now,
+        })
+    return steps
 
 
 def _find_task(data: dict, task_id: str) -> dict:
@@ -507,6 +543,7 @@ def create_task(body: TaskBody, session: dict = Depends(_require_staff)):
         "created_at": now,
         "updated_at": now,
         "assignee": assignee,
+        "steps": _build_steps(body.steps or [], [], now),
     }
     data["tasks"].append(entry)
     save_data(data)
@@ -554,6 +591,26 @@ def update_task(task_id: str, body: TaskBody, session: dict = Depends(_require_s
         "assignee": new_assignee,
         "updated_at": now,
     })
+    if body.steps is not None:
+        entry["steps"] = _build_steps(body.steps, entry.get("steps", []), now)
+    save_data(data)
+    return _hydrate_entry(entry)
+
+
+@router.put("/api/tasks/{task_id}/steps/{step_id}/status")
+def update_step_status(task_id: str, step_id: str, body: StatusBody, session: dict = Depends(_require_staff)):
+    _validate_status(body.status)
+    data = load_data()
+    entry = _find_task(data, task_id)
+    if not _can_edit_task(entry, session):
+        raise HTTPException(403, "You can only update steps of tasks you created or are assigned to")
+    step = next((s for s in entry.get("steps", []) if s["id"] == step_id), None)
+    if not step:
+        raise HTTPException(404, "Step not found")
+    now = datetime.utcnow().isoformat() + "Z"
+    step["status"] = body.status
+    step["updated_at"] = now
+    entry["updated_at"] = now
     save_data(data)
     return _hydrate_entry(entry)
 
@@ -757,10 +814,11 @@ def delete_status(status_id: str, session: dict = Depends(_require_superuser_uma
     contact_data = load_contacts()
     in_use = (
         any(t.get("assignee") and t["assignee"].get("status") == status_id for t in task_data["tasks"])
+        or any(s.get("status") == status_id for t in task_data["tasks"] for s in t.get("steps", []))
         or any(c.get("assignee") and c["assignee"].get("status") == status_id for c in contact_data["contacts"])
     )
     if in_use:
-        raise HTTPException(400, "Cannot delete a status that is currently in use by a task or contact")
+        raise HTTPException(400, "Cannot delete a status that is currently in use by a task, step or contact")
     status_data["statuses"] = [s for s in status_data["statuses"] if s["id"] != status_id]
     save_statuses(status_data)
     return status_data["statuses"]
