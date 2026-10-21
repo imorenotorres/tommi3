@@ -67,6 +67,10 @@
         .task-table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
         .task-table tr:hover td { background: #f8f9fc; }
         .task-table tr.task-row { cursor: pointer; }
+        .task-table tr.sub-list-row td { background: #fbfaff; font-size: 0.92em; padding-top: 5px; padding-bottom: 5px; border-bottom-color: #f4f2fa; }
+        .task-table tr.sub-list-row:hover td { background: #f3f0fa; }
+        .task-table .sub-list-title { display: inline-flex; align-items: center; gap: 6px; padding-left: 22px; color: #555; }
+        .task-table .sub-list-arrow { color: #4250b3; font-weight: 700; }
         .task-table .sort-arrow { font-size: 0.7em; margin-left: 3px; color: #aaa; }
 
         .badge { font-size: 0.72em; font-weight: 600; padding: 2px 8px; border-radius: 10px; display: inline-block; }
@@ -121,13 +125,24 @@
         .assignee-row:last-child { border-bottom: none; }
         .my-status-control { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #f8f9fc; }
         .my-status-control select { width: auto; }
-        .step-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #f0f0f0; font-size: 0.88em; }
-        .step-row:last-child { border-bottom: none; }
-        .step-row .step-title { font-weight: 600; color: #333; }
-        .step-row .step-sub { color: #777; font-size: 0.92em; }
-        .step-row .step-sub.overdue { color: #c62828; }
-        .step-row select { width: auto; flex: none; }
-        .repeater-row.step-edit-row { grid-template-columns: 2fr 1fr 1fr; }
+        .subtask-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #f0f0f0; font-size: 0.88em; }
+        .subtask-row:last-child { border-bottom: none; }
+        .subtask-row .subtask-title { font-weight: 600; color: #333; }
+        .subtask-row .subtask-sub { color: #777; font-size: 0.92em; }
+        .subtask-row .overdue { color: #c62828; }
+        .subtask-row .subtask-notes { color: #555; font-size: 0.92em; margin-top: 3px; white-space: pre-wrap; }
+        .subtask-row select { width: auto; flex: none; }
+        .subtask-row a { color: #4250b3; font-weight: 600; text-decoration: none; }
+        .subtask-row a:hover { text-decoration: underline; }
+        .repeater-row.subtask-edit-row { grid-template-columns: 1fr 1fr 1fr; }
+        .repeater-row.subtask-edit-row textarea { min-height: 44px; }
+        .linked-tasks { grid-column: 1 / -1; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fafafa; }
+        .linked-tasks .subtask-row { background: #fff; align-items: center; }
+        .linked-tasks .empty { padding: 10px 12px; color: #999; font-size: 0.85em; font-style: italic; }
+        .new-pill { font-size: 0.7em; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: #e8e0f0; color: #4250b3; margin-left: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .linked-actions { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .linked-actions .btn-add-row { width: auto; flex: 1; margin-top: 0; }
+        .linked-actions select { flex: 2; min-width: 180px; }
 
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .form-field { display: flex; flex-direction: column; gap: 4px; }
@@ -185,7 +200,7 @@
 
         @media (max-width: 640px) {
             .form-grid { grid-template-columns: 1fr; }
-            .repeater-row, .repeater-row.step-edit-row { grid-template-columns: 1fr; }
+            .repeater-row, .repeater-row.subtask-edit-row { grid-template-columns: 1fr; }
         }
     </style>
 <!-- Matomo -->
@@ -287,20 +302,17 @@
     </div>
 </div>
 
-<!-- "All steps completed" prompt — stacked above the view modal -->
-<div class="modal" id="complete-task-modal" style="z-index:200;">
-    <div class="modal-box" style="max-width:460px;">
+<!-- Small question window (see askChoice) — stacked above the other modals -->
+<div class="modal" id="choice-modal" style="z-index:200;">
+    <div class="modal-box" style="max-width:480px;">
         <div class="modal-header">
-            <h3>All steps completed</h3>
-            <button class="modal-close" onclick="closeCompleteTaskModal(false)">&#10005;</button>
+            <h3 id="choice-title"></h3>
+            <button class="modal-close" onclick="closeChoiceModal(null)">&#10005;</button>
         </div>
         <div class="detail-section" style="margin-bottom:0;">
-            <div class="detail-value" id="ctm-text"></div>
+            <div class="detail-value" id="choice-text"></div>
         </div>
-        <div class="modal-footer">
-            <button class="btn-ghost" type="button" onclick="closeCompleteTaskModal(false)">Not now</button>
-            <button class="btn" type="button" id="ctm-confirm-btn" onclick="closeCompleteTaskModal(true)"></button>
-        </div>
+        <div class="modal-footer" id="choice-footer"></div>
     </div>
 </div>
 
@@ -357,6 +369,14 @@
                     <input type="url" name="link" placeholder="https://..." pattern="https?://.+" title="Must start with http:// or https://" />
                 </div>
 
+                <!-- Task-only; hidden when the task is being created from inside a contact request form -->
+                <div class="form-field full" id="task-contact-field">
+                    <label>Linked contact request</label>
+                    <select name="contact_id" id="sel-contact" onchange="onContactUserChange()">
+                        <option value="">— None —</option>
+                    </select>
+                </div>
+
                 <!-- Visibility is a hidden feature: always "public" from this
                      form, kept wired for a possible future re-enable. -->
                 <input type="hidden" name="visibility" value="public" />
@@ -403,6 +423,13 @@
                     <div class="repeater full hidden" id="meetings-repeater"></div>
                     <button type="button" class="btn-add-row full hidden" id="meetings-add-btn" style="grid-column:1/-1" onclick="addMeetingRow()">+ Add virtual meeting</button>
 
+                    <div class="form-section-title">Assigned tasks</div>
+                    <div class="linked-tasks" id="linked-tasks-list"></div>
+                    <div class="linked-actions">
+                        <button type="button" class="btn-add-row" onclick="openNestedTaskForm()">+ Create a task</button>
+                        <select id="sel-link-existing" onchange="linkExistingTask(this.value)"></select>
+                    </div>
+
                 </div>
 
                 <div class="form-field full">
@@ -410,11 +437,11 @@
                     <textarea name="description" rows="2" placeholder="Details..."></textarea>
                 </div>
 
-                <!-- Task-only: sub-tasks, shown only inside the task (never in the list view) -->
-                <div id="steps-fields-wrap" class="form-grid" style="grid-column:1/-1;">
-                    <div class="form-section-title">Steps</div>
-                    <div class="repeater full" id="steps-repeater"></div>
-                    <button type="button" class="btn-add-row full" style="grid-column:1/-1" onclick="addStepRow()">+ Add step</button>
+                <!-- Task-only: subtasks, listed under their task in the list view and in the task's detail view -->
+                <div id="subtasks-fields-wrap" class="form-grid" style="grid-column:1/-1;">
+                    <div class="form-section-title">Subtasks</div>
+                    <div class="repeater full" id="subtasks-repeater"></div>
+                    <button type="button" class="btn-add-row full" style="grid-column:1/-1" onclick="addSubtaskRow()">+ Add subtask</button>
                 </div>
 
             </div>
@@ -524,7 +551,10 @@
         editingId: null,
         editingKind: null,
         formKind: 'task',
-        form: { collaborators: [], mobility_visits: [], virtual_meetings: [], steps: [] },
+        form: emptyFormState(),
+        // While a task is being created from inside a contact request form,
+        // the contact form's snapshot (see snapshotForm); null otherwise.
+        nested: null,
         // True only once the user actually touches the assignee dropdown
         // themselves (see onAssigneeUserChange) — not when it's set
         // programmatically while opening the form. Lets submitTask tell a
@@ -532,8 +562,16 @@
         // stale/incomplete assignee list can't silently wipe an assignment.
         assigneeDirty: false,
         // Same idea as assigneeDirty, for the unit dropdown (see onUnitUserChange).
-        unitDirty: false
+        unitDirty: false,
+        // Same idea again, for a task's "Linked contact request" dropdown.
+        contactDirty: false
     };
+
+    // linkedTaskIds/newTasks back a contact's "Assigned tasks" section;
+    // linkedDirty, like assigneeDirty, means the user actually changed it.
+    function emptyFormState() {
+        return { collaborators: [], mobility_visits: [], virtual_meetings: [], subtasks: [], linkedTaskIds: [], newTasks: [], linkedDirty: false };
+    }
 
     // ---- Auth ----
 
@@ -623,6 +661,7 @@
 
             renderTasks();
             startLivePolling();
+            checkCompletionPrompts();
         } catch (e) { showToast('Could not load data.', 'error'); console.error('Failed to load dashboard data:', e); }
 
         try {
@@ -925,6 +964,50 @@
         return isCreator(task) || isSenior();
     }
 
+    // Whether a stored assignee sub-object ({person_id, email, name}) is the
+    // logged-in user — the same email match myAssignee uses.
+    function isMe(assignee) {
+        return !!(state.session && assignee && (assignee.email || '').toLowerCase() === state.session.username.toLowerCase());
+    }
+
+    // Mirrors _can_change_subtask_status server-side.
+    function canChangeSubtaskStatus(task, subtask) {
+        return isAdmin() || !!myAssignee(task) || isMe(subtask.assignee);
+    }
+
+    // The "All" and "Unassigned" views list every subtask. In the "Me"
+    // view only the task's main assignee sees every subtask; everyone else
+    // sees just the subtasks assigned to them.
+    function listVisibleSubtasks(task) {
+        var subtasks = task.subtasks || [];
+        if (state.viewMode !== 'mine' || myAssignee(task)) return subtasks;
+        return subtasks.filter(function(s) { return isMe(s.assignee); });
+    }
+
+    // Every task this client knows about (tasksMine may hold private tasks
+    // that tasksAll doesn't, and vice versa).
+    function allKnownTasks() {
+        var seen = {};
+        return state.tasksAll.concat(state.tasksMine).filter(function(t) {
+            if (seen[t.id]) return false;
+            seen[t.id] = true;
+            return true;
+        });
+    }
+
+    function tasksLinkedTo(contactId) {
+        return allKnownTasks().filter(function(t) { return t.contact_id === contactId; });
+    }
+
+    function findContact(id) {
+        return state.contactsAll.concat(state.contactsMine).find(function(c) { return c.id === id; });
+    }
+
+    function assigneeChipHtml(assignee, statusId) {
+        if (!assignee) return '<span class="muted" style="color:#999;">—</span>';
+        return '<span class="assignee-chip"><span class="dot" style="background:' + statusMeta(statusId).color + ';"></span>' + esc(assignee.name || assignee.email) + '</span>';
+    }
+
     // ---- Rendering ----
 
     function combinedSource(mode) {
@@ -1046,6 +1129,30 @@
             html += '<td>' + (t.deadline ? '<span class="badge badge-deadline' + (overdue ? ' overdue' : '') + '">' + esc(formatDate(t.deadline)) + '</span>' : '—') + '</td>';
             html += '<td>' + statusBadgeHtml(displayStatus) + '</td>';
             html += '</tr>';
+
+            // Child rows always follow their parent, whatever the filters/
+            // sort — those apply to the parent rows only. A task shows its
+            // subtasks (see listVisibleSubtasks); a contact request shows
+            // its assigned tasks. Clicking a child row opens the task.
+            var childRow = function(taskId, label, assignee, deadline, statusId) {
+                var childOverdue = deadline && deadline < todayIso && statusId !== COMPLETED_STATUS_ID;
+                return '<tr class="task-row sub-list-row" onclick="openViewModal(\'' + taskId + '\')">' +
+                    '<td><span class="sub-list-title"><span class="sub-list-arrow">&#8627;</span>' + esc(label) + '</span></td>' +
+                    '<td></td>' +
+                    '<td>' + assigneeChipHtml(assignee, statusId) + '</td>' +
+                    '<td>' + (deadline ? '<span class="badge badge-deadline' + (childOverdue ? ' overdue' : '') + '">' + esc(formatDate(deadline)) + '</span>' : '—') + '</td>' +
+                    '<td>' + statusBadgeHtml(statusId) + '</td>' +
+                    '</tr>';
+            };
+            if ((t.kind || 'task') === 'task') {
+                listVisibleSubtasks(t).forEach(function(s) {
+                    html += childRow(t.id, s.title, s.assignee, s.deadline, s.status);
+                });
+            } else {
+                tasksLinkedTo(t.id).forEach(function(lt) {
+                    html += childRow(lt.id, titleWithKind(lt), lt.assignee, lt.deadline, taskStatus(lt));
+                });
+            }
         });
 
         html += '</tbody></table></div>';
@@ -1117,82 +1224,141 @@
         return sections.join('');
     }
 
-    // ---- Steps (sub-tasks, Task only) ----
+    // ---- Subtasks (Task only) ----
 
     // Fixed to the built-in status id, so relabelling or reordering it in
     // Settings doesn't change which status counts as done.
     var COMPLETED_STATUS_ID = 'completed';
 
-    function allStepsCompleted(task) {
-        var steps = (task && task.steps) || [];
-        return steps.length > 0 && steps.every(function(s) { return s.status === COMPLETED_STATUS_ID; });
+    function allSubtasksCompleted(task) {
+        var subtasks = (task && task.subtasks) || [];
+        return subtasks.length > 0 && subtasks.every(function(s) { return s.status === COMPLETED_STATUS_ID; });
     }
 
-    function buildStepsDetailSection(t) {
-        var steps = t.steps || [];
-        var done = steps.filter(function(s) { return s.status === COMPLETED_STATUS_ID; }).length;
-        var canEdit = canEditTask(t);
+    function statusSelectHtml(selectedId, onchange) {
+        return '<select onchange="' + onchange + '">' +
+            state.statuses.map(function(st) {
+                return '<option value="' + st.id + '"' + (st.id === selectedId ? ' selected' : '') + '>' + esc(st.label) + '</option>';
+            }).join('') + '</select>';
+    }
+
+    // The detail window shows every subtask to anyone who can open the
+    // task; only the status control depends on who's looking.
+    function buildSubtasksDetailSection(t) {
+        var subtasks = t.subtasks || [];
+        var done = subtasks.filter(function(s) { return s.status === COMPLETED_STATUS_ID; }).length;
         var todayIso = todayIsoStr();
-        var rows = steps.map(function(s) {
+        var rows = subtasks.map(function(s) {
             var overdue = s.deadline && s.deadline < todayIso && s.status !== COMPLETED_STATUS_ID;
-            var control = canEdit
-                ? '<select onchange="updateStepStatus(\'' + t.id + '\', \'' + s.id + '\', this.value)">' +
-                    state.statuses.map(function(st) {
-                        return '<option value="' + st.id + '"' + (st.id === s.status ? ' selected' : '') + '>' + esc(st.label) + '</option>';
-                    }).join('') + '</select>'
+            var control = canChangeSubtaskStatus(t, s)
+                ? statusSelectHtml(s.status, "updateSubtaskStatus('" + t.id + "', '" + s.id + "', this.value)")
                 : statusBadgeHtml(s.status);
-            return '<div class="step-row"><div><div class="step-title">' + esc(s.title) + '</div>' +
-                (s.deadline ? '<div class="step-sub' + (overdue ? ' overdue' : '') + '">Deadline: ' + esc(formatDate(s.deadline)) + '</div>' : '') +
+            var meta = [
+                s.assignee ? esc(s.assignee.name || s.assignee.email) : '<span class="muted">Unassigned</span>',
+                s.deadline ? '<span class="' + (overdue ? 'overdue' : '') + '">Deadline: ' + esc(formatDate(s.deadline)) + '</span>' : ''
+            ].filter(Boolean).join(' &middot; ');
+            return '<div class="subtask-row"><div><div class="subtask-title">' + esc(s.title) + '</div>' +
+                '<div class="subtask-sub">' + meta + '</div>' +
+                (s.notes ? '<div class="subtask-notes">' + esc(s.notes) + '</div>' : '') +
                 '</div>' + control + '</div>';
         }).join('');
-        return '<div class="detail-section"><div class="detail-section-title">Steps' +
-            (steps.length ? ' (' + done + '/' + steps.length + ' completed)' : '') + '</div>' +
-            (rows || '<div class="detail-value"><span class="muted">No steps</span></div>') + '</div>';
+        return '<div class="detail-section"><div class="detail-section-title">Subtasks' +
+            (subtasks.length ? ' (' + done + '/' + subtasks.length + ' completed)' : '') + '</div>' +
+            (rows || '<div class="detail-value"><span class="muted">No subtasks</span></div>') + '</div>';
     }
 
-    async function updateStepStatus(taskId, stepId, status) {
-        var before = findTask(taskId);
+    function buildLinkedTasksDetailSection(c) {
+        var rows = tasksLinkedTo(c.id).map(function(lt) {
+            return '<div class="subtask-row" style="align-items:center;"><div>' +
+                '<a href="#" onclick="event.preventDefault(); openViewModal(\'' + lt.id + '\')">' + esc(lt.title) + '</a>' +
+                '<div class="subtask-sub">' + (lt.assignee ? esc(lt.assignee.name || lt.assignee.email) : '<span class="muted">Unassigned</span>') +
+                (lt.deadline ? ' &middot; Deadline: ' + esc(formatDate(lt.deadline)) : '') + '</div>' +
+                '</div>' + statusBadgeHtml(taskStatus(lt)) + '</div>';
+        }).join('');
+        return '<div class="detail-section"><div class="detail-section-title">Assigned tasks</div>' +
+            (rows || '<div class="detail-value"><span class="muted">No assigned tasks</span></div>') + '</div>';
+    }
+
+    async function updateSubtaskStatus(taskId, subtaskId, status) {
         try {
-            var res = await fetch(BASE + '/api/tasks/' + taskId + '/steps/' + stepId + '/status', { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ status: status }) });
-            if (!res.ok) { showToast('Could not update step status.', 'error'); openViewModal(taskId); return; }
+            var res = await fetch(BASE + '/api/tasks/' + taskId + '/subtasks/' + subtaskId + '/status', { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ status: status }) });
+            if (!res.ok) { showToast('Could not update subtask status.', 'error'); openViewModal(taskId); return; }
             var saved = await res.json();
             replaceTaskInState(saved);
             openViewModal(taskId);
             renderTasks();
-            showToast('Step status updated.', 'success');
-            await maybeOfferTaskCompletion(before, saved);
-        } catch (e) { console.error('updateStepStatus failed:', e); showToast('Network error: ' + (e && e.message ? e.message : String(e)), 'error'); resyncTasks(); }
+            showToast('Subtask status updated.', 'success');
+            checkCompletionPrompts();
+        } catch (e) { console.error('updateSubtaskStatus failed:', e); showToast('Network error: ' + (e && e.message ? e.message : String(e)), 'error'); resyncTasks(); }
     }
 
-    // When a save makes every step Completed, offer to complete the task
-    // too — only to people who may change the task's status (its assignee
-    // or a superuser, the same rule as /status server-side), and only on
-    // assigned tasks, since an unassigned task has no status of its own.
-    async function maybeOfferTaskCompletion(before, after) {
-        if ((after.kind || 'task') !== 'task') return;
-        if (!allStepsCompleted(after) || allStepsCompleted(before)) return;
-        if (!after.assignee || after.assignee.status === COMPLETED_STATUS_ID) return;
-        if (!myAssignee(after) && !isAdmin()) return;
-        if (!state.statuses.some(function(s) { return s.id === COMPLETED_STATUS_ID; })) return;
-        if (!(await askCompleteTask(after))) return;
-        await updateMyStatus(after.id, 'task', COMPLETED_STATUS_ID);
+    // "All subtasks completed — complete the task too?" Shown only to the
+    // task's main assignee, whoever completed the last subtask (themselves
+    // or, noticed on load / live polling, someone else). "Not now" is
+    // remembered server-side until a subtask reopens.
+    var _completionPromptOpen = false;
+
+    function completionPromptCandidate() {
+        if (!state.statuses.some(function(s) { return s.id === COMPLETED_STATUS_ID; })) return null;
+        return state.tasksMine.find(function(t) {
+            return myAssignee(t) && allSubtasksCompleted(t) &&
+                t.assignee.status !== COMPLETED_STATUS_ID && !t.completion_prompt_dismissed;
+        }) || null;
     }
 
-    var _completeTaskResolve = null;
-
-    // Resolves true/false once the user picks a button, the ✕ or the backdrop.
-    function askCompleteTask(task) {
-        document.getElementById('ctm-text').innerHTML =
-            'Every step of <strong>' + esc(task.title) + '</strong> is now ' + statusBadgeHtml(COMPLETED_STATUS_ID) + '.' +
-            '<br>Do you also want to set the task itself to ' + statusBadgeHtml(COMPLETED_STATUS_ID) + '?';
-        document.getElementById('ctm-confirm-btn').textContent = 'Set task to ' + statusLabel(COMPLETED_STATUS_ID);
-        document.getElementById('complete-task-modal').classList.add('active');
-        return new Promise(function(resolve) { _completeTaskResolve = resolve; });
+    async function checkCompletionPrompts() {
+        if (_completionPromptOpen) return;
+        // Don't interrupt someone filling in a form; the next poll retries.
+        if (['form-modal', 'settings-modal', 'choice-modal'].some(function(id) {
+            return document.getElementById(id).classList.contains('active');
+        })) return;
+        var t = completionPromptCandidate();
+        if (!t) return;
+        _completionPromptOpen = true;
+        try {
+            var answer = await askChoice({
+                title: 'All subtasks completed',
+                html: 'All subtasks of <strong>' + esc(t.title) + '</strong> have been set to ' + statusBadgeHtml(COMPLETED_STATUS_ID) + '.' +
+                    '<br>Do you want to set the main task to ' + statusBadgeHtml(COMPLETED_STATUS_ID) + ' as well?',
+                buttons: [
+                    { key: 'no', label: 'Not now', cls: 'btn-ghost' },
+                    { key: 'yes', label: 'Set task to ' + statusLabel(COMPLETED_STATUS_ID), cls: 'btn' }
+                ]
+            });
+            if (answer === 'yes') {
+                await updateMyStatus(t.id, 'task', COMPLETED_STATUS_ID);
+            } else {
+                var res = await fetch(BASE + '/api/tasks/' + t.id + '/completion-prompt/dismiss', { method: 'POST', headers: authHeaders() });
+                if (res.ok) replaceTaskInState(await res.json());
+                else t.completion_prompt_dismissed = true;  // at least don't re-ask this session
+            }
+        } catch (e) {
+            console.error('checkCompletionPrompts failed:', e);
+        } finally {
+            _completionPromptOpen = false;
+        }
+        checkCompletionPrompts();  // the next task, if several completed at once
     }
 
-    function closeCompleteTaskModal(answer) {
-        document.getElementById('complete-task-modal').classList.remove('active');
-        if (_completeTaskResolve) { _completeTaskResolve(answer); _completeTaskResolve = null; }
+    // ---- Choice window ----
+
+    var _choiceResolve = null;
+
+    // Small question window in the dashboard's style. Resolves to the
+    // clicked button's key, or null for the ✕ / a backdrop click.
+    function askChoice(opts) {
+        document.getElementById('choice-title').textContent = opts.title;
+        document.getElementById('choice-text').innerHTML = opts.html;
+        document.getElementById('choice-footer').innerHTML = opts.buttons.map(function(b) {
+            return '<button type="button" class="' + b.cls + '" onclick="closeChoiceModal(\'' + b.key + '\')">' + esc(b.label) + '</button>';
+        }).join('');
+        document.getElementById('choice-modal').classList.add('active');
+        return new Promise(function(resolve) { _choiceResolve = resolve; });
+    }
+
+    function closeChoiceModal(answer) {
+        document.getElementById('choice-modal').classList.remove('active');
+        if (_choiceResolve) { var r = _choiceResolve; _choiceResolve = null; r(answer); }
     }
 
     function openViewModal(id) {
@@ -1232,8 +1398,8 @@
                 }).join('') + '</select></div>' : '') +
             '</div>';
 
-        if (kind === 'task') body += buildStepsDetailSection(t);
-        if (kind === 'contact') body += buildContactDetailSections(t);
+        if (kind === 'task') body += buildSubtasksDetailSection(t);
+        if (kind === 'contact') body += buildContactDetailSections(t) + buildLinkedTasksDetailSection(t);
 
         document.getElementById('vm-body').innerHTML = body;
 
@@ -1255,8 +1421,8 @@
             if (!res.ok) { showToast('Could not update status.', 'error'); return; }
             var saved = await res.json();
             replaceTaskInState(saved);
-            // Also called after saving the edit form (via
-            // maybeOfferTaskCompletion), where the view modal is closed.
+            // Also called from the "all subtasks completed" prompt (see
+            // checkCompletionPrompts), where the view modal may be closed.
             if (document.getElementById('view-modal').classList.contains('active')) openViewModal(id);
             renderTasks();
             showToast('Status updated.', 'success');
@@ -1285,6 +1451,7 @@
             state.contactAreasOfInterest = data.contact_areas_of_interest || [];
             populateContactPickers();
             renderTasks();
+            checkCompletionPrompts();
         } catch (e) { console.error('resyncTasks failed:', e); } finally { _syncInFlight = false; }
     }
 
@@ -1418,71 +1585,258 @@
         }
     }
 
-    // ---- Repeaters: Steps (Task only) ----
+    // ---- Repeaters: Subtasks (Task only) ----
 
-    function addStepRow() {
-        state.form.steps.push({ id: null, title: '', status: defaultStatusId(), deadline: '' });
-        renderStepRows();
+    function addSubtaskRow() {
+        state.form.subtasks.push({ id: null, title: '', notes: '', status: defaultStatusId(), deadline: '', person_id: '' });
+        renderSubtaskRows();
     }
 
-    function removeStepRow(idx) {
-        state.form.steps.splice(idx, 1);
-        renderStepRows();
+    function removeSubtaskRow(idx) {
+        state.form.subtasks.splice(idx, 1);
+        renderSubtaskRows();
     }
 
-    function moveStepRow(idx, direction) {
+    function moveSubtaskRow(idx, direction) {
         var target = idx + direction;
-        if (target < 0 || target >= state.form.steps.length) return;
-        var row = state.form.steps.splice(idx, 1)[0];
-        state.form.steps.splice(target, 0, row);
-        renderStepRows();
+        if (target < 0 || target >= state.form.subtasks.length) return;
+        var row = state.form.subtasks.splice(idx, 1)[0];
+        state.form.subtasks.splice(target, 0, row);
+        renderSubtaskRows();
     }
 
-    function renderStepRows() {
-        var container = document.getElementById('steps-repeater');
-        var count = state.form.steps.length;
-        container.innerHTML = state.form.steps.map(function(row, idx) {
+    // A new subtask's status may be set by whoever creates it; an existing
+    // one's only by those allowed to change it — checked against the
+    // subtask as stored, the same as the server does.
+    function canSetSubtaskStatusInForm(row) {
+        if (!row.id || !state.editingId) return true;
+        var task = findTask(state.editingId);
+        var stored = task && (task.subtasks || []).find(function(s) { return s.id === row.id; });
+        return !stored || canChangeSubtaskStatus(task, stored);
+    }
+
+    function renderSubtaskRows() {
+        var container = document.getElementById('subtasks-repeater');
+        var count = state.form.subtasks.length;
+        var people = state.directoryPeople.slice().sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+        container.innerHTML = state.form.subtasks.map(function(row, idx) {
             var statusOptions = state.statuses.map(function(s) {
                 return '<option value="' + s.id + '"' + (s.id === row.status ? ' selected' : '') + '>' + esc(s.label) + '</option>';
             }).join('');
-            return '<div class="repeater-row step-edit-row">' +
-                '<div class="repeater-row-header"><span>Step ' + (idx + 1) + '</span><div class="reorder-buttons">' +
-                '<button type="button" class="btn-remove-row" title="Move up" ' + (idx === 0 ? 'disabled' : '') + ' onclick="moveStepRow(' + idx + ', -1)">&#8593;</button>' +
-                '<button type="button" class="btn-remove-row" title="Move down" ' + (idx === count - 1 ? 'disabled' : '') + ' onclick="moveStepRow(' + idx + ', 1)">&#8595;</button>' +
-                '<button type="button" class="btn-remove-row" title="Remove" style="color:#dc3545" onclick="removeStepRow(' + idx + ')">&#10005;</button></div></div>' +
-                '<div class="row-field"><label>Title <span style="color:#dc3545">*</span></label><input type="text" value="' + esc(row.title) + '" oninput="updateStepField(' + idx + ',\'title\',this.value)" placeholder="e.g. Draft the report" /></div>' +
-                '<div class="row-field"><label>Status</label><select onchange="updateStepField(' + idx + ',\'status\',this.value)">' + statusOptions + '</select></div>' +
-                '<div class="row-field"><label>Deadline</label><input type="date" value="' + esc(row.deadline) + '" oninput="updateStepField(' + idx + ',\'deadline\',this.value)" /></div>' +
+            var personOptions = '<option value="">— Unassigned —</option>' + people.map(function(p) {
+                return '<option value="' + p.id + '"' + (String(p.id) === String(row.person_id) ? ' selected' : '') + '>' + esc(p.name || p.email || String(p.id)) + '</option>';
+            }).join('');
+            var statusLocked = !canSetSubtaskStatusInForm(row);
+            return '<div class="repeater-row subtask-edit-row">' +
+                '<div class="repeater-row-header"><span>Subtask ' + (idx + 1) + '</span><div class="reorder-buttons">' +
+                '<button type="button" class="btn-remove-row" title="Move up" ' + (idx === 0 ? 'disabled' : '') + ' onclick="moveSubtaskRow(' + idx + ', -1)">&#8593;</button>' +
+                '<button type="button" class="btn-remove-row" title="Move down" ' + (idx === count - 1 ? 'disabled' : '') + ' onclick="moveSubtaskRow(' + idx + ', 1)">&#8595;</button>' +
+                '<button type="button" class="btn-remove-row" title="Remove" style="color:#dc3545" onclick="removeSubtaskRow(' + idx + ')">&#10005;</button></div></div>' +
+                '<div class="row-field full"><label>Title <span style="color:#dc3545">*</span></label><input type="text" value="' + esc(row.title) + '" oninput="updateSubtaskField(' + idx + ',\'title\',this.value)" placeholder="e.g. Draft the report" /></div>' +
+                '<div class="row-field"><label>Assigned to</label><select onchange="updateSubtaskField(' + idx + ',\'person_id\',this.value)">' + personOptions + '</select></div>' +
+                '<div class="row-field"><label>Status</label><select onchange="updateSubtaskField(' + idx + ',\'status\',this.value)"' +
+                (statusLocked ? ' disabled title="Only the subtask\'s assignee, the task\'s assignee or a superuser can change this"' : '') + '>' + statusOptions + '</select></div>' +
+                '<div class="row-field"><label>Deadline</label><input type="date" value="' + esc(row.deadline) + '" oninput="updateSubtaskField(' + idx + ',\'deadline\',this.value)" /></div>' +
+                '<div class="row-field full"><label>Notes</label><textarea rows="2" oninput="updateSubtaskField(' + idx + ',\'notes\',this.value)" placeholder="Explain the subtask or give some context (optional)">' + esc(row.notes) + '</textarea></div>' +
                 '</div>';
         }).join('');
     }
 
-    function updateStepField(idx, field, value) { state.form.steps[idx][field] = value; }
+    function updateSubtaskField(idx, field, value) { state.form.subtasks[idx][field] = value; }
+
+    // ---- Linked contact request (Task form) ----
+
+    function populateContactSelect(selectedId) {
+        var seen = {};
+        var contacts = state.contactsAll.concat(state.contactsMine).filter(function(c) {
+            if (seen[c.id]) return false;
+            seen[c.id] = true;
+            return true;
+        }).sort(function(a, b) { return (a.title || '').localeCompare(b.title || ''); });
+        var html = '<option value="">— None —</option>' + contacts.map(function(c) {
+            return '<option value="' + esc(c.id) + '">' + esc(c.title) + '</option>';
+        }).join('');
+        if (selectedId && !seen[selectedId]) {
+            html += '<option value="' + esc(selectedId) + '">(a contact request you can\'t see)</option>';
+        }
+        var sel = document.getElementById('sel-contact');
+        sel.innerHTML = html;
+        sel.value = selectedId || '';
+    }
+
+    // Same rationale as onAssigneeUserChange, for the linked contact dropdown.
+    function onContactUserChange() {
+        state.contactDirty = true;
+    }
+
+    // ---- Assigned tasks (Contact form) ----
+
+    function renderLinkedTasks() {
+        var known = allKnownTasks();
+        var rowHtml = function(title, isNew, assigneeName, deadline, statusId, removeCall) {
+            return '<div class="subtask-row"><div><div class="subtask-title">' + esc(title) + (isNew ? '<span class="new-pill">New</span>' : '') + '</div>' +
+                '<div class="subtask-sub">' + (assigneeName ? esc(assigneeName) : '<span class="muted">Unassigned</span>') +
+                (deadline ? ' &middot; Deadline: ' + esc(formatDate(deadline)) : '') + '</div></div>' +
+                '<div style="display:flex;align-items:center;gap:6px;">' + statusBadgeHtml(statusId) +
+                '<button type="button" class="btn-remove-row" title="Remove from this contact request" onclick="' + removeCall + '">&#10005;</button></div></div>';
+        };
+        var html = state.form.linkedTaskIds.map(function(id) {
+            var t = known.find(function(x) { return x.id === id; });
+            if (!t) return '';
+            return rowHtml(t.title, false, t.assignee && (t.assignee.name || t.assignee.email), t.deadline, taskStatus(t), "unlinkTask('" + id + "')");
+        }).join('') + state.form.newTasks.map(function(n, idx) {
+            return rowHtml(n.display.title, true, n.display.assigneeName, n.display.deadline, n.display.status, 'removeNewTask(' + idx + ')');
+        }).join('');
+        document.getElementById('linked-tasks-list').innerHTML = html || '<div class="empty">No assigned tasks yet.</div>';
+        populateLinkExistingSelect();
+    }
+
+    // Tasks that may be linked here: not linked to another contact request
+    // (one contact per task), not already listed, and editable by the user
+    // (linking changes the task — the server checks the same).
+    function populateLinkExistingSelect() {
+        var candidates = allKnownTasks().filter(function(t) {
+            return (t.kind || 'task') === 'task' &&
+                (!t.contact_id || t.contact_id === state.editingId) &&
+                state.form.linkedTaskIds.indexOf(t.id) === -1 &&
+                canEditTask(t);
+        }).sort(function(a, b) { return (a.title || '').localeCompare(b.title || ''); });
+        var sel = document.getElementById('sel-link-existing');
+        sel.innerHTML = '<option value="">' + (candidates.length ? 'Assign an existing task…' : 'No existing tasks to assign') + '</option>' +
+            candidates.map(function(t) { return '<option value="' + esc(t.id) + '">' + esc(t.title) + '</option>'; }).join('');
+        sel.disabled = !candidates.length;
+    }
+
+    function linkExistingTask(id) {
+        if (!id) return;
+        state.form.linkedTaskIds.push(id);
+        state.form.linkedDirty = true;
+        renderLinkedTasks();
+    }
+
+    function unlinkTask(id) {
+        state.form.linkedTaskIds = state.form.linkedTaskIds.filter(function(x) { return x !== id; });
+        state.form.linkedDirty = true;
+        renderLinkedTasks();
+    }
+
+    function removeNewTask(idx) {
+        state.form.newTasks.splice(idx, 1);
+        renderLinkedTasks();
+    }
+
+    // ---- Nested task form ("Create a task" inside a contact form) ----
+    //
+    // The same form modal is reused for the new task, so it offers exactly
+    // the options of a normal task: the contact form is snapshotted first
+    // and restored when the task is added (or cancelled). The task is only
+    // kept as pending in state.form.newTasks and saved with the contact.
+
+    function snapshotForm() {
+        var form = document.getElementById('task-form');
+        var values = [];
+        Array.prototype.forEach.call(form.elements, function(el) {
+            var key = el.name || el.id;
+            if (!key || el.type === 'button') return;
+            values.push({ key: key, byName: !!el.name, value: el.value, checked: el.checked });
+        });
+        return {
+            values: values,
+            editingId: state.editingId,
+            editingKind: state.editingKind,
+            formKind: state.formKind,
+            form: state.form,
+            assigneeDirty: state.assigneeDirty,
+            unitDirty: state.unitDirty,
+            contactDirty: state.contactDirty,
+            scrollTop: document.querySelector('#form-modal .modal-box').scrollTop
+        };
+    }
+
+    function restoreForm(snap) {
+        state.editingId = snap.editingId;
+        state.editingKind = snap.editingKind;
+        state.formKind = snap.formKind;
+        state.form = snap.form;
+        state.assigneeDirty = snap.assigneeDirty;
+        state.unitDirty = snap.unitDirty;
+        state.contactDirty = snap.contactDirty;
+
+        var form = document.getElementById('task-form');
+        // Repeaters are rendered from state.form; plain fields from the snapshot.
+        renderCollaboratorRows();
+        renderMobilityRows();
+        renderMeetingRows();
+        renderSubtaskRows();
+        populateContactSelect();
+        var applyValues = function() {
+            snap.values.forEach(function(v) {
+                var el = v.byName ? form.elements[v.key] : document.getElementById(v.key);
+                if (!el || !el.tagName) return;
+                if (el.type === 'checkbox') el.checked = v.checked; else el.value = v.value;
+            });
+        };
+        applyValues();
+        onAssigneeChange();
+        applyValues();  // onAssigneeChange resets the status dropdown
+
+        document.getElementById('kind-toggle').classList.toggle('hidden', !!state.editingId);
+        document.getElementById('goal-other-field').style.display = form.elements['goal'].value === 'Otras' ? '' : 'none';
+        var mobility = document.getElementById('physical_mobility_check').checked;
+        document.getElementById('mobility-repeater').classList.toggle('hidden', !mobility);
+        document.getElementById('mobility-add-btn').classList.toggle('hidden', !mobility);
+        var meetings = document.getElementById('virtual_meetings_check').checked;
+        document.getElementById('meetings-repeater').classList.toggle('hidden', !meetings);
+        document.getElementById('meetings-add-btn').classList.toggle('hidden', !meetings);
+        document.getElementById('form-error').classList.remove('visible');
+        setFormKind(state.formKind);
+        renderLinkedTasks();
+        document.querySelector('#form-modal .modal-box').scrollTop = snap.scrollTop;
+    }
+
+    function openNestedTaskForm() {
+        state.nested = snapshotForm();
+        openNewTaskModal();
+        document.querySelector('#form-modal .modal-box').scrollTop = 0;
+    }
+
+    function closeNestedTaskForm() {
+        var snap = state.nested;
+        state.nested = null;
+        restoreForm(snap);
+    }
 
     // ---- Form modal ----
 
     function setFormKind(kind) {
         state.formKind = kind;
+        var nested = !!state.nested;
         document.getElementById('btn-kind-task').classList.toggle('active', kind === 'task');
         document.getElementById('btn-kind-contact').classList.toggle('active', kind === 'contact');
+        document.getElementById('kind-toggle').classList.toggle('hidden', nested || !!state.editingId);
         document.getElementById('contact-fields-wrap').classList.toggle('hidden', kind !== 'contact');
-        document.getElementById('steps-fields-wrap').classList.toggle('hidden', kind !== 'task');
+        document.getElementById('subtasks-fields-wrap').classList.toggle('hidden', kind !== 'task');
+        document.getElementById('task-contact-field').classList.toggle('hidden', kind !== 'task' || nested);
         var isEdit = !!state.editingId;
-        document.getElementById('form-modal-title').textContent = (isEdit ? 'Edit ' : 'New ') + kindLabel(kind).toLowerCase();
-        document.getElementById('form-submit-btn').textContent = isEdit ? 'Save changes' : ('Save ' + kindLabel(kind).toLowerCase());
+        document.getElementById('form-modal-title').textContent = nested
+            ? 'New task for this contact request'
+            : (isEdit ? 'Edit ' : 'New ') + kindLabel(kind).toLowerCase();
+        document.getElementById('form-submit-btn').textContent = nested
+            ? 'Add task'
+            : (isEdit ? 'Save changes' : ('Save ' + kindLabel(kind).toLowerCase()));
     }
 
     function openNewTaskModal() {
         state.editingId = null;
         state.editingKind = null;
-        state.form = { collaborators: [], mobility_visits: [], virtual_meetings: [], steps: [] };
+        state.form = emptyFormState();
         document.getElementById('task-form').reset();
         document.getElementById('form-error').classList.remove('visible');
         state.assigneeDirty = false;
         state.unitDirty = false;
+        state.contactDirty = false;
         onAssigneeChange();
 
-        document.getElementById('kind-toggle').classList.remove('hidden');
         document.getElementById('goal-other-field').style.display = 'none';
         document.getElementById('physical_mobility_check').checked = false;
         document.getElementById('virtual_meetings_check').checked = false;
@@ -1491,7 +1845,9 @@
         document.getElementById('meetings-repeater').classList.add('hidden');
         document.getElementById('meetings-add-btn').classList.add('hidden');
         addCollaboratorRow();
-        renderStepRows();
+        renderSubtaskRows();
+        populateContactSelect();
+        renderLinkedTasks();
 
         setFormKind('task');
         document.getElementById('form-modal').classList.add('active');
@@ -1505,7 +1861,7 @@
 
         state.editingId = id;
         state.editingKind = kind;
-        state.form = { collaborators: [], mobility_visits: [], virtual_meetings: [], steps: [] };
+        state.form = emptyFormState();
         document.getElementById('form-error').classList.remove('visible');
 
         var form = document.getElementById('task-form');
@@ -1518,13 +1874,14 @@
 
         state.assigneeDirty = false;
         state.unitDirty = false;
+        state.contactDirty = false;
         onAssigneeChange();
 
-        // The type (task/contact) can't change once created.
-        document.getElementById('kind-toggle').classList.add('hidden');
-
-        state.form.steps = (t.steps || []).map(function(s) { return Object.assign({}, s); });
-        renderStepRows();
+        state.form.subtasks = (t.subtasks || []).map(function(s) {
+            return { id: s.id, title: s.title, notes: s.notes || '', status: s.status, deadline: s.deadline || '', person_id: s.assignee ? s.assignee.person_id : '' };
+        });
+        renderSubtaskRows();
+        populateContactSelect(kind === 'task' ? t.contact_id : null);
 
         if (kind === 'contact') {
             if (t.goal && t.goal.indexOf('Otras:') === 0) {
@@ -1551,13 +1908,18 @@
             renderMeetingRows();
             document.getElementById('meetings-repeater').classList.toggle('hidden', !t.virtual_meetings_held);
             document.getElementById('meetings-add-btn').classList.toggle('hidden', !t.virtual_meetings_held);
+
+            state.form.linkedTaskIds = tasksLinkedTo(id).map(function(lt) { return lt.id; });
         }
+        renderLinkedTasks();
 
         setFormKind(kind);
         document.getElementById('form-modal').classList.add('active');
     }
 
     function closeFormModal() {
+        // Cancelling the nested task form goes back to the contact form.
+        if (state.nested) { closeNestedTaskForm(); return; }
         document.getElementById('form-modal').classList.remove('active');
         state.editingId = null;
         state.editingKind = null;
@@ -1610,8 +1972,9 @@
         // PUT keeps whatever assignee the task already had — a stale or
         // incomplete assignee list (see onAssigneeUserChange) can then
         // never silently unassign a task just by saving an unrelated edit.
+        var person = null;
         if (assigneeId) {
-            var person = state.directoryPeople.find(function(p) { return p.id === assigneeId; });
+            person = state.directoryPeople.find(function(p) { return p.id === assigneeId; });
             if (person) {
                 // name/email aren't sent — the server always resolves them
                 // itself from person_id, so the directory stays the single
@@ -1640,13 +2003,48 @@
             body.mobility_visits = physicalMobility ? state.form.mobility_visits.filter(function(m) { return m.start_date; }) : [];
             body.virtual_meetings_held = virtualMeetingsHeld;
             body.virtual_meetings = virtualMeetingsHeld ? state.form.virtual_meetings.filter(function(m) { return m.date; }) : [];
+            // Same "only if touched" rule as the assignee, so a stale task
+            // list can't silently unlink tasks on an unrelated edit.
+            if (!state.editingId || state.form.linkedDirty) body.linked_task_ids = state.form.linkedTaskIds.slice();
+            body.new_tasks = state.form.newTasks.map(function(n) { return n.body; });
         } else {
             // Rows left without a title are treated as unused and dropped.
-            body.steps = state.form.steps
+            body.subtasks = state.form.subtasks
                 .filter(function(s) { return s.title && s.title.trim(); })
-                .map(function(s) { return { id: s.id || null, title: s.title.trim(), status: s.status || defaultStatusId(), deadline: s.deadline || '' }; });
+                .map(function(s) {
+                    return {
+                        id: s.id || null,
+                        title: s.title.trim(),
+                        notes: (s.notes || '').trim(),
+                        status: s.status || defaultStatusId(),
+                        deadline: s.deadline || '',
+                        assignee: s.person_id ? { person_id: parseInt(s.person_id, 10) } : null
+                    };
+                });
+            if (!state.nested) {
+                var contactId = form.elements['contact_id'].value;
+                if (contactId && (!state.editingId || state.contactDirty)) body.contact_id = contactId;
+                else if (!contactId && state.contactDirty) body.clear_contact = true;
+            }
         }
-        var before = state.editingId ? findTask(state.editingId) : null;
+
+        // A task created from inside a contact form isn't saved yet: it
+        // goes back to that form as pending and is saved with the contact.
+        if (state.nested) {
+            var pending = {
+                body: body,
+                display: {
+                    title: title,
+                    assigneeName: person ? (person.name || person.email) : '',
+                    deadline: body.deadline,
+                    status: (body.assignee && body.assignee.status) || defaultStatusId()
+                }
+            };
+            closeNestedTaskForm();
+            state.form.newTasks.push(pending);
+            renderLinkedTasks();
+            return;
+        }
 
         var apiBase = kind === 'contact' ? '/api/contacts' : '/api/tasks';
         var url = state.editingId ? BASE + apiBase + '/' + state.editingId : BASE + apiBase;
@@ -1662,7 +2060,7 @@
             var res = await fetch(url, { method: method, headers: authHeaders(), body: JSON.stringify(body) });
             if (!res.ok) {
                 var err = await res.json();
-                errEl.textContent = err.detail || 'Something went wrong.';
+                errEl.textContent = (typeof err.detail === 'string' && err.detail) || 'Something went wrong.';
                 errEl.classList.add('visible');
                 return;
             }
@@ -1672,7 +2070,9 @@
             showToast(state.editingId ? (kindLbl + ' updated.') : (kindLbl + ' created.'), 'success');
             closeFormModal();
             renderTasks();
-            await maybeOfferTaskCompletion(before, saved);
+            // Saving a contact may have created, linked or unlinked tasks.
+            if (kind === 'contact' && (body.linked_task_ids || body.new_tasks.length)) await resyncTasks();
+            checkCompletionPrompts();
         } catch (ex) {
             console.error('submitTask failed:', ex);
             errEl.textContent = 'Network error: ' + (ex && ex.message ? ex.message : String(ex));
@@ -1686,10 +2086,33 @@
 
     async function confirmDelete(id, kind) {
         var kindLbl = kindLabel(kind).toLowerCase();
-        if (!confirm('Delete this ' + kindLbl + '? This cannot be undone.')) return;
+        var query = '';
+        var linked = kind === 'contact' ? tasksLinkedTo(id) : [];
+        if (linked.length) {
+            var answer = await askChoice({
+                title: 'Delete contact request',
+                html: 'This contact request has <strong>' + linked.length + '</strong> assigned task' + (linked.length === 1 ? '' : 's') + ':' +
+                    '<ul style="margin:6px 0 6px 18px;">' + linked.map(function(t) { return '<li>' + esc(t.title) + '</li>'; }).join('') + '</ul>' +
+                    'Do you want to keep ' + (linked.length === 1 ? 'it' : 'them') + ' as normal tasks, or delete ' + (linked.length === 1 ? 'it' : 'them') + ' too? This cannot be undone.',
+                buttons: [
+                    { key: 'cancel', label: 'Cancel', cls: 'btn-ghost' },
+                    { key: 'keep', label: 'Delete contact, keep tasks', cls: 'btn-secondary' },
+                    { key: 'delete', label: 'Delete contact and tasks', cls: 'btn-danger' }
+                ]
+            });
+            if (answer !== 'keep' && answer !== 'delete') return;
+            if (answer === 'delete') query = '?delete_tasks=true';
+        } else if (!confirm('Delete this ' + kindLbl + '? This cannot be undone.')) {
+            return;
+        }
         try {
-            var res = await fetch(BASE + entryEndpoint(kind) + id, { method: 'DELETE', headers: authHeaders() });
-            if (!res.ok) { showToast('Could not delete.', 'error'); return; }
+            var res = await fetch(BASE + entryEndpoint(kind) + id + query, { method: 'DELETE', headers: authHeaders() });
+            if (!res.ok) {
+                var err = await res.json().catch(function() { return {}; });
+                showToast(err.detail || 'Could not delete.', 'error');
+                return;
+            }
+            if (linked.length) resyncTasks();
             var mineList = kind === 'contact' ? 'contactsMine' : 'tasksMine';
             var allList = kind === 'contact' ? 'contactsAll' : 'tasksAll';
             state[mineList] = state[mineList].filter(function(t) { return t.id !== id; });
@@ -1974,7 +2397,7 @@
     document.getElementById('view-modal').addEventListener('click', function(e) { if (e.target === this) closeViewModal(); });
     document.getElementById('form-modal').addEventListener('click', function(e) { if (e.target === this) closeFormModal(); });
     document.getElementById('settings-modal').addEventListener('click', function(e) { if (e.target === this) closeSettingsModal(); });
-    document.getElementById('complete-task-modal').addEventListener('click', function(e) { if (e.target === this) closeCompleteTaskModal(false); });
+    document.getElementById('choice-modal').addEventListener('click', function(e) { if (e.target === this) closeChoiceModal(null); });
 
     init();
 </script>

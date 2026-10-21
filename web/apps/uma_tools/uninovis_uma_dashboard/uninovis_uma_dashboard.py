@@ -7,9 +7,13 @@ from the configurable list in status.json; superusers may also update the
 status of any task or contact. Both status.json and dashboard_units.json
 are editable only by superusers with a @uma.es login.
 
-Tasks (not contacts) may also carry "steps": sub-tasks with a title,
-deadline and a status from the same list, shown only inside the task.
-Anyone who may edit the task may change a step's status.
+Tasks (not contacts) may also carry "subtasks": each with a title, notes,
+deadline, its own optional assignee and a status from the same list. A
+subtask's status may be changed by its assignee, the task's (main) assignee
+or a superuser; the task's own assignee and status are independent of them.
+
+A task may be linked to at most one contact request (task["contact_id"]);
+the link lives only on the task, so a contact's tasks are derived from it.
 """
 
 import json
@@ -88,7 +92,12 @@ def load_data() -> dict:
         save_data(DEFAULT_DATA.copy())
         return json.loads(json.dumps(DEFAULT_DATA))
     with open(DATA_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    # Subtasks used to be called "steps"; migrated on the next save.
+    for t in data["tasks"]:
+        if "steps" in t:
+            t.setdefault("subtasks", t.pop("steps"))
+    return data
 
 
 def save_data(data: dict):
@@ -167,11 +176,19 @@ class AssigneeInput(BaseModel):
     # the current assignee or a superuser — see _resolve_assignee_status
 
 
-class StepInput(BaseModel):
-    id: Optional[str] = None  # existing step id, or None for a new step
+class PersonRef(BaseModel):
+    person_id: int  # a dashboard assignee id; name/email are resolved server-side
+
+
+class SubtaskInput(BaseModel):
+    id: Optional[str] = None  # existing subtask id, or None for a new subtask
     title: str
-    status: Optional[str] = None  # defaults to the first status in status.json
+    notes: str = ""
+    status: Optional[str] = None  # defaults to the first status in status.json;
+    # on an existing subtask only honored for those allowed to change it —
+    # see _can_change_subtask_status
     deadline: str = ""  # "YYYY-MM-DD" or ""
+    assignee: Optional[PersonRef] = None
 
 
 class TaskBody(BaseModel):
@@ -192,9 +209,13 @@ class TaskBody(BaseModel):
     # task just because it couldn't resolve the assignee to resend.
     clear_assignee: bool = False
     link: str = ""  # must start with "http://" or "https://" if set
-    # Sub-tasks shown only inside the task. On PUT, omitting `steps` leaves
-    # the existing ones untouched; an empty list removes them all.
-    steps: Optional[List[StepInput]] = None
+    # On PUT, omitting `subtasks` leaves the existing ones untouched; an
+    # empty list removes them all.
+    subtasks: Optional[List[SubtaskInput]] = None
+    # Linked contact request. On PUT, omitting it keeps the current link;
+    # clear_contact is the only way to remove it (see clear_unit).
+    contact_id: Optional[str] = None
+    clear_contact: bool = False
 
 
 class StatusBody(BaseModel):
@@ -267,6 +288,13 @@ class ContactBody(BaseModel):
     mobility_visits: List[ContactMobilityVisit] = []
     virtual_meetings_held: bool = False
     virtual_meetings: List[ContactVirtualMeeting] = []
+    # "Assigned tasks": the full set of existing task ids to link to this
+    # contact (tasks linked now but missing here are unlinked). On PUT,
+    # omitting it leaves the current links untouched.
+    linked_task_ids: Optional[List[str]] = None
+    # New tasks created from the contact form, saved and linked together
+    # with the contact.
+    new_tasks: List[TaskBody] = []
 
 
 def _validate_visibility(visibility: str):
@@ -313,26 +341,61 @@ def _resolve_assignee_status(old_assignee: Optional[dict], body_assignee: Assign
     return _default_status_id(), now
 
 
-def _build_steps(body_steps: List[StepInput], old_steps: list, now: str) -> list:
-    """Turn submitted steps into stored ones, keeping the id (and status
-    timestamp, when the status is unchanged) of steps that already existed."""
-    old_by_id = {s["id"]: s for s in old_steps}
-    steps = []
-    for s in body_steps:
+COMPLETED_STATUS_ID = "completed"
+
+
+def _build_subtasks(body_subtasks: List[SubtaskInput], task: Optional[dict], session: dict, now: str) -> list:
+    """Turn submitted subtasks into stored ones, keeping the id (and status
+    timestamp, when the status is unchanged) of subtasks that already
+    existed. `task` is the task as currently stored (None on create): a
+    status change on an existing subtask is only honored for people allowed
+    to make it, otherwise the stored status is silently kept — the same
+    approach as _resolve_assignee_status."""
+    old_by_id = {s["id"]: s for s in (task or {}).get("subtasks", [])}
+    assignable_ids = {a["id"] for a in load_assignees()["assignees"]}
+    subtasks = []
+    for s in body_subtasks:
         title = s.title.strip()
         if not title:
-            raise HTTPException(400, "Every step needs a title")
-        status = s.status or _default_status_id()
-        _validate_status(status)
+            raise HTTPException(400, "Every subtask needs a title")
+        if s.assignee and s.assignee.person_id not in assignable_ids:
+            raise HTTPException(400, "Unknown subtask assignee id")
         old = old_by_id.get(s.id) if s.id else None
-        steps.append({
-            "id": old["id"] if old else "step" + uuid.uuid4().hex[:8],
+        if old is None:
+            status = s.status or _default_status_id()
+            _validate_status(status)
+        elif s.status and s.status != old["status"] and _can_change_subtask_status(task, old, session):
+            _validate_status(s.status)
+            status = s.status
+        else:
+            status = old["status"]
+        subtasks.append({
+            "id": old["id"] if old else "subtask" + uuid.uuid4().hex[:8],
             "title": title,
+            "notes": s.notes.strip(),
             "status": status,
             "deadline": s.deadline,
+            "assignee": {
+                "person_id": s.assignee.person_id,
+                "email": _email_for_person_id(s.assignee.person_id),
+            } if s.assignee else None,
             "updated_at": old["updated_at"] if old and old["status"] == status else now,
         })
-    return steps
+    return subtasks
+
+
+def _all_subtasks_completed(task: dict) -> bool:
+    subtasks = task.get("subtasks", [])
+    return bool(subtasks) and all(s["status"] == COMPLETED_STATUS_ID for s in subtasks)
+
+
+def _refresh_completion_prompt(task: dict):
+    """Re-arm the "all subtasks completed — complete the task?" prompt
+    whenever the subtasks stop being all completed, so a main assignee who
+    clicked "Not now" is asked again only after a subtask reopens and then
+    completes again."""
+    if not _all_subtasks_completed(task):
+        task["completion_prompt_dismissed"] = False
 
 
 def _find_task(data: dict, task_id: str) -> dict:
@@ -402,10 +465,18 @@ def _hydrate_assignee(assignee: Optional[dict]) -> Optional[dict]:
 
 
 def _hydrate_entry(entry: dict) -> dict:
-    """Return a copy of a task/contact with its assignee's name refreshed
-    from the directory before it's sent to the client."""
+    """Return a copy of a task/contact with its (and its subtasks')
+    assignee names refreshed from the directory before it's sent to the
+    client."""
     out = dict(entry)
     out["assignee"] = _hydrate_assignee(entry.get("assignee"))
+    if entry.get("kind", "task") == "task":
+        out["subtasks"] = [
+            dict(s, assignee=_hydrate_assignee(s.get("assignee")), notes=s.get("notes", ""))
+            for s in entry.get("subtasks", [])
+        ]
+        out["contact_id"] = entry.get("contact_id")
+        out["completion_prompt_dismissed"] = bool(entry.get("completion_prompt_dismissed"))
     return out
 
 
@@ -418,8 +489,9 @@ def _assignees_with_names() -> list:
     ]
 
 
-def _is_assignee(entry: dict, username: str) -> bool:
-    a = entry.get("assignee")
+def _person_matches(a: Optional[dict], username: str) -> bool:
+    """Whether a stored assignee sub-object ({person_id, email, ...}) is the
+    logged-in user."""
     if not a:
         return False
     if a.get("email", "").lower() == username:
@@ -430,6 +502,27 @@ def _is_assignee(entry: dict, username: str) -> bool:
         None
     )
     return user_person is not None and a.get("person_id") == user_person["id"]
+
+
+def _is_assignee(entry: dict, username: str) -> bool:
+    """Whether the user is the task/contact's main assignee."""
+    return _person_matches(entry.get("assignee"), username)
+
+
+def _is_involved(entry: dict, username: str) -> bool:
+    """Main assignee, or assignee of any of the task's subtasks."""
+    return _is_assignee(entry, username) or any(
+        _person_matches(s.get("assignee"), username) for s in entry.get("subtasks", [])
+    )
+
+
+def _can_change_subtask_status(task: dict, subtask: dict, session: dict) -> bool:
+    username = session["username"].strip().lower()
+    return (
+        "superuser" in set(user_roles(session))
+        or _is_assignee(task, username)
+        or _person_matches(subtask.get("assignee"), username)
+    )
 
 
 def _can_edit_task(entry: dict, session: dict) -> bool:
@@ -448,7 +541,12 @@ def _is_visible_in_all(entry: dict, username: str) -> bool:
     if entry.get("visibility") == "public":
         return True
     is_creator = entry.get("created_by", "").lower() == username
-    return is_creator or _is_assignee(entry, username)
+    return is_creator or _is_involved(entry, username)
+
+
+def _validate_contact_id(contact_id: str):
+    if not any(c["id"] == contact_id for c in load_contacts()["contacts"]):
+        raise HTTPException(400, "Unknown contact request id")
 
 
 # -- Routes ---------------------------------------------------------------
@@ -487,7 +585,7 @@ def get_data(session: dict = Depends(_require_staff)):
     data = load_data()
     contacts_data = load_contacts()
     username = session["username"].strip().lower()
-    tasks_mine = [t for t in data["tasks"] if _is_assignee(t, username)]
+    tasks_mine = [t for t in data["tasks"] if _is_involved(t, username)]
     tasks_all = [t for t in data["tasks"] if _is_visible_in_all(t, username)]
     contacts_mine = [c for c in contacts_data["contacts"] if _is_assignee(c, username)]
     contacts_all = [c for c in contacts_data["contacts"] if _is_visible_in_all(c, username)]
@@ -513,13 +611,34 @@ def get_data(session: dict = Depends(_require_staff)):
     }
 
 
-@router.post("/api/tasks")
-def create_task(body: TaskBody, session: dict = Depends(_require_staff)):
+@router.get("/api/my-open-count")
+def get_my_open_count(session: dict = Depends(_require_staff)):
+    """Backs the notification bubble on the intranet's UMA tools tab and
+    dashboard card: tasks, subtasks and contact requests assigned to the
+    user that aren't Completed yet."""
+    username = session["username"].strip().lower()
+    count = 0
+    for t in load_data()["tasks"]:
+        if _is_assignee(t, username) and t["assignee"].get("status") != COMPLETED_STATUS_ID:
+            count += 1
+        count += sum(
+            1 for s in t.get("subtasks", [])
+            if _person_matches(s.get("assignee"), username) and s.get("status") != COMPLETED_STATUS_ID
+        )
+    for c in load_contacts()["contacts"]:
+        if _is_assignee(c, username) and c["assignee"].get("status") != COMPLETED_STATUS_ID:
+            count += 1
+    return {"count": count}
+
+
+def _new_task_entry(body: TaskBody, session: dict, now: str) -> dict:
+    """Validate a TaskBody and build the stored task — shared by task
+    creation and tasks created from inside a contact request form."""
     _validate_visibility(body.visibility)
     _validate_assignee(body.assignee)
     _validate_link(body.link)
-    data = load_data()
-    now = datetime.utcnow().isoformat() + "Z"
+    if body.contact_id:
+        _validate_contact_id(body.contact_id)
     assignee = None
     if body.assignee:
         status_id = body.assignee.status or _default_status_id()
@@ -543,8 +662,17 @@ def create_task(body: TaskBody, session: dict = Depends(_require_staff)):
         "created_at": now,
         "updated_at": now,
         "assignee": assignee,
-        "steps": _build_steps(body.steps or [], [], now),
+        "subtasks": _build_subtasks(body.subtasks or [], None, session, now),
+        "contact_id": body.contact_id or None,
+        "completion_prompt_dismissed": False,
     }
+    return entry
+
+
+@router.post("/api/tasks")
+def create_task(body: TaskBody, session: dict = Depends(_require_staff)):
+    data = load_data()
+    entry = _new_task_entry(body, session, datetime.utcnow().isoformat() + "Z")
     data["tasks"].append(entry)
     save_data(data)
     return _hydrate_entry(entry)
@@ -555,6 +683,8 @@ def update_task(task_id: str, body: TaskBody, session: dict = Depends(_require_s
     _validate_visibility(body.visibility)
     _validate_assignee(body.assignee)
     _validate_link(body.link)
+    if body.contact_id:
+        _validate_contact_id(body.contact_id)
     data = load_data()
     entry = _find_task(data, task_id)
     if not _can_edit_task(entry, session):
@@ -588,29 +718,53 @@ def update_task(task_id: str, body: TaskBody, session: dict = Depends(_require_s
         "deadline": body.deadline,
         "visibility": body.visibility,
         "link": body.link,
-        "assignee": new_assignee,
         "updated_at": now,
     })
-    if body.steps is not None:
-        entry["steps"] = _build_steps(body.steps, entry.get("steps", []), now)
+    # Subtask status permissions are checked against the task as it was
+    # before this edit (its old main assignee), hence before updating it.
+    if body.subtasks is not None:
+        new_subtasks = _build_subtasks(body.subtasks, entry, session, now)
+    entry["assignee"] = new_assignee
+    if body.subtasks is not None:
+        entry["subtasks"] = new_subtasks
+        _refresh_completion_prompt(entry)
+    if body.contact_id:
+        entry["contact_id"] = body.contact_id
+    elif body.clear_contact:
+        entry["contact_id"] = None
     save_data(data)
     return _hydrate_entry(entry)
 
 
-@router.put("/api/tasks/{task_id}/steps/{step_id}/status")
-def update_step_status(task_id: str, step_id: str, body: StatusBody, session: dict = Depends(_require_staff)):
+@router.put("/api/tasks/{task_id}/subtasks/{subtask_id}/status")
+def update_subtask_status(task_id: str, subtask_id: str, body: StatusBody, session: dict = Depends(_require_staff)):
     _validate_status(body.status)
     data = load_data()
     entry = _find_task(data, task_id)
-    if not _can_edit_task(entry, session):
-        raise HTTPException(403, "You can only update steps of tasks you created or are assigned to")
-    step = next((s for s in entry.get("steps", []) if s["id"] == step_id), None)
-    if not step:
-        raise HTTPException(404, "Step not found")
+    subtask = next((s for s in entry.get("subtasks", []) if s["id"] == subtask_id), None)
+    if not subtask:
+        raise HTTPException(404, "Subtask not found")
+    if not _can_change_subtask_status(entry, subtask, session):
+        raise HTTPException(403, "Only the subtask's assignee, the task's assignee or a superuser can change this status")
     now = datetime.utcnow().isoformat() + "Z"
-    step["status"] = body.status
-    step["updated_at"] = now
+    subtask["status"] = body.status
+    subtask["updated_at"] = now
     entry["updated_at"] = now
+    _refresh_completion_prompt(entry)
+    save_data(data)
+    return _hydrate_entry(entry)
+
+
+@router.post("/api/tasks/{task_id}/completion-prompt/dismiss")
+def dismiss_completion_prompt(task_id: str, session: dict = Depends(_require_staff)):
+    """The main assignee clicked "Not now" on the "all subtasks completed"
+    prompt — don't ask again until a subtask reopens (see
+    _refresh_completion_prompt)."""
+    data = load_data()
+    entry = _find_task(data, task_id)
+    if not _is_assignee(entry, session["username"].strip().lower()):
+        raise HTTPException(403, "You are not assigned to this task")
+    entry["completion_prompt_dismissed"] = True
     save_data(data)
     return _hydrate_entry(entry)
 
@@ -628,6 +782,10 @@ def update_my_status(task_id: str, body: StatusBody, session: dict = Depends(_re
     assignee["status"] = body.status
     assignee["updated_at"] = datetime.utcnow().isoformat() + "Z"
     entry["updated_at"] = assignee["updated_at"]
+    # Setting the task's status by hand settles the "all subtasks
+    # completed" prompt — reopening the task later shouldn't trigger it.
+    if _all_subtasks_completed(entry):
+        entry["completion_prompt_dismissed"] = True
     save_data(data)
     return _hydrate_entry(entry)
 
@@ -663,6 +821,39 @@ def _contact_dict(body: ContactBody, assignee: Optional[dict], unit_id: Optional
     }
 
 
+def _prepare_contact_tasks(contact_id: str, body: ContactBody, session: dict, now: str):
+    """Apply a contact form's "Assigned tasks" (linked_task_ids/new_tasks)
+    to the task list in memory and return it, or None if nothing changed.
+    Everything is validated here, before the contact itself is saved, so a
+    bad link can't leave the contact saved but its tasks half-updated."""
+    task_data = load_data()
+    changed = False
+    if body.linked_task_ids is not None:
+        wanted = set(body.linked_task_ids)
+        unknown = wanted - {t["id"] for t in task_data["tasks"]}
+        if unknown:
+            raise HTTPException(400, "Unknown task id")
+        for t in task_data["tasks"]:
+            if t["id"] in wanted and t.get("contact_id") != contact_id:
+                if t.get("contact_id"):
+                    raise HTTPException(400, f'Task "{t["title"]}" is already linked to another contact request')
+                if not _can_edit_task(t, session):
+                    raise HTTPException(403, f'You can\'t edit task "{t["title"]}", so you can\'t link it')
+                t["contact_id"] = contact_id
+                t["updated_at"] = now
+                changed = True
+            elif t["id"] not in wanted and t.get("contact_id") == contact_id:
+                t["contact_id"] = None
+                t["updated_at"] = now
+                changed = True
+    for nt in body.new_tasks:
+        entry = _new_task_entry(nt.model_copy(update={"contact_id": None}), session, now)
+        entry["contact_id"] = contact_id
+        task_data["tasks"].append(entry)
+        changed = True
+    return task_data if changed else None
+
+
 @router.post("/api/contacts")
 def create_contact(body: ContactBody, session: dict = Depends(_require_staff)):
     _validate_visibility(body.visibility)
@@ -670,6 +861,8 @@ def create_contact(body: ContactBody, session: dict = Depends(_require_staff)):
     _validate_link(body.link)
     data = load_contacts()
     now = datetime.utcnow().isoformat() + "Z"
+    contact_id = "contact" + uuid.uuid4().hex[:8]
+    task_data = _prepare_contact_tasks(contact_id, body, session, now)
     assignee = None
     if body.assignee:
         status_id = body.assignee.status or _default_status_id()
@@ -682,7 +875,7 @@ def create_contact(body: ContactBody, session: dict = Depends(_require_staff)):
         }
     entry = _contact_dict(body, assignee, body.unit_id)
     entry.update({
-        "id": "contact" + uuid.uuid4().hex[:8],
+        "id": contact_id,
         "kind": "contact",
         "created_by": session["username"].strip().lower(),
         "created_at": now,
@@ -690,6 +883,8 @@ def create_contact(body: ContactBody, session: dict = Depends(_require_staff)):
     })
     data["contacts"].append(entry)
     save_contacts(data)
+    if task_data is not None:
+        save_data(task_data)
     return _hydrate_entry(entry)
 
 
@@ -725,9 +920,12 @@ def update_contact(contact_id: str, body: ContactBody, session: dict = Depends(_
     else:
         new_unit_id = entry.get("unit_id")
 
+    task_data = _prepare_contact_tasks(contact_id, body, session, now)
     entry.update(_contact_dict(body, new_assignee, new_unit_id))
     entry["updated_at"] = now
     save_contacts(data)
+    if task_data is not None:
+        save_data(task_data)
     return _hydrate_entry(entry)
 
 
@@ -749,13 +947,27 @@ def update_my_contact_status(contact_id: str, body: StatusBody, session: dict = 
 
 
 @router.delete("/api/contacts/{contact_id}")
-def delete_contact(contact_id: str, session: dict = Depends(_require_staff)):
+def delete_contact(contact_id: str, delete_tasks: bool = False, session: dict = Depends(_require_staff)):
+    """Linked tasks are kept (just unlinked) unless delete_tasks is set, in
+    which case they're deleted too — all or nothing: if any of them is one
+    the user may not delete, nothing is deleted."""
     data = load_contacts()
     entry = _find_contact(data, contact_id)
     if not _can_delete_task(entry, session):
         raise HTTPException(403, "You can only delete contacts you created")
+    task_data = load_data()
+    linked = [t for t in task_data["tasks"] if t.get("contact_id") == contact_id]
+    if delete_tasks and not all(_can_delete_task(t, session) for t in linked):
+        raise HTTPException(403, "You can only delete linked tasks you created — nothing was deleted")
     data["contacts"] = [c for c in data["contacts"] if c["id"] != contact_id]
     save_contacts(data)
+    if linked:
+        if delete_tasks:
+            task_data["tasks"] = [t for t in task_data["tasks"] if t.get("contact_id") != contact_id]
+        else:
+            for t in linked:
+                t["contact_id"] = None
+        save_data(task_data)
     return {"ok": True}
 
 
@@ -814,11 +1026,11 @@ def delete_status(status_id: str, session: dict = Depends(_require_superuser_uma
     contact_data = load_contacts()
     in_use = (
         any(t.get("assignee") and t["assignee"].get("status") == status_id for t in task_data["tasks"])
-        or any(s.get("status") == status_id for t in task_data["tasks"] for s in t.get("steps", []))
+        or any(s.get("status") == status_id for t in task_data["tasks"] for s in t.get("subtasks", []))
         or any(c.get("assignee") and c["assignee"].get("status") == status_id for c in contact_data["contacts"])
     )
     if in_use:
-        raise HTTPException(400, "Cannot delete a status that is currently in use by a task, step or contact")
+        raise HTTPException(400, "Cannot delete a status that is currently in use by a task, subtask or contact")
     status_data["statuses"] = [s for s in status_data["statuses"] if s["id"] != status_id]
     save_statuses(status_data)
     return status_data["statuses"]
@@ -958,10 +1170,12 @@ def delete_dashboard_assignee(assignee_id: int, session: dict = Depends(_require
     contact_data = load_contacts()
     in_use = (
         any(t.get("assignee") and t["assignee"].get("person_id") == assignee_id for t in task_data["tasks"])
+        or any(s.get("assignee") and s["assignee"].get("person_id") == assignee_id
+               for t in task_data["tasks"] for s in t.get("subtasks", []))
         or any(c.get("assignee") and c["assignee"].get("person_id") == assignee_id for c in contact_data["contacts"])
     )
     if in_use:
-        raise HTTPException(400, "Cannot delete an assignee that is currently assigned to a task or contact")
+        raise HTTPException(400, "Cannot delete an assignee that is currently assigned to a task, subtask or contact")
     data["assignees"] = [a for a in data["assignees"] if a["id"] != assignee_id]
     save_assignees(data)
     return {"ok": True}

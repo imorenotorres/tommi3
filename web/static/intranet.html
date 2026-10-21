@@ -51,8 +51,9 @@
         .server-agora { background: #d1ecf1; color: #0c5460; }
         .server-gloria { background: #e8e0f0; color: #4250b3; }
 
-        /* Pending access-request count bubble — on the Sys Admin tab and the
-           User Management tool card */
+        /* Count bubbles — pending access requests/feedback on the Sys Admin
+           tab and its tool cards; open dashboard items on the UMA tools tab
+           and the UNINOVIS-UMA Dashboard card */
         .notif-badge {
             display: inline-block; background: #dc2626; color: #fff; font-weight: 700;
             font-size: 0.68em; line-height: 1; min-width: 15px; text-align: center;
@@ -381,16 +382,31 @@ async function updatePendingRequestsBadge() {
         if (fres.ok) feedbackCount = (await fres.json()).new || 0;
     } catch (e) { /* leave count at 0 */ }
 
-    function setBadge(el, n, where) {
-        if (!el) return;
-        var existing = el.querySelector('.notif-badge');
-        if (existing) existing.remove();
-        if (n > 0) el.insertAdjacentHTML(where, '<span class="notif-badge">' + n + '</span>');
-    }
-
     setBadge(document.querySelector('.wp-tab[data-tab="superuser"]'), count + feedbackCount, 'beforeend');
     setBadge(document.getElementById('tool-card-user_management'), count, 'afterbegin');
     setBadge(document.getElementById('tool-card-feedback'), feedbackCount, 'afterbegin');
+}
+
+function setBadge(el, n, where) {
+    if (!el) return;
+    var existing = el.querySelector('.notif-badge');
+    if (existing) existing.remove();
+    if (n > 0) el.insertAdjacentHTML(where, '<span class="notif-badge">' + n + '</span>');
+}
+
+// Open (not Completed) tasks, subtasks and contact requests assigned to
+// the user in the UNINOVIS-UMA Dashboard — shown on the "UMA internal
+// tools" tab and the dashboard's card.
+async function updateUmaDashboardBadge() {
+    var count = 0;
+    try {
+        var res = await fetch('/uninovis-uma-dashboard/api/my-open-count', {
+            headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        if (res.ok) count = (await res.json()).count || 0;
+    } catch (e) { /* leave count at 0 */ }
+    setBadge(document.querySelector('.wp-tab[data-tab="uma_holidays"]'), count, 'beforeend');
+    setBadge(document.getElementById('tool-card-uninovis_uma_dashboard'), count, 'afterbegin');
 }
 
 function showLogin() {
@@ -421,6 +437,10 @@ async function showMain() {
 
     if (roles.indexOf('superuser') !== -1) {
         updatePendingRequestsBadge();
+    }
+    // Only fetch for those the dashboard would let in (staff role + @uma.es).
+    if (canAccess('uninovis_uma_dashboard', roles) && (authUser.username || '').toLowerCase().endsWith('@uma.es')) {
+        updateUmaDashboardBadge();
     }
 
     renderGuidesMenu(document.getElementById('topGuidesSlot'), roles, authUser.username);
