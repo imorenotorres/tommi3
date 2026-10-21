@@ -114,7 +114,10 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
         <div class="step-desc">Escribe la transcripción fonológica de lo que debería haber dicho el paciente. <strong>Este paso es un prerrequisito: si no es correcta, la calificación será 0.</strong></div>
         <textarea id="resp-transcripcion" rows="2" placeholder="/ ... # ... / (usa # para marcar el límite entre oraciones)" onfocus="lastFocusedInput=this" style="resize:none;"></textarea>
         <div class="solution" id="sol-transcripcion"></div>
-        <div style="margin-top:8px;"><button class="btn btn-secondary" onclick="checkStep1()">Comprobar paso 1</button></div>
+        <div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button class="btn btn-secondary" onclick="checkStep1()">Comprobar paso 1</button>
+            <button class="btn btn-secondary" id="btn-skip-step1" style="display:none;color:#92400e;border-color:#fcd34d;background:#fffbeb;" onclick="skipStep1()">Continuar sin transcripción (puntuación 0)</button>
+        </div>
     </div>
 
     <!-- Step 2: Medidas cuantitativas -->
@@ -344,10 +347,26 @@ async function generateExercise() {
     document.getElementById('results-bar').style.display = 'none';
     document.getElementById('action-bar').style.display = 'none';
     _errorCounter = 0;
+    _step1Attempts = 0;
+    document.getElementById('btn-skip-step1').style.display = 'none';
     _score = {step1: 0, step2: 0, step3: 0};
 }
 
 var _score = {step1: 0, step2: 0, step3: 0};
+var _step1Attempts = 0;
+
+function skipStep1() {
+    _score.step1 = 0;
+    document.getElementById('step1').className = 'step done';
+    document.getElementById('btn-skip-step1').style.display = 'none';
+    var sol = document.getElementById('sol-transcripcion');
+    sol.innerHTML = '<div style="font-size:12px;color:#92400e;padding:6px 0;">Continuando sin transcripción correcta. La puntuación de este paso es 0.</div>' + sol.innerHTML;
+    sol.className = 'solution show';
+    var st = getActiveSteps();
+    if (st.s2) document.getElementById('step2').className = 'step';
+    else if (st.s3) document.getElementById('step3').className = 'step';
+    else showResults();
+}
 
 function checkStep1() {
     var inp = document.getElementById('resp-transcripcion');
@@ -366,6 +385,10 @@ function checkStep1() {
     } else {
         inp.className = 'incorrect';
         _score.step1 = 0;
+        _step1Attempts++;
+        if (_step1Attempts >= 2) {
+            document.getElementById('btn-skip-step1').style.display = 'inline-flex';
+        }
 
         // Word-level comparison
         var ortWords = currentExercise.ortografia.split(/\s+/).map(function(w) {
@@ -375,7 +398,9 @@ function checkStep1() {
         var expWords = currentExercise.correcta.replace(/\//g, '').trim().split(/\s+/).filter(Boolean);
         var userWords = inp.value.replace(/\//g, '').replace(/#/g, '').trim().split(/\s+/).filter(Boolean);
 
-        var normW = function(w) { return w.replace(/ˈ/g,'').replace(/ˌ/g,'').replace(/ː/g,'').toLowerCase(); };
+        // Normalize words for comparison: keep ˈ so stress errors are highlighted,
+        // but unify ' and ˈ so the student can type either.
+        var normW = function(w) { return w.replace(/'/g,'ˈ').replace(/ˌ/g,'').replace(/ː/g,'').toLowerCase(); };
         var wrongWords = [];
         var html = '<div style="font-size:12px;color:#64748b;margin-bottom:6px;">Transcripción correcta (en rojo, las palabras con error):</div>';
         html += '<div style="font-size:14px;font-family:\'Doulos SIL\',serif;line-height:2;">';
