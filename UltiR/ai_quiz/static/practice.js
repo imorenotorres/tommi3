@@ -214,16 +214,19 @@
     ]));
   }
 
-  /* "What to review": the page of the handout and, when it may be quoted, the passage. */
+  /* "What to review": the page of the handout and, when it may be quoted, the passage. The passage is the
+     handout's own words, in its own language (not translated), and is labelled as a quote with its page. */
   function renderReview(review) {
     var list = clear(byId('practice-review-list'));
     byId('practice-review').hidden = !review;
     if (!review) { return; }
-    var where = t('student_from', { doc: review.doc_label || '' }) + (review.page ? ', ' + t('source_page', { n: review.page }) : '');
+    var doc = review.doc_label || '';
+    var where = t('student_from', { doc: doc }) + (review.page ? ', ' + t('source_page', { n: review.page }) : '');
     byId('practice-review-heading').textContent = review.page ? t('practice_review_page', { n: review.page }) : t('review_box_heading');
-    list.appendChild(el('li', {}, [
-      el('p', { class: 'cite' }, review.excerpt ? [where + ': ', el('q', { text: review.excerpt })] : [where + '.'])
-    ]));
+    var quoted = review.page ? t('practice_review_quote', { doc: doc, n: review.page }) : t('practice_review_quote_nopage', { doc: doc });
+    list.appendChild(el('li', {}, review.excerpt
+      ? [el('p', { class: 'cite' }, [quoted]), el('blockquote', { class: 'handout-quote' }, [el('q', { text: review.excerpt })])]
+      : [el('p', { class: 'cite' }, [where + '.'])]));
   }
 
   function retry() {

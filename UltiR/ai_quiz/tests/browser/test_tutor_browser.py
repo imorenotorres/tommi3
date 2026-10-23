@@ -76,6 +76,10 @@ def test_a_swap_is_named_with_its_page_the_right_value_is_said_and_the_next_exer
     expect(page.locator("#practice-points")).to_be_hidden()
     expect(page.locator("#practice-fallback")).to_be_hidden()
     expect(page.locator("#practice-review-heading")).to_have_text("Qué repasar: pág. 4")
+    # The handout's English sentence is kept as it is, and said to be a quote of it, with its page.
+    expect(page.locator("#practice-review .cite")).to_have_text(
+        "Cita literal del apunte (handout.pdf, pág. 4), tal como está escrita en él:")
+    expect(page.locator("#practice-review blockquote q")).to_contain_text("Precision answers how trustworthy")
     page.get_by_role("button", name="Intentar de nuevo").click()
     right = tutors.number(kept["solution_value"], "es", 3)
     page.get_by_label("Tu resultado").fill(right)

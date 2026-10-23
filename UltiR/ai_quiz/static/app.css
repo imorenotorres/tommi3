@@ -324,6 +324,9 @@ ol.to-review li { padding: 0.6rem 0; border-top: 1px solid var(--line); }
 ol.to-review .why-listed { margin: 0.2rem 0 0; font-weight: 600; color: var(--wrong); }
 ol.to-review .why-listed.skipped { color: var(--text-soft); }
 ol.to-review .cite { margin-top: 0.3rem; }
+/* Practice: the handout's own words, set apart from the page's text and labelled as a quote above */
+blockquote.handout-quote { margin: 0.35rem 0 0; padding: 0.4rem 0.8rem; border-left: 4px solid var(--line); }
+blockquote.handout-quote q { line-height: 1.5; background: var(--marker); quotes: none; }
 .score { font-size: 1.6rem; font-weight: 600; line-height: 1.2; color: var(--ink); margin: 0 0 0.25rem; }
 
 /* Practice ("Practicar"), student page */
