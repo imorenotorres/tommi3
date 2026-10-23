@@ -382,7 +382,8 @@ def _answer_programmed(course_id: str, owner: str, exercise: dict, entry: dict, 
     try:
         value, typed = programmed.read_value(exercise, body)
     except ValueError:
-        raise PracticeError(400, "bad_value") from None
+        # Said in the form the statement asks for, with an example: "275/396" is a number, but not the one asked.
+        raise PracticeError(400, "bad_value_integer" if exercise["form"] == "integer" else "bad_value_decimal") from None
     if value is None:
         raise PracticeError(400, "value_missing")
     got = programmed.feedback(course_id, exercise, value, typed, language)

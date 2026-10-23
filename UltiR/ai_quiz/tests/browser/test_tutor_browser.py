@@ -62,6 +62,10 @@ def test_a_swap_is_named_with_its_page_the_right_value_is_said_and_the_next_exer
     expect(page.locator("#practice-value-field")).to_be_visible()
     assert unlabelled_controls(page) == [] and small_buttons(page) == []
     kept = shown_exercise(page)
+    page.get_by_label("Tu resultado").fill("275/396")
+    page.get_by_role("button", name="Enviar respuesta").click()
+    expect(page.locator("#status")).to_have_text("Se espera un número decimal, como pide el enunciado: por ejemplo "
+                                                 "0,625. Si tienes una fracción como 5/8, haz la división.")
     page.get_by_label("Tu resultado").fill(tutors.number(kept["wrong"]["swapped"], "es", 3))
     page.get_by_role("button", name="Enviar respuesta").click()
 

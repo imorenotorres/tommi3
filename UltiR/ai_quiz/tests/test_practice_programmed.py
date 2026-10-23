@@ -159,8 +159,8 @@ def test_a_mistake_the_catalogue_does_not_know_is_said_honestly_with_the_page(st
     assert "pág. 2" in got["feedback"]
 
 
-@pytest.mark.parametrize("value, error", [("setenta", "bad_value"), ("72,5", "bad_value"), ("", "value_missing"),
-                                          (None, "value_missing")])
+@pytest.mark.parametrize("value, error", [("setenta", "bad_value_integer"), ("72,5", "bad_value_integer"),
+                                          ("", "value_missing"), (None, "value_missing")])
 def test_what_is_not_a_whole_number_is_refused_and_no_try_is_used(student, value, error):
     exercise = student.exercise()["exercise"]
 
@@ -168,6 +168,17 @@ def test_what_is_not_a_whole_number_is_refused_and_no_try_is_used(student, value
                                    params={"token": student.token}, json={"value": value})
 
     assert (response.status_code, code(response)) == (400, error)
+    assert student.client.get(f"{PRACTICE}/open", params={"token": student.token}).json()["tries"] == 0
+
+
+@pytest.mark.parametrize("value", ["275/396", "0,59,2", "cero coma seis"])
+def test_what_is_not_a_decimal_is_refused_as_such_and_no_try_is_used(student, value):
+    exercise = student.exercise(PR_TOPIC, "basico")["exercise"]
+
+    response = student.client.post(f"{PRACTICE}/exercises/{exercise['exercise_id']}/answer",
+                                   params={"token": student.token}, json={"value": value})
+
+    assert (response.status_code, code(response)) == (400, "bad_value_decimal")
     assert student.client.get(f"{PRACTICE}/open", params={"token": student.token}).json()["tries"] == 0
 
 

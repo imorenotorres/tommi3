@@ -23,6 +23,7 @@ def built_keys() -> set[str]:
             | {f"admin_status_{status}" for status in exercises.STATUSES}
             | {f"report_{reason}" for reason in exercises.REPORT_REASONS}
             | {f"reject_{reason}" for reason in DISCARD_REASONS}
+            | {"err_bad_value_decimal", "err_bad_value_integer"}
             | {"practice_aim_key_point", "practice_aim_mistake", "practice_aim_mistake_last", "practice_suggest_subir",
                "practice_suggest_bajar"})
 
