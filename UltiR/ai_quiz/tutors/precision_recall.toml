@@ -104,13 +104,15 @@ next_en = "The next exercise asks for F1 again."
 
 [[mistakes]]
 id = "no_two"
-anchor = "The harmonic mean is dominated by the smaller of the two values"
+# The sentence that introduces equation (45), F1 = 2PR / (P + R). The check with P = R below is ours, not the
+# handout's, and the text says so.
+anchor = "Both are combined in the harmonic mean"
 title_es = "Olvidar el factor 2 de F1"
 title_en = "Forgetting the factor 2 of F1"
 what_es = "{value} es PR / (P + R), la mitad de F1: falta el factor 2."
 what_en = "{value} is PR / (P + R), half of F1: the factor 2 is missing."
-why_es = "F1 = 2PR / (P + R); con P = R, F1 tiene que valer lo mismo que P (pág. {page})."
-why_en = "F1 = 2PR / (P + R); with P = R, F1 must equal P (p. {page})."
+why_es = "La ecuación (45) de la pág. {page} define F1 = 2PR / (P + R): el 2 del numerador es parte de la definición, y sin él sale la mitad de F1. Una forma de comprobarlo tú: si P y R valen lo mismo, F1 tiene que dar ese mismo valor, y PR / (P + R) daría solo la mitad."
+why_en = "Equation (45) on p. {page} defines F1 = 2PR / (P + R): the 2 in the numerator is part of the definition, and without it you get half of F1. A way to check it yourself: if P and R are equal, F1 must come out as that same value, and PR / (P + R) would give only half."
 next_es = "El siguiente ejercicio te pide otra vez F1."
 next_en = "The next exercise asks for F1 again."
 

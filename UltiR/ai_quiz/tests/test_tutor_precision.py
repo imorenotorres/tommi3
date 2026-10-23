@@ -188,7 +188,8 @@ HANDOUT = [{"chunk_id": "c_0044", "page": 17, "text": (
     "10 Evaluation with precision and recall. Let T Pbe the number of correct matches that are returned, F Pthe "
     "number of incorrect matches. Precision is the fraction of returned matches that are correct, and recall is the "
     "fraction of all true correspondences that are returned. Precision answers how trustworthy the output is, while "
-    "recall answers how complete it is. The harmonic mean is dominated by the smaller of the two values, so a high "
+    "recall answers how complete it is. Both are combined in the harmonic mean F1 = 21 P + 1R = 2P RP + R . (45) "
+    "The harmonic mean is dominated by the smaller of the two values, so a high "
     "score requires both. As an example, a matcher that returns 200 matches of which 150 are correct, for an image "
     "pair with 250 true correspondences, has a precision of 0.75 and a recall of 0.60.")}]
 
@@ -199,3 +200,14 @@ def test_every_anchor_is_found_in_the_text_reading_of_page_17():
     assert tutors.locate(spec["skill"]["anchor"], HANDOUT)["page"] == 17
     assert {m["id"]: tutors.locate(m["anchor"], HANDOUT)["page"] for m in spec["mistakes"]} == {
         "swapped": 17, "complement": 17, "ratio": 17, "arithmetic_mean": 17, "no_two": 17, "percent": 17}
+
+
+def test_the_factor_2_is_explained_from_equation_45_in_our_own_words():
+    """The handout gives the formula, not the check with P = R: the text points to the equation and offers the check
+    as the student's own, rather than reading as a quote."""
+    mistake, text = tutors.mistake_spec(NAME, "no_two"), HANDOUT[0]["text"]
+
+    assert text.index(mistake["anchor"]) < text.index("(45)")
+    assert "ecuación (45)" in mistake["why_es"] and "Equation (45)" in mistake["why_en"]
+    assert "comprobarlo tú" in mistake["why_es"] and "check it yourself" in mistake["why_en"]
+    assert "P = R" not in mistake["why_es"] + mistake["why_en"]
