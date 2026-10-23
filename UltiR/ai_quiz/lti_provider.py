@@ -4,10 +4,13 @@ AI Quiz Generator — LTI 1.1 Tool
 An instructor uploads course material, the LLM drafts multiple-choice
 questions, the instructor reviews and publishes them, students practise from
 Moodle and the server grades. No question the model writes reaches students
-before an instructor approves it. Practice ("Practicar", practice.py) is
-formative and has a rule of its own: exercises and feedback reach students
-live, behind checks in code, labelled as written by AI, with a way to report
-them and an instructor's list to retire them.
+before an instructor approves it. Practice ("Practicar", practice.py) comes
+from programmed tutors (tutors/, programmed.py): programs written once and
+reviewed by the instructor, which make the exercise, diagnose the answer and
+give feedback with no model call. Model-written practice is kept behind
+AI_QUIZ_PRACTICE_MODEL, off by default; where it is on, its exercises reach
+students live, behind checks in code, labelled as written by AI, with a way
+to report them and an instructor's list to retire them. See README.md.
 
 Configuration (web/.env):
     AI_QUIZ_LTI_SECRET=<shared_secret>    required, no default

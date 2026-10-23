@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="t d" font-family="DejaVu Sans, Arial, Helvetica, sans-serif">
+  <title id="t">Cómo se crea y cómo funciona un tutor programado</title>
+  <desc id="d">Dos fases. Creación, una vez: el apunte; la IA escribe el programa y los textos de cada error; el docente revisa la especificación. Uso, en cada respuesta: la respuesta del estudiante; el programa la compara con la solución y con los valores de los errores típicos; se muestra el texto ya escrito y la página del apunte. En el uso no interviene ningún modelo de lenguaje.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#33415c"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="900" fill="#ffffff"/>
+
+  <text x="800" y="66" text-anchor="middle" font-size="38" font-weight="700" fill="#1b2b4b">Cómo se crea y cómo funciona un tutor programado</text>
+
+  <!-- 1 · Creación -->
+  <rect x="40" y="100" width="1520" height="305" rx="16" fill="#eef3fb" stroke="#9db3d6" stroke-width="2"/>
+  <text x="70" y="146" font-size="28" font-weight="700" fill="#1b2b4b">1 · Creación (una vez)</text>
+  <rect x="1090" y="118" width="440" height="42" rx="21" fill="#fde7c7" stroke="#c98a2b"/>
+  <text x="1310" y="146" text-anchor="middle" font-size="20" font-weight="700" fill="#6b3f00">La IA interviene aquí, una sola vez</text>
+
+  <g font-size="20" fill="#24324d" text-anchor="middle">
+    <rect x="60" y="180" width="420" height="195" rx="12" fill="#ffffff" stroke="#6f8bb8" stroke-width="2"/>
+    <text x="270" y="240" font-size="24" font-weight="700" fill="#1b2b4b">Apunte del curso</text>
+    <text x="270" y="282">el texto y sus páginas</text>
+    <text x="270" y="316">(p. ej. sample.pdf, pág. 17)</text>
+
+    <rect x="590" y="180" width="420" height="195" rx="12" fill="#ffffff" stroke="#c98a2b" stroke-width="3"/>
+    <text x="800" y="240" font-size="24" font-weight="700" fill="#1b2b4b">La IA escribe el programa</text>
+    <text x="800" y="282">y los textos de cada error</text>
+    <text x="800" y="316">generador · comprobador · catálogo</text>
+
+    <rect x="1120" y="180" width="420" height="195" rx="12" fill="#ffffff" stroke="#6f8bb8" stroke-width="2"/>
+    <text x="1330" y="240" font-size="24" font-weight="700" fill="#1b2b4b">El docente revisa</text>
+    <text x="1330" y="282">la especificación (TOML)</text>
+    <text x="1330" y="316">en la pestaña «Práctica»</text>
+  </g>
+  <line x1="484" y1="277" x2="584" y2="277" stroke="#33415c" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1014" y1="277" x2="1114" y2="277" stroke="#33415c" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- 2 · Uso -->
+  <rect x="40" y="465" width="1520" height="340" rx="16" fill="#eefaf1" stroke="#8cc29a" stroke-width="2"/>
+  <text x="70" y="512" font-size="28" font-weight="700" fill="#14432a">2 · Uso (cada respuesta)</text>
+  <rect x="1040" y="484" width="490" height="46" rx="23" fill="#1e7b3c"/>
+  <text x="1285" y="515" text-anchor="middle" font-size="23" font-weight="700" fill="#ffffff">Sin LLM · 0 llamadas a un modelo</text>
+
+  <g font-size="20" fill="#1f3a2a" text-anchor="middle">
+    <rect x="60" y="548" width="420" height="195" rx="12" fill="#ffffff" stroke="#5f9f72" stroke-width="2"/>
+    <text x="270" y="608" font-size="24" font-weight="700" fill="#14432a">Respuesta del estudiante</text>
+    <text x="270" y="650">solo el número, p. ej. 0,940</text>
+    <text x="270" y="684">no sale del servidor</text>
+
+    <rect x="590" y="548" width="420" height="195" rx="12" fill="#ffffff" stroke="#5f9f72" stroke-width="2"/>
+    <text x="800" y="608" font-size="24" font-weight="700" fill="#14432a">El programa la compara</text>
+    <text x="800" y="650">con la solución y con los</text>
+    <text x="800" y="684">valores de los errores típicos</text>
+
+    <rect x="1120" y="548" width="420" height="195" rx="12" fill="#ffffff" stroke="#5f9f72" stroke-width="2"/>
+    <text x="1330" y="608" font-size="24" font-weight="700" fill="#14432a">Muestra el texto ya escrito</text>
+    <text x="1330" y="650">y la página del apunte</text>
+    <text x="1330" y="684">«Intercambiar precisión…» · pág. 17</text>
+  </g>
+  <!-- The reviewed program is what is used afterwards (drawn over both panels) -->
+  <path d="M1330,378 V440 H800 V542" fill="none" stroke="#33415c" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#arrow)"/>
+  <rect x="905" y="410" width="320" height="26" fill="#ffffff"/>
+  <text x="1065" y="430" text-anchor="middle" font-size="19" fill="#33415c">se usa el programa revisado</text>
+  <line x1="484" y1="645" x2="584" y2="645" stroke="#33415c" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1014" y1="645" x2="1114" y2="645" stroke="#33415c" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <text x="800" y="780" text-anchor="middle" font-size="19" fill="#1f3a2a">Correcto · un error del catálogo, con su porqué · o «Incorrecto, revisa la pág. N» si el error no está en el catálogo</text>
+
+  <text x="800" y="860" text-anchor="middle" font-size="18" fill="#56607a">La redacción con un modelo se hace una vez, al crear el tutor; cuando el estudiante responde, todo lo decide y lo escribe el programa revisado.</text>
+</svg>
