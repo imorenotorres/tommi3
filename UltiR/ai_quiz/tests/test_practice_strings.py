@@ -36,17 +36,27 @@ def test_every_key_built_from_a_value_of_the_server_has_a_text(client, language)
 
 
 @pytest.mark.parametrize("language, words", [
-    ("en", {"info_ai_text": ("Practice is the exception", "without review", "labelled as written by AI", "report", "retire"),
-            "info_know_privacy": ("answer is sent to the language model", "without the name or any id", "not stored")}),
-    ("es", {"info_ai_text": ("La práctica es la excepción", "sin revisión", "marca", "reportar", "retirar"),
-            "info_know_privacy": ("se envía al modelo de lenguaje el texto de la respuesta",
+    ("en", {"info_ai_text": ("programmed tutors", "written once", "instructor reviews", "no model is called",
+                             "off by default", "labelled as written by AI", "without review", "report", "retire"),
+            "info_how_5": ("programmed tutor", "No language model takes part"),
+            "practice_entry_text": ("whether a program or an AI made it",),
+            "info_know_privacy": ("does not leave the server", "off by default", "answer sent to the language model",
+                                  "without the name or any id", "not stored")}),
+    ("es", {"info_ai_text": ("tutores programados", "una sola vez", "revisa el docente", "no se llama a ningún modelo",
+                             "desactivada por defecto", "marca", "sin revisión", "reportarlos", "retirar"),
+            "info_how_5": ("tutor programado", "Ningún modelo de lenguaje interviene"),
+            "practice_entry_text": ("si lo ha generado un programa o una IA",),
+            "info_know_privacy": ("no sale del servidor", "desactivada por defecto",
+                                  "se envía al modelo de lenguaje el texto de la respuesta",
                                   "sin el nombre ni ningún identificador", "no se guarda")}),
 ])
-def test_the_info_page_says_how_practice_differs_and_what_is_sent_to_the_model(client, language, words):
+def test_the_info_page_says_practice_uses_no_model_and_what_the_off_option_would_send(client, language, words):
+    """Practice comes from programmed tutors by default (no model while students answer); the model-written option
+    is off by default, and the page still says what it sends and what it is exempt from where it is switched on."""
     strings = load_strings(client)[language]
 
     for key, phrases in words.items():
-        assert all(phrase in strings[key] for phrase in phrases), key
+        assert [phrase for phrase in phrases if phrase not in strings[key]] == [], key
 
 
 def test_the_info_page_has_the_practice_texts():
