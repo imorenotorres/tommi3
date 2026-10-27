@@ -471,7 +471,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <label>Description</label>
       <textarea id="editDesc"></textarea>
       <label>Timezone</label>
-      <select id="editTimezone" onchange="updateTimezoneOffsetNote()">
+      <select id="editTimezone" onchange="tzManuallySet = true; updateTimezoneOffsetNote()">
         <option value="Europe/Madrid" selected>Spain — Madrid (Europe/Madrid)</option>
         <option value="Europe/Paris">France — Paris (Europe/Paris)</option>
         <option value="Europe/Rome">Italy — Rome (Europe/Rome)</option>
@@ -588,6 +588,7 @@ let TOKEN = '';
 let events = [];
 let categories = [];
 let universities = [];
+let uniTimezones = {};
 let dirGroups = [];
 let dirUsers = [];
 let canEdit = false;
@@ -718,6 +719,7 @@ async function loadData() {
   events = evts;
   categories = cfg.categories;
   universities = cfg.universities;
+  uniTimezones = cfg.university_timezones || {};
   dirGroups = dir.groups;
   dirUsers = dir.users;
   buildFilters();
@@ -1115,7 +1117,7 @@ function timedBlockHTML(item) {
   return `<div class="tl-block ${cls}${ev.date_tbc ? ' tbc' : ''}" style="${style}" onclick="showDetail(${jsArg(ev.id)})" title="${esc(displayName)}${esc(uni)}">${timePrefix}${esc(displayName)}${esc(uni)}</div>`;
 }
 
-function evTZ(ev) { return ev.timezone || 'CEST'; }
+function evTZ(ev) { return ev.timezone || 'Europe/Madrid'; }
 
 function chipHTML(ev, date) {
   const cls = CAT_CSS_CLASS(ev.category);
@@ -1533,6 +1535,19 @@ function updateTimezoneOffsetNote() {
   noteEl.textContent = 'Currently ' + fmtUtcOffset(offsetMinutesFor(tz, refUtc)) + ' for the selected date';
 }
 
+// Ticking a university pre-selects its country's zone, until the user picks a
+// zone by hand (e.g. a virtual event run from another country). Existing
+// events start as "manually set" so editing them never silently moves the time.
+let tzManuallySet = false;
+function suggestTimezoneFromUniversity() {
+  if (tzManuallySet) return;
+  const first = document.querySelector('#editUniversities .uni-cb:checked');
+  const tz = first && uniTimezones[first.value];
+  if (!tz) return;
+  document.getElementById('editTimezone').value = normalizeTimezoneForSelect(tz);
+  updateTimezoneOffsetNote();
+}
+
 function toggleDateTbc() {
   const tbc = document.getElementById('editDateTbc').checked;
   document.getElementById('dateTbcLabelRow').style.display = tbc ? '' : 'none';
@@ -1640,7 +1655,7 @@ function openEdit(id) {
   grpSel.innerHTML = '<option value="">— None —</option>' + dirGroups.map(g => `<option value="${esc(g.name)}">${esc(g.name)}</option>`).join('');
   const uniContainer = document.getElementById('editUniversities');
   uniContainer.innerHTML = universities.map(u =>
-    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="uni-cb" value="${esc(u)}"> ${esc(u)}</label>`
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="uni-cb" value="${esc(u)}" onchange="suggestTimezoneFromUniversity()"> ${esc(u)}</label>`
   ).join('');
   populateGroupSelect();
 
@@ -1657,6 +1672,7 @@ function openEdit(id) {
     uniContainer.querySelectorAll('.uni-cb').forEach(cb => { cb.checked = evUnis.includes(cb.value); });
     document.getElementById('editType').value = ev.event_type || 'Physical';
     document.getElementById('editTimezone').value = normalizeTimezoneForSelect(ev.timezone);
+    tzManuallySet = true;
     document.getElementById('editPlace').value = ev.place || '';
     document.getElementById('editMeetingUrl').value = ev.meeting_url || '';
     document.getElementById('editStart').type = 'datetime-local';
@@ -1680,6 +1696,7 @@ function openEdit(id) {
     grpSel.value = '';
     document.getElementById('editType').value = 'Physical';
     document.getElementById('editTimezone').value = 'Europe/Madrid';
+    tzManuallySet = false;
     document.getElementById('editPlace').value = '';
     document.getElementById('editMeetingUrl').value = '';
     document.getElementById('editStart').type = 'datetime-local';
@@ -1809,6 +1826,7 @@ function editSeries(seriesId, evId) {
   catContainer.querySelectorAll('.cat-cb').forEach(cb => { cb.checked = evCats.includes(cb.value); });
   document.getElementById('editType').value = ev.event_type || 'Physical';
   document.getElementById('editTimezone').value = normalizeTimezoneForSelect(ev.timezone);
+  tzManuallySet = true;
   document.getElementById('editPlace').value = ev.place || '';
   document.getElementById('editMeetingUrl').value = ev.meeting_url || '';
   document.getElementById('editStart').type = 'datetime-local';

@@ -61,6 +61,21 @@ _UNI_NAME_TO_CODE = {
     "UNIVERSITETI I TIRANËS":                                   "UT",
 }
 
+# Each university's local IANA zone. Event times are stored as the wall-clock
+# time typed into the form plus one of these zones, so 09:00 stays 09:00 local
+# on both sides of a DST change.
+UNI_TIMEZONES = {
+    "KK":    "Europe/Vilnius",
+    "UMA":   "Europe/Madrid",
+    "USPN":  "Europe/Paris",
+    "TAMK":  "Europe/Helsinki",
+    "THUAS": "Europe/Amsterdam",
+    "UDCLV": "Europe/Rome",
+    "UT":    "Europe/Tirane",
+    "THWS":  "Europe/Berlin",
+}
+DEFAULT_TIMEZONE = "Europe/Madrid"
+
 # Agora event type → our category
 _EVENT_TYPE_MAP = {
     "Blended Intensive Programme": "BIP",
@@ -114,15 +129,51 @@ DEFAULT_DATA = {
 }
 
 
+def _zone_for_event(ev: dict) -> str:
+    unis = ev.get("universities") or ([ev["university"]] if ev.get("university") else [])
+    return UNI_TIMEZONES.get(unis[0], DEFAULT_TIMEZONE) if unis else DEFAULT_TIMEZONE
+
+
+def _normalize_timezones(data: dict) -> bool:
+    """Replace fixed-offset labels with real zones; returns True if anything changed.
+
+    Older events (and imports) were stored as "CEST"/"CET", a fixed UTC+2/+1
+    that ignores DST, so a 09:00 CEST event showed as 08:00 after the switch to
+    winter time. Their wall-clock time is kept and the label becomes the zone
+    of the event's university. Catalogue times come from Agora (Odoo) in UTC.
+    """
+    changed = False
+    for ev in data.get("catalogue_events", []):
+        if ev.get("timezone") != "UTC":
+            ev["timezone"] = "UTC"
+            changed = True
+    for ev in data.get("events", []):
+        tz = ev.get("timezone") or ""
+        if ev.get("source") == "catalogue":
+            new_tz = "UTC"
+        elif "/" in tz or tz in ("UTC", "GMT"):
+            continue
+        else:
+            new_tz = _zone_for_event(ev)
+        if tz != new_tz:
+            ev["timezone"] = new_tz
+            changed = True
+    return changed
+
+
 def load_data():
     if not os.path.exists(DATA_PATH):
         save_data(DEFAULT_DATA.copy())
         return DEFAULT_DATA.copy()
     with open(DATA_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    if _normalize_timezones(data):
+        save_data(data)
+    return data
 
 
 def save_data(data: dict):
+    _normalize_timezones(data)
     with open(DATA_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
@@ -403,7 +454,7 @@ def _agora_item_to_event(item: dict) -> dict:
         "event_type": event_type,
         "place": place,
         "meeting_url": meeting_url,
-        "timezone": "CEST",
+        "timezone": "UTC",  # Agora (Odoo) returns datetimes in UTC
         "start_date": start,
         "end_date": end if end else start,
         "date_segments": date_segments,
@@ -470,6 +521,7 @@ def get_config(session: dict = Depends(_require_auth)):
     return {
         "categories": data["categories"],
         "universities": data.get("universities", []),
+        "university_timezones": UNI_TIMEZONES,
     }
 
 
@@ -562,7 +614,7 @@ class EventBody(BaseModel):
     event_type: str = "Physical"
     place: str = ""
     meeting_url: str = ""
-    timezone: str = "CEST"
+    timezone: str = ""  # blank → the first university's zone (see _normalize_timezones)
     start_date: str = ""
     end_date: str = ""
     registration_link: str = ""
@@ -867,14 +919,13 @@ def delete_series(series_id: str, session: dict = Depends(_require_auth)):
 TSV_FIELDS = [
     "id", "name", "description", "category", "university", "event_type",
     "timezone", "place", "meeting_url", "start_date", "end_date",
-    "registration_link", "date_tbc", "date_tbc_label", "series_id", "created_by",
+    "registration_link", "date_tbc", "date_tbc_label", "all_day", "series_id", "created_by",
 ]
+TSV_BOOL_FIELDS = {"date_tbc", "all_day"}
 
-TZ_OFFSETS = {
-    "CET": "+0100", "CEST": "+0200", "EET": "+0200", "EEST": "+0300",
-    "WET": "+0000", "WEST": "+0100", "GMT": "+0000", "UTC": "+0000",
-}
 
+def _tsv_bool(v) -> bool:
+    return str(v).strip().lower() in ("true", "1", "yes")
 
 def _ical_escape(s: str) -> str:
     return s.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace("\n", "\\n")
@@ -898,8 +949,7 @@ def _generate_ics(events_list: list) -> str:
     for ev in events_list:
         if not ev.get("start_date") or not ev.get("end_date"):
             continue
-        tz = ev.get("timezone", "CEST")
-        tzid = "Europe/Berlin"
+        tz = ev.get("timezone") or DEFAULT_TIMEZONE
         tbc_prefix = "[TBC] " if ev.get("date_tbc") else ""
         lines.append("BEGIN:VEVENT")
         lines.append(f"UID:{ev['id']}@uninovis.calendar")
@@ -909,9 +959,12 @@ def _generate_ics(events_list: list) -> str:
             end_exclusive = max(end_dt.date(), start_dt.date()) + timedelta(days=1)
             lines.append(f"DTSTART;VALUE=DATE:{start_dt.strftime('%Y%m%d')}")
             lines.append(f"DTEND;VALUE=DATE:{end_exclusive.strftime('%Y%m%d')}")
+        elif tz in ("UTC", "GMT"):
+            lines.append(f"DTSTART:{_to_ical_dt(ev['start_date'])}Z")
+            lines.append(f"DTEND:{_to_ical_dt(ev['end_date'])}Z")
         else:
-            lines.append(f"DTSTART;TZID={tzid}:{_to_ical_dt(ev['start_date'])}")
-            lines.append(f"DTEND;TZID={tzid}:{_to_ical_dt(ev['end_date'])}")
+            lines.append(f"DTSTART;TZID={tz}:{_to_ical_dt(ev['start_date'])}")
+            lines.append(f"DTEND;TZID={tz}:{_to_ical_dt(ev['end_date'])}")
         lines.append(f"SUMMARY:{_ical_escape(tbc_prefix + ev['name'])}")
         desc_parts = []
         if ev.get("date_tbc"):
@@ -1129,7 +1182,7 @@ async def import_json(file: UploadFile = File(...), session: dict = Depends(_req
                     for k in ["name", "description", "category", "university",
                               "event_type", "timezone", "place", "meeting_url",
                               "start_date", "end_date", "registration_link",
-                              "date_tbc", "date_tbc_label", "series_id"]:
+                              "date_tbc", "date_tbc_label", "all_day", "series_id"]:
                         if k in item:
                             v = item[k]
                             if k in ("meeting_url", "registration_link"):
@@ -1145,7 +1198,7 @@ async def import_json(file: UploadFile = File(...), session: dict = Depends(_req
                 "category": cat,
                 "university": item.get("university", ""),
                 "event_type": item.get("event_type", "Physical"),
-                "timezone": item.get("timezone", "CEST"),
+                "timezone": item.get("timezone", ""),
                 "place": item.get("place", ""),
                 "meeting_url": _valid_url_or_blank(item.get("meeting_url", "")),
                 "start_date": item.get("start_date", ""),
@@ -1154,6 +1207,7 @@ async def import_json(file: UploadFile = File(...), session: dict = Depends(_req
                 "image": item.get("image", ""),
                 "date_tbc": item.get("date_tbc", False),
                 "date_tbc_label": item.get("date_tbc_label", ""),
+                "all_day": bool(item.get("all_day", False)),
                 "participants": item.get("participants", []),
                 "participant_groups": item.get("participant_groups", []),
                 "series_id": item.get("series_id", ""),
@@ -1205,6 +1259,8 @@ async def import_tsv(file: UploadFile = File(...), session: dict = Depends(_requ
                             v = row[k]
                             if k in ("meeting_url", "registration_link"):
                                 v = _valid_url_or_blank(v)
+                            elif k in TSV_BOOL_FIELDS:
+                                v = _tsv_bool(v)
                             ev[k] = v
                     break
             result.updated += 1
@@ -1216,15 +1272,16 @@ async def import_tsv(file: UploadFile = File(...), session: dict = Depends(_requ
                 "category": cat,
                 "university": row.get("university", ""),
                 "event_type": row.get("event_type", "Physical"),
-                "timezone": row.get("timezone", "CEST"),
+                "timezone": row.get("timezone", ""),
                 "place": row.get("place", ""),
                 "meeting_url": _valid_url_or_blank(row.get("meeting_url", "")),
                 "start_date": row.get("start_date", ""),
                 "end_date": row.get("end_date", ""),
                 "registration_link": _valid_url_or_blank(row.get("registration_link", "")),
                 "image": "",
-                "date_tbc": row.get("date_tbc", "").lower() in ("true", "1", "yes"),
+                "date_tbc": _tsv_bool(row.get("date_tbc", "")),
                 "date_tbc_label": row.get("date_tbc_label", ""),
+                "all_day": _tsv_bool(row.get("all_day", "")),
                 "participants": [],
                 "participant_groups": [],
                 "series_id": row.get("series_id", ""),
