@@ -1006,8 +1006,10 @@ function segmentCoveringDate(ev, date) {
   for (const seg of eventSegments(ev)) {
     if (!seg.start) continue;
     const s = useInstant ? toInstant(seg.start, tz) : new Date(seg.start);
-    s.setHours(0,0,0,0);
     const en = useInstant ? toInstant(seg.end || seg.start, tz) : new Date(seg.end || seg.start);
+    // A timed event ending exactly at 00:00 doesn't occupy that next day.
+    if (useInstant && en > s && en.getHours() === 0 && en.getMinutes() === 0) en.setTime(en.getTime() - 1);
+    s.setHours(0,0,0,0);
     en.setHours(23,59,59,999);
     if (d >= s && d <= en) return seg;
   }
@@ -1023,28 +1025,54 @@ function eventsOnDate(date) {
 // shown on their chip (segmentCoveringDate's start, same value chipHTML
 // reads to render "HH:MM").
 function eventTimeKey(ev, date) {
-  const seg = segmentCoveringDate(ev, date);
-  if (!seg || !seg.start || ev.date_tbc || ev.all_day) return -1;
-  const s = toInstant(seg.start, evTZ(ev));
-  return s.getHours() * 60 + s.getMinutes();
+  const slice = daySlice(ev, segmentCoveringDate(ev, date), date);
+  if (!slice || slice.allDay || ev.date_tbc || ev.all_day) return -1;
+  return slice.start.getHours() * 60 + slice.start.getMinutes();
 }
 
 function sortEventsByTime(evs, date) {
   return evs.slice().sort((a, b) => eventTimeKey(a, date) - eventTimeKey(b, date));
 }
 
-function isAllDaySegment(ev, seg) {
-  // Multi-day segments, or ones covering the whole visible hour window, get
-  // shown once as an all-day banner instead of repeating in every hour row.
-  // All-day/TBC events keep the same naive date treatment as
-  // segmentCoveringDate, for the same reason: no meaningful clock time to
-  // convert, and converting could shift them onto an adjacent calendar day.
-  if (!seg || !seg.start) return false;
-  const useInstant = !ev.all_day && !ev.date_tbc;
-  const s = useInstant ? toInstant(seg.start, evTZ(ev)) : new Date(seg.start);
-  const e = useInstant ? toInstant(seg.end || seg.start, evTZ(ev)) : new Date(seg.end || seg.start);
-  if (!sameDay(s, e)) return true;
-  return s.getHours() <= 7 && e.getHours() >= 21;
+// The part of `seg` that falls on `day`, in the viewer's local time. A timed
+// event spanning several days is split per day: the first day runs from its
+// start time to 23:59, the days in between are all day, and the last day runs
+// from 00:00 to its end time (e.g. 22 Oct 10:00 → 26 Oct 22:00 gives 22nd
+// 10:00–23:59, 23rd–25th all day, 26th 00:00–22:00).
+// All-day/TBC events have no meaningful clock time, so they are all day on
+// every date they cover. A single-day event covering the whole visible hour
+// window is also shown once as an all-day banner.
+function daySlice(ev, seg, day) {
+  if (!seg || !seg.start) return null;
+  if (ev.all_day || ev.date_tbc) return { allDay: true, multiDay: false };
+  const tz = evTZ(ev);
+  const s = toInstant(seg.start, tz);
+  let e = toInstant(seg.end || seg.start, tz);
+  if (e > s && e.getHours() === 0 && e.getMinutes() === 0) e = new Date(e.getTime() - 60000); // ends at midnight → 23:59 the day before
+  if (sameDay(s, e)) {
+    return { allDay: s.getHours() <= 7 && e.getHours() >= 21, multiDay: false, start: s, end: e };
+  }
+  const dayStart = new Date(day); dayStart.setHours(0, 0, 0, 0);
+  const dayEnd = new Date(day); dayEnd.setHours(23, 59, 0, 0);
+  const start = sameDay(s, day) ? s : dayStart;
+  const end = sameDay(e, day) ? e : dayEnd;
+  // A day covered from 00:00 to 23:59 is all day, wherever it falls in the span.
+  const allDay = hhmm(start) === '00:00' && hhmm(end) === '23:59';
+  return { allDay, multiDay: true, start, end };
+}
+
+function isAllDayOn(ev, day) {
+  const slice = daySlice(ev, segmentCoveringDate(ev, day), day);
+  return !!slice && slice.allDay;
+}
+
+function hhmm(d) { return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
+
+// Clock label for one day of an event: "" when all day, the start time for a
+// single-day event, and "start–end" for one day of a multi-day event.
+function sliceTimeLabel(slice) {
+  if (!slice || slice.allDay) return '';
+  return slice.multiDay ? hhmm(slice.start) + '–' + hhmm(slice.end) : hhmm(slice.start);
 }
 
 function fmtTime(isoStr, tz) {
@@ -1074,15 +1102,14 @@ function timedEventsForDay(day) {
 
   const items = eventsOnDate(day).map(ev => {
     const seg = segmentCoveringDate(ev, day);
-    if (!seg || isAllDaySegment(ev, seg)) return null;
-    const tz = evTZ(ev);
-    const segStart = toInstant(seg.start, tz);
-    const segEnd = seg.end ? toInstant(seg.end, tz) : segStart;
-    const s = sameDay(segStart, day) ? segStart : dayStart;
-    const e = sameDay(segEnd, day) ? segEnd : dayEnd;
+    const slice = daySlice(ev, seg, day);
+    if (!slice || slice.allDay) return null;
+    // The timeline only spans TIMELINE_FIRST_HOUR..LAST_HOUR; clip to it.
+    const s = slice.start < dayStart ? dayStart : slice.start;
+    const e = slice.end > dayEnd ? dayEnd : slice.end;
     const top = timelineOffset(s);
     const height = Math.max(20, timelineOffset(e) - top);
-    return { ev, seg, top, height, bottom: top + height };
+    return { ev, seg, slice, top, height, bottom: top + height };
   }).filter(Boolean);
 
   items.sort((a, b) => a.top - b.top);
@@ -1104,7 +1131,7 @@ function catalogueLabel(ev) {
 }
 
 function timedBlockHTML(item) {
-  const { ev, seg, top, height, lane, totalLanes } = item;
+  const { ev, slice, top, height, lane, totalLanes } = item;
   const cls = CAT_CSS_CLASS(ev.category);
   const isCat = ev.source === 'catalogue';
   const displayName = isCat ? catalogueLabel(ev) : ev.name;
@@ -1113,7 +1140,8 @@ function timedBlockHTML(item) {
   const widthPct = 100 / totalLanes;
   const leftPct = widthPct * lane;
   const style = `top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);`;
-  const timePrefix = ev.all_day ? '' : fmtTime(seg.start, evTZ(ev)) + ' ';
+  const t = sliceTimeLabel(slice);
+  const timePrefix = t ? t + ' ' : '';
   return `<div class="tl-block ${cls}${ev.date_tbc ? ' tbc' : ''}" style="${style}" onclick="showDetail(${jsArg(ev.id)})" title="${esc(displayName)}${esc(uni)}">${timePrefix}${esc(displayName)}${esc(uni)}</div>`;
 }
 
@@ -1124,9 +1152,9 @@ function chipHTML(ev, date) {
   const isCat = ev.source === 'catalogue';
   const catCls = isCat ? ' catalogue' : '';
   const seg = date ? segmentCoveringDate(ev, date) : null;
-  const segStart = seg ? seg.start : ev.start_date;
-  const t = segStart ? fmtTime(segStart, evTZ(ev)) : '';
-  const timeLabel = (ev.date_tbc || ev.all_day) ? '' : (t ? t + ' ' : '');
+  const t = date ? sliceTimeLabel(daySlice(ev, seg, date))
+                 : (ev.start_date && !ev.all_day && !ev.date_tbc ? fmtTime(ev.start_date, evTZ(ev)) : '');
+  const timeLabel = t ? t + ' ' : '';
   const uniList = ev.universities || (ev.university ? [ev.university] : []);
   const uni = uniList.length ? ' (' + uniList.join(', ') + ')' : '';
   const displayName = isCat ? catalogueLabel(ev) : ev.name;
@@ -1192,7 +1220,7 @@ function renderWeek() {
   html += '<div class="wg-time wg-allday-label">All day</div>';
   weekDays.forEach(d => {
     const isToday = sameDay(d, today);
-    const allDayEvents = eventsOnDate(d).filter(ev => isAllDaySegment(ev, segmentCoveringDate(ev, d)));
+    const allDayEvents = eventsOnDate(d).filter(ev => isAllDayOn(ev, d));
     html += `<div class="wg-cell wg-allday-cell${isWeekendDay(d) ? ' weekend-col' : ''}${isToday ? ' today-col' : ''}">`;
     allDayEvents.forEach(ev => { html += chipHTML(ev, d); });
     html += '</div>';
@@ -1221,7 +1249,7 @@ function renderDay() {
   const totalHeight = hours.length * TIMELINE_ROW_HEIGHT;
   let html = '<div class="day-view">';
 
-  const allDayEvents = eventsOnDate(currentDate).filter(ev => isAllDaySegment(ev, segmentCoveringDate(ev, currentDate)));
+  const allDayEvents = eventsOnDate(currentDate).filter(ev => isAllDayOn(ev, currentDate));
   if (allDayEvents.length) {
     html += '<div class="dv-row">';
     html += '<div class="dv-time">All day</div>';
