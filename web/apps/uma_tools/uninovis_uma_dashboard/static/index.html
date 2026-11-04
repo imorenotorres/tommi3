@@ -975,13 +975,51 @@
         return isAdmin() || !!myAssignee(task) || isMe(subtask.assignee);
     }
 
-    // The "All" and "Unassigned" views list every subtask. In the "Me"
-    // view only the task's main assignee sees every subtask; everyone else
-    // sees just the subtasks assigned to them.
+    // Whether a stored assignee sub-object is one of the people picked in
+    // the "Choose other" filter (or, for no assignee, whether "Unassigned"
+    // is picked). Matches by person_id, falling back to the name.
+    function assigneeInFilter(assignee) {
+        if (!assignee) return state.filterAssignees.indexOf('__unassigned__') !== -1;
+        var name = (assignee.name || '').toLowerCase();
+        return state.filterAssignees.some(function(id) {
+            if (id === '__unassigned__') return false;
+            if (assignee.person_id && String(assignee.person_id) === id) return true;
+            var p = state.directoryPeople.find(function(x) { return String(x.id) === id; });
+            return p && (p.name || '').toLowerCase() === name;
+        });
+    }
+
+    // A task can be listed because of some of its subtasks rather than
+    // itself: in the "Me" view when the user only has subtasks in it, and
+    // under the "Choose other" filter when the picked people only have
+    // subtasks in it. Such a row shows just those subtasks, and the status
+    // filter, search and sorting go by their own status/deadline, not the
+    // parent task's (which may well be Completed, or filtered out, while
+    // the subtask is still open). Returns the test picking those subtasks,
+    // or null when the task is listed for itself.
+    function subtaskListingTest(task) {
+        if ((task.kind || 'task') !== 'task') return null;
+        if (state.viewMode === 'mine' && !myAssignee(task)) {
+            return function(s) { return isMe(s.assignee); };
+        }
+        if (state.filterAssignees.length && !assigneeInFilter(task.assignee)) {
+            return function(s) { return !!s.assignee && assigneeInFilter(s.assignee); };
+        }
+        return null;
+    }
+
+    // Every subtask, except for tasks listed because of some of their
+    // subtasks (see subtaskListingTest), which show just those.
     function listVisibleSubtasks(task) {
         var subtasks = task.subtasks || [];
-        if (state.viewMode !== 'mine' || myAssignee(task)) return subtasks;
-        return subtasks.filter(function(s) { return isMe(s.assignee); });
+        var test = subtaskListingTest(task);
+        return test ? subtasks.filter(test) : subtasks;
+    }
+
+    // Whether the user is the main assignee or a subtask assignee —
+    // mirrors _is_involved server-side.
+    function isInvolved(task) {
+        return !!myAssignee(task) || (task.subtasks || []).some(function(s) { return isMe(s.assignee); });
     }
 
     // Every task this client knows about (tasksMine may hold private tasks
@@ -1030,41 +1068,55 @@
 
         // Empty filterStatuses means "all statuses" (no filtering); it
         // defaults to everything except "completed" — see populateStatusSelects.
+        var statusPasses = function(statusId) {
+            return !state.filterStatuses.length || state.filterStatuses.indexOf(statusId) !== -1;
+        };
+        var matchesQuery = function(texts) {
+            return !query || texts.join(' ').toLowerCase().indexOf(query) !== -1;
+        };
+        // Task id -> the subtasks that pass the status filter and search,
+        // for tasks listed because of some of their subtasks (see
+        // subtaskListingTest).
+        var subtaskMatches = {};
         var filtered = source.filter(function(t) {
             if (filterKind && (t.kind || 'task') !== filterKind) return false;
-            var effectiveStatus = taskStatus(t);
-            if (state.filterStatuses.length && state.filterStatuses.indexOf(effectiveStatus) === -1) return false;
+            var listedForSubtasks = !!subtaskListingTest(t);
+            if (listedForSubtasks) {
+                var parentMatches = matchesQuery([t.title, t.description, t.goal]);
+                var matches = listVisibleSubtasks(t).filter(function(s) {
+                    return statusPasses(s.status) && (parentMatches || matchesQuery([s.title, s.notes]));
+                });
+                if (!matches.length) return false;
+                subtaskMatches[t.id] = matches;
+            } else if (!statusPasses(taskStatus(t))) {
+                return false;
+            }
             if (state.filterUnits.length && state.filterUnits.indexOf(String(t.unit_id || '')) === -1) return false;
-            if (state.filterAssignees.length) {
-                var wantUnassigned = state.filterAssignees.indexOf('__unassigned__') !== -1;
-                if (!t.assignee) {
-                    if (!wantUnassigned) return false;
-                } else {
-                    var taskName = (t.assignee.name || '').toLowerCase();
-                    var matchedAssignee = state.filterAssignees.some(function(id) {
-                        if (id === '__unassigned__') return false;
-                        if (t.assignee.person_id && String(t.assignee.person_id) === id) return true;
-                        var p = state.directoryPeople.find(function(x) { return String(x.id) === id; });
-                        return p && (p.name || '').toLowerCase() === taskName;
-                    });
-                    if (!matchedAssignee) return false;
-                }
-            }
-            if (query) {
-                var haystack = [t.title, t.description, t.goal].join(' ').toLowerCase();
-                if (haystack.indexOf(query) === -1) return false;
-            }
+            // Tasks listed for their subtasks already passed the assignee
+            // filter through them.
+            if (!listedForSubtasks && state.filterAssignees.length && !assigneeInFilter(t.assignee)) return false;
+            if (!listedForSubtasks && !matchesQuery([t.title, t.description, t.goal])) return false;
             return true;
         });
 
-        var statsSource = source;
+        // The stats ignore every filter but the view; in the "Me" view,
+        // tasks listed for the user's subtasks count each of those
+        // subtasks, by its own status, instead of the parent task.
         var counts = {};
-        statsSource.forEach(function(t) {
-            var s = taskStatus(t);
+        var total = 0;
+        var countStatus = function(s) {
             counts[s] = (counts[s] || 0) + 1;
+            total++;
+        };
+        source.forEach(function(t) {
+            if (state.viewMode === 'mine' && subtaskListingTest(t)) {
+                listVisibleSubtasks(t).forEach(function(s) { countStatus(s.status); });
+            } else {
+                countStatus(taskStatus(t));
+            }
         });
         var statAbbrev = { 'Action Needed': 'Act. need.' };
-        var statsHtml = '<div class="stat"><div class="number">' + statsSource.length + '</div><div class="label">Total</div></div>';
+        var statsHtml = '<div class="stat"><div class="number">' + total + '</div><div class="label">Total</div></div>';
         state.statuses.forEach(function(s) {
             var lbl = statAbbrev[s.label] || s.label;
             statsHtml += '<div class="stat"><div class="number">' + (counts[s.id] || 0) + '</div><div class="label">' + esc(lbl) + '</div></div>';
@@ -1075,6 +1127,17 @@
         state.statuses.forEach(function(s, idx) { statusOrder[s.id] = idx; });
 
         var getSortValue = function(t) {
+            // Rows listed for their subtasks sort by the most urgent of
+            // them (earliest deadline, earliest status).
+            var subs = subtaskMatches[t.id];
+            if (subs && _tableSortCol === 'deadline') {
+                return subs.map(function(s) { return s.deadline || '9999-99-99'; }).sort()[0];
+            }
+            if (subs && _tableSortCol === 'status') {
+                return Math.min.apply(null, subs.map(function(s) {
+                    return statusOrder[s.status] != null ? statusOrder[s.status] : 99;
+                }));
+            }
             switch (_tableSortCol) {
                 case 'kind': return kindLabel(t.kind).toLowerCase();
                 case 'title': return (t.title || '').toLowerCase();
@@ -1131,9 +1194,11 @@
             html += '</tr>';
 
             // Child rows always follow their parent, whatever the filters/
-            // sort — those apply to the parent rows only. A task shows its
-            // subtasks (see listVisibleSubtasks); a contact request shows
-            // its assigned tasks. Clicking a child row opens the task.
+            // sort — those apply to the parent rows only, except for tasks
+            // listed for their subtasks, which show just the subtasks that
+            // matched. A task shows its subtasks (see listVisibleSubtasks);
+            // a contact request shows its assigned tasks. Clicking a child
+            // row opens the task.
             var childRow = function(taskId, label, assignee, deadline, statusId) {
                 var childOverdue = deadline && deadline < todayIso && statusId !== COMPLETED_STATUS_ID;
                 return '<tr class="task-row sub-list-row" onclick="openViewModal(\'' + taskId + '\')">' +
@@ -1145,7 +1210,7 @@
                     '</tr>';
             };
             if ((t.kind || 'task') === 'task') {
-                listVisibleSubtasks(t).forEach(function(s) {
+                (subtaskMatches[t.id] || listVisibleSubtasks(t)).forEach(function(s) {
                     html += childRow(t.id, s.title, s.assignee, s.deadline, s.status);
                 });
             } else {
@@ -1474,7 +1539,7 @@
         var allList = saved.kind === 'contact' ? 'contactsAll' : 'tasksAll';
         state[mineList] = state[mineList].map(function(t) { return t.id === saved.id ? saved : t; });
         state[allList] = state[allList].map(function(t) { return t.id === saved.id ? saved : t; });
-        if (myAssignee(saved) && !state[mineList].find(function(t) { return t.id === saved.id; })) state[mineList].push(saved);
+        if (isInvolved(saved) && !state[mineList].find(function(t) { return t.id === saved.id; })) state[mineList].push(saved);
         if (!state[allList].find(function(t) { return t.id === saved.id; })) state[allList].push(saved);
     }
 
