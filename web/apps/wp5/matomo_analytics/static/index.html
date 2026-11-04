@@ -96,6 +96,37 @@
         .country-pill.uninovis-group.active { background: #7c3aed; color: #fff; border-color: #7c3aed; }
 
         .hrow:hover { background: #f8fafc; border-radius: 4px; }
+
+        /* PDF report (browser print) */
+        .controls button.btn-secondary { background: #fff; color: #2D3876; border: 1px solid #2D3876; padding: 7px 16px; }
+        .controls button.btn-secondary:hover { background: #eef0f8; }
+        .controls button:disabled { opacity: 0.6; cursor: wait; }
+        .print-only { display: none; }
+        .print-header h1 { font-size: 1.25rem; color: #2D3876; margin-bottom: 4px; }
+        .print-header .ph-meta { font-size: 0.72rem; color: #666; margin-bottom: 8px; }
+        .print-header table { border-collapse: collapse; font-size: 0.75rem; margin-bottom: 12px; }
+        .print-header td { padding: 2px 14px 2px 0; vertical-align: top; }
+        .print-header td:first-child { font-weight: 600; color: #555; }
+        .print-tab h3 { font-size: 0.88rem; color: #2D3876; margin-bottom: 8px; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 12mm; }
+            html, body { background: #fff !important; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            body.has-uninovis-nav { padding-top: 0 !important; }
+            .uninovis-nav, .controls, #tabsSection, .no-print,
+            .panel select, .panel button, .panel label, .chart-tooltip { display: none !important; }
+            .print-only { display: block !important; }
+            .container { max-width: none; padding: 0; }
+            .panel { box-shadow: none; border: 1px solid #e5e7eb; break-inside: avoid; page-break-inside: avoid; }
+            .print-tab { break-inside: auto; page-break-inside: auto; }
+            .hrow { break-inside: avoid; page-break-inside: avoid; }
+            .hrow:hover { background: none; }
+            /* Charts are drawn for screen width; scale them uniformly instead of squashing */
+            .lchart { height: auto !important; }
+            .lchart svg { height: auto; }
+            .hlbl { width: 180px; }
+        }
     </style>
     <!-- Matomo -->
     <script>
@@ -121,6 +152,9 @@
 </div>
 
 <div class="container" id="mainContainer">
+    <!-- Print-only report header (filled by printReport) -->
+    <div class="print-only print-header" id="printHeader"></div>
+
     <!-- 1. Filters -->
     <div class="controls">
         <label>Site:</label>
@@ -159,6 +193,7 @@
         </select>
         <div style="flex:1;"></div>
         <button onclick="loadAll()">Apply</button>
+        <button id="btnPdf" class="btn-secondary" onclick="printReport()" title="Save the current view as a PDF report (all tabs included)">PDF report</button>
         <a id="setupLink" href="/site-analytics/setup" style="font-size:0.72rem;color:#2D3876;text-decoration:none;margin-left:4px;" title="Configure tracked URLs">&#9881; Setup</a>
     </div>
 
@@ -221,6 +256,9 @@
         <div class="panel" id="tabContent"><div class="loading">Loading...</div></div>
         <div class="note" id="tabNote" style="margin-top:4px;">Click on a page name to see visits over time (to that page)</div>
     </div>
+
+    <!-- Print-only: all four tabs, filled by printReport -->
+    <div class="print-only" id="printTabs"></div>
 
     <!-- Drill-down panel for a specific page -->
     <div class="panel" id="drillPanel" style="display:none;">
@@ -1516,23 +1554,43 @@ async function loadChart() {
 // ── Tabs ──
 var tabCache = {};
 var _tabGen = 0;
+function tabCacheKey(tab) {
+    return [tab,site(),selectedCountry(),per(),rng(),selectedPageUrl(),tabLimit(),viewMode()].join('_');
+}
+
 async function loadTab(tab) {
     var gen = ++_tabGen;
     var el = $$('tabContent');
-    var lim = tabLimit();
-    var vm = viewMode();
-    var cc = selectedCountry();
-    var ck = [tab,site(),cc,per(),rng(),selectedPageUrl(),lim,vm].join('_');
+    var ck = tabCacheKey(tab);
     if (tabCache[ck]) { el.innerHTML = tabCache[ck]; return; }
     el.innerHTML = '<div class="loading">Loading...</div>';
     try {
+        var html = await buildTabHtml(tab, {
+            isStale: function() { return gen !== _tabGen; },
+            onStatus: function(msg) { if (gen === _tabGen) el.innerHTML = '<div class="loading">'+msg+'</div>'; }
+        });
+        if (html == null || gen !== _tabGen) return;
+        el.innerHTML = html;
+    } catch(e) { if (gen === _tabGen) el.innerHTML = '<span class="error">Error: '+e.message+'</span>'; }
+}
+
+// Fetches and renders one tab's content. Returns HTML (cached), or null if opts.isStale() became true.
+async function buildTabHtml(tab, opts) {
+    opts = opts || {};
+    var isStale = opts.isStale || function() { return false; };
+    var lim = tabLimit();
+    var vm = viewMode();
+    var cc = selectedCountry();
+    var ck = tabCacheKey(tab);
+    if (tabCache[ck]) return tabCache[ck];
+    {
         var raw, items, html;
         var fetchLimit = lim === '-1' ? '-1' : String(Math.max(parseInt(lim)*2, 100));
         var countryFiltered = (cc !== 'all');
 
         if (countryFiltered && (tab === 'pages' || tab === 'referrers' || tab === 'devices')) {
             // Country-filtered: use Live API
-            el.innerHTML = '<div class="loading">Loading (Live API)...</div>';
+            if (opts.onStatus) opts.onStatus('Loading (Live API)...');
             var resolvedCC = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
             var p = per(), r = rng();
             var numPeriods = parseInt(r.replace('last','')) || 8;
@@ -1547,7 +1605,7 @@ async function loadTab(tab) {
                 }).catch(function() {});
             });
             await Promise.all(fetches);
-            if (gen !== _tabGen) return;
+            if (isStale()) return null;
 
             // Filter visits by country
             function matchCountry(vCountry) {
@@ -1600,7 +1658,7 @@ async function loadTab(tab) {
                     raw = await q('DevicesDetection.getType', {filter_limit:fetchLimit});
                     items = isAll() ? flatA(raw) : arrify(raw); break;
             }
-            if (gen !== _tabGen) return;
+            if (isStale()) return null;
             // For countries tab with country filter: filter from API data
             if (tab === 'countries' && countryFiltered && items) {
                 var resolvedCC2 = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
@@ -1635,11 +1693,11 @@ async function loadTab(tab) {
         if (lim !== '-1') {
             items = items.slice(0, parseInt(lim));
         }
-        if (gen !== _tabGen) return;
+        if (isStale()) return null;
         html = renderH(items, tab);
         tabCache[ck] = html;
-        el.innerHTML = html;
-    } catch(e) { el.innerHTML = '<span class="error">Error: '+e.message+'</span>'; }
+        return html;
+    }
 }
 
 function reloadCurrentTab() {
@@ -1701,6 +1759,66 @@ function showTab(tab, btn) {
     document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
     if (btn) btn.classList.add('active');
     loadTab(tab);
+}
+
+// ── PDF report (browser print → "Save as PDF") ──
+function escHtml(s) {
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function selText(id) {
+    var s = $$(id);
+    return (s && s.selectedIndex >= 0) ? s.options[s.selectedIndex].textContent : '';
+}
+
+function buildPrintHeader(includeTabs) {
+    var rows = [
+        ['Site', selText('selSite')],
+        ['Page', selText('selPage')],
+        ['Country', selText('selCountry')],
+        ['Period', selText('selPeriod') + ' — ' + selText('selRange') + ' (' + periodLabel() + ')'],
+        ['Metric', selText('selMetric')],
+        ['Countries chart', selText('selCountryLimit')]
+    ];
+    if (includeTabs) rows.push(['Tables', selText('selView') + ', ' + selText('selLimit')]);
+    var now = new Date();
+    $$('printHeader').innerHTML =
+        '<h1>UNINOVIS — Site Analytics Report</h1>'
+        + '<div class="ph-meta">Generated ' + escHtml(now.toLocaleString()) + '</div>'
+        + '<table>' + rows.map(function(r) {
+            return '<tr><td>' + escHtml(r[0]) + '</td><td>' + escHtml(r[1]) + '</td></tr>';
+        }).join('') + '</table>';
+}
+
+var TAB_TITLES = { pages: 'Top Pages', referrers: 'Referrers', countries: 'Countries', devices: 'Devices' };
+
+async function printReport() {
+    var btn = $$('btnPdf');
+    var label = btn.innerHTML;
+    btn.disabled = true;
+    btn.textContent = 'Preparing…';
+    try {
+        var includeTabs = !selectedPageUrl(); // tabs are hidden on screen when a page is selected
+        buildPrintHeader(includeTabs);
+        var out = $$('printTabs');
+        out.innerHTML = '';
+        if (includeTabs) {
+            var parts = [];
+            for (var tab in TAB_TITLES) {
+                var body;
+                try {
+                    body = await buildTabHtml(tab);
+                } catch (e) {
+                    body = '<span class="error">Error: ' + escHtml(e.message) + '</span>';
+                }
+                parts.push('<div class="panel print-tab"><h3>' + TAB_TITLES[tab] + '</h3>' + body + '</div>');
+            }
+            out.innerHTML = parts.join('');
+        }
+        window.print();
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = label;
+    }
 }
 
 
