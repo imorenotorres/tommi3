@@ -3787,7 +3787,7 @@ async def _lali_ejercicio_informe_errores_impl(
             e = target_entries[key]
             tokens.append((clean, e['correcta'], e['erronea'], e, is_sent_end))
         else:
-            fon = transcribir_palabra(key)
+            fon = transcribir_palabra(key, isolated=False)
             if not fon or isinstance(fon, tuple):
                 fon = key
             tokens.append((clean, fon, fon, None, is_sent_end))
@@ -4145,7 +4145,7 @@ async def lali_transcribir(texto: str = Query(..., max_length=200)):
     palabras = re.findall(r"[a-záéíóúüñ]+", texto.lower())
     detalle = []
     for p in palabras:
-        t = transcribir_palabra(p)
+        t = transcribir_palabra(p, isolated=False)
         if isinstance(t, tuple):
             detalle.append({"palabra": p, "error": t[1]})
         elif t:
