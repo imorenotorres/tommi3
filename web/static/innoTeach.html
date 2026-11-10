@@ -218,6 +218,43 @@
       padding: 24px;
       border-top: 1px solid #e0e4ed;
     }
+
+    .links-bar {
+      background: white;
+      border-radius: 10px;
+      padding: 20px 28px;
+      margin-bottom: 36px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .links-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    .links-bar a:hover { opacity: 0.85; }
+
+    .link-join {
+      background: #2563a8;
+      color: white;
+    }
+
+    .link-register {
+      background: #f0f5ff;
+      color: #2563a8;
+      border: 1px solid #c5d8f5;
+    }
   </style>
 </head>
 <body>
@@ -234,6 +271,16 @@
 </header>
 
 <div class="container">
+
+  <!-- LINKS -->
+  <div class="links-bar">
+    <a class="link-join" href="https://teams.microsoft.com/meet/3173788881441520?p=g5FbAvNICTwCKUfMQg" target="_blank">
+      🎥 Join the workshop
+    </a>
+    <a class="link-register" href="https://forms.gle/cm8M9U2SeHxhZip36" target="_blank">
+      📋 Register (share with colleagues)
+    </a>
+  </div>
 
   <!-- OPENING -->
   <div class="section">
