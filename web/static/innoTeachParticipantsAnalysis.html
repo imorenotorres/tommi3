@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Participant Profile — Innovators Workshop</title>
+  <!-- Matomo -->
+  <script>
+    var _paq = window._paq = window._paq || [];
+    _paq.push(['disableCookies']);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+      var u="https://uninovis.matomo.cloud/";
+      _paq.push(['setTrackerUrl', u+'matomo.php']);
+      _paq.push(['setSiteId', '3']);
+      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+      g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+    })();
+  </script>
+  <!-- End Matomo Code -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a3a6b 0%, #2563a8 100%);
+      color: white;
+      padding: 48px 32px 40px;
+      text-align: center;
+    }
+
+    header .label {
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      opacity: 0.75;
+      margin-bottom: 10px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    header h2 {
+      font-size: 1.05rem;
+      font-weight: 400;
+      opacity: 0.85;
+      margin-bottom: 20px;
+    }
+
+    header .meta {
+      display: inline-flex;
+      gap: 32px;
+      font-size: 0.9rem;
+      opacity: 0.9;
+      border-top: 1px solid rgba(255,255,255,0.3);
+      padding-top: 16px;
+      margin-top: 4px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    .section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #2563a8;
+      border-bottom: 2px solid #2563a8;
+      padding-bottom: 6px;
+      margin-bottom: 24px;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px 24px;
+      flex: 1;
+      min-width: 160px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      text-align: center;
+      border-top: 3px solid #2563a8;
+    }
+
+    .stat-number {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #2563a8;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      color: #666;
+    }
+
+    /* Charts grid */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 680px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+
+    .chart-card {
+      background: white;
+      border-radius: 10px;
+      padding: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .chart-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 4px;
+    }
+
+    .chart-subtitle {
+      font-size: 0.75rem;
+      color: #999;
+      margin-bottom: 16px;
+    }
+
+    .chart-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+    }
+
+    /* Motivations */
+    .motivations-intro {
+      background: white;
+      border-radius: 10px;
+      padding: 24px 28px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+      line-height: 1.65;
+      color: #333;
+      border-left: 4px solid #2563a8;
+    }
+
+    .motivation-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 680px) {
+      .motivation-cards { grid-template-columns: 1fr; }
+    }
+
+    .motivation-card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px 22px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .motivation-card .icon {
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+    }
+
+    .motivation-card h3 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+
+    .motivation-card p {
+      font-size: 0.84rem;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .highlight {
+      display: inline-block;
+      background: #e8f0fb;
+      color: #2563a8;
+      font-weight: 600;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.78rem;
+      color: #aaa;
+      padding: 24px;
+      border-top: 1px solid #e0e4ed;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="label">Virtual Workshop · Participant Analysis</div>
+  <h1>Innovators</h1>
+  <h2>Innovative Teaching Practices in the Age of AI — November 26, 2026</h2>
+  <div class="meta">
+    <span>👥 160 registrations</span>
+    <span>🏛️ Multiple institutions</span>
+    <span>🌍 International</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- KEY FIGURES -->
+  <div class="section">
+    <div class="section-title">Key Figures</div>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-number">160</div>
+        <div class="stat-label">Registered participants</div>
+      </div>
+      <div class="stat-card" style="border-top-color:#27ae60;">
+        <div class="stat-number" style="color:#27ae60;">54%</div>
+        <div class="stat-label">Already using AI in class</div>
+      </div>
+      <div class="stat-card" style="border-top-color:#e67e22;">
+        <div class="stat-number" style="color:#e67e22;">78%</div>
+        <div class="stat-label">More than 5 years teaching</div>
+      </div>
+      <div class="stat-card" style="border-top-color:#8e44ad;">
+        <div class="stat-number" style="color:#8e44ad;">57%</div>
+        <div class="stat-label">Social Sciences or Humanities</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="section">
+    <div class="section-title">Participant Profile</div>
+    <div class="charts-grid">
+
+      <div class="chart-card">
+        <div class="chart-title">University</div>
+        <div class="chart-subtitle">160 responses</div>
+        <img src="innoTeachInfo/innoTeach_universities.jpg" alt="Distribution of participants by university">
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Scientific Domain</div>
+        <div class="chart-subtitle">160 responses</div>
+        <img src="innoTeachInfo/innoTeach_ScientDomains.jpg" alt="Distribution of participants by scientific domain">
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Years of Teaching Experience</div>
+        <div class="chart-subtitle">158 responses</div>
+        <img src="innoTeachInfo/innoTeach_TeachingExperience.jpg" alt="Distribution of participants by years of teaching experience">
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Have you used AI in your classes?</div>
+        <div class="chart-subtitle">160 responses</div>
+        <img src="innoTeachInfo/innoTeach_UseOfAI.jpg" alt="Distribution of participants by prior AI use in teaching">
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MOTIVATIONS -->
+  <div class="section">
+    <div class="section-title">Why Participants Registered — Summary of Motivations</div>
+
+    <div class="motivations-intro">
+      Participants were asked to describe their motivation to attend the workshop. The responses reflect genuine engagement and openness rather than scepticism. The predominant attitude is one of <strong>curiosity combined with a sense of urgency</strong> — participants feel that AI is already reshaping education and that they need to act, but are uncertain about how to do so well. Six main themes emerge.
+    </div>
+
+    <div class="motivation-cards">
+
+      <div class="motivation-card">
+        <div class="icon">🛠️</div>
+        <span class="highlight">Most frequent</span>
+        <h3>Learning to integrate AI into teaching practice</h3>
+        <p>The dominant motivation across all profiles. Participants want concrete, practical strategies to incorporate AI into their courses — not just theoretical frameworks. Many are at an early stage and looking for a first structured entry point.</p>
+      </div>
+
+      <div class="motivation-card">
+        <div class="icon">🤝</div>
+        <h3>Learning from peers and sharing experiences</h3>
+        <p>Strong interest in the international, cross-institutional dimension. Participants want to know what colleagues are doing, what works and what does not, and to benchmark their own practice. Several plan to bring what they learn back to their departments or communities of practice.</p>
+      </div>
+
+      <div class="motivation-card">
+        <div class="icon">⚖️</div>
+        <h3>Critical thinking, ethics, and responsible use</h3>
+        <p>Many participants express concern about <em>how</em> AI is used, not just <em>whether</em> it is used. Recurring questions include how to foster students' critical thinking, how to assess AI-assisted work, and how to establish ethical guidelines. Academic integrity is explicitly mentioned by several respondents.</p>
+      </div>
+
+      <div class="motivation-card">
+        <div class="icon">🎓</div>
+        <h3>Managing student AI use</h3>
+        <p>A significant subset — particularly those teaching large cohorts or first-year students — are motivated by the challenge of responding to students who already use AI, often without guidance. The interest is in moving from a defensive posture (<em>against</em> AI) to a constructive one (<em>with</em> AI).</p>
+      </div>
+
+      <div class="motivation-card">
+        <div class="icon">🔬</div>
+        <h3>Disciplinary and contextual applications</h3>
+        <p>Several participants have specific contexts in mind: language teaching (ESP, FLE, translation, English), STEM laboratory courses, architecture, mathematics, and teacher education. This points to an audience not looking for generic advice but for transferable models they can adapt to their own field.</p>
+      </div>
+
+      <div class="motivation-card">
+        <div class="icon">📈</div>
+        <h3>Professional and institutional development</h3>
+        <p>A notable group — including coordinators, teacher trainers, learning managers, and PhD students — are attending with an institutional or research role in mind: improving training offers for colleagues, developing thesis work on AI in education, or staying current as part of their professional responsibilities.</p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  UNINOVIS — University Alliance · Virtual Workshop November 26, 2026
+</footer>
+
+</body>
+</html>
