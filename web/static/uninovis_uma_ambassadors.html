@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Embajadores UNINOVIS-UMA</title>
+  <!-- Matomo -->
+  <script>
+    var _paq = window._paq = window._paq || [];
+    _paq.push(['disableCookies']);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+      var u="https://uninovis.matomo.cloud/";
+      _paq.push(['setTrackerUrl', u+'matomo.php']);
+      _paq.push(['setSiteId', '3']);
+      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+      g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+    })();
+  </script>
+  <!-- End Matomo Code -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a3a6b 0%, #2563a8 100%);
+      color: white;
+      padding: 48px 32px 40px;
+      text-align: center;
+    }
+
+    header .label {
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      opacity: 0.75;
+      margin-bottom: 10px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    header h2 {
+      font-size: 1.05rem;
+      font-weight: 400;
+      opacity: 0.85;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+
+    .section {
+      margin-bottom: 44px;
+    }
+
+    .section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #2563a8;
+      border-bottom: 2px solid #2563a8;
+      padding-bottom: 6px;
+      margin-bottom: 20px;
+    }
+
+    /* Definition box */
+    .definition-box {
+      background: white;
+      border-radius: 10px;
+      padding: 28px 32px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      border-left: 4px solid #2563a8;
+    }
+
+    .definition-box p {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #333;
+      margin-bottom: 16px;
+    }
+
+    .definition-box p:last-child { margin-bottom: 0; }
+
+    .definition-box strong { color: #1a1a2e; }
+
+    .arrows {
+      display: flex;
+      gap: 16px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .arrow-card {
+      flex: 1;
+      min-width: 220px;
+      background: #f0f5ff;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      color: #2563a8;
+      line-height: 1.5;
+    }
+
+    .arrow-card .dir {
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      opacity: 0.75;
+    }
+
+    /* Type cards */
+    .types-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 680px) {
+      .types-grid { grid-template-columns: 1fr; }
+    }
+
+    .type-card {
+      background: white;
+      border-radius: 10px;
+      padding: 22px 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      border-top: 3px solid #2563a8;
+    }
+
+    .type-card .icon { font-size: 1.6rem; margin-bottom: 10px; }
+    .type-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; color: #1a1a2e; }
+    .type-card p { font-size: 0.83rem; color: #666; line-height: 1.55; }
+
+    .type-card:nth-child(2) { border-top-color: #27ae60; }
+    .type-card:nth-child(3) { border-top-color: #8e44ad; }
+
+    /* Ambassador cards */
+    .ambassador-group {
+      margin-bottom: 28px;
+    }
+
+    .group-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .group-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #dde3ed;
+    }
+
+    .ambassador-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .ambassador-card {
+      background: white;
+      border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ambassador-card .name {
+      font-size: 0.97rem;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+
+    .ambassador-card .role {
+      font-size: 0.82rem;
+      color: #555;
+      line-height: 1.45;
+    }
+
+    .ambassador-card .email a {
+      font-size: 0.82rem;
+      color: #2563a8;
+      text-decoration: none;
+    }
+
+    .ambassador-card .email a:hover { text-decoration: underline; }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      background: #e8f0fb;
+      color: #2563a8;
+      border-radius: 4px;
+      padding: 2px 8px;
+      letter-spacing: 0.03em;
+      align-self: flex-start;
+    }
+
+    .tag.green { background: #e6f9f0; color: #1e8449; }
+    .tag.purple { background: #f3eeff; color: #7d3c98; }
+
+    footer {
+      text-align: center;
+      font-size: 0.78rem;
+      color: #aaa;
+      padding: 24px;
+      border-top: 1px solid #e0e4ed;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="label">Universidad de Málaga · UNINOVIS</div>
+  <h1>Embajadores UNINOVIS-UMA</h1>
+  <h2>Red de enlace entre la alianza y la comunidad universitaria</h2>
+</header>
+
+<div class="container">
+
+  <!-- DEFINICIÓN -->
+  <div class="section">
+    <div class="section-title">¿Qué es un embajador?</div>
+    <div class="definition-box">
+      <p>
+        Un <strong>embajador UNINOVIS-UMA</strong> es una persona que actúa como enlace entre la alianza universitaria UNINOVIS y una parte concreta de la comunidad de la Universidad de Málaga. Su función es <strong>bidireccional</strong>:
+      </p>
+      <div class="arrows">
+        <div class="arrow-card">
+          <div class="dir">UNINOVIS → UMA</div>
+          Informa a miembros de la UMA sobre las oportunidades, proyectos y recursos que ofrece la alianza.
+        </div>
+        <div class="arrow-card">
+          <div class="dir">UMA → UNINOVIS</div>
+          Traslada a la alianza información sobre contactos, iniciativas y actividades relevantes de la UMA que pueden ser de interés para los socios.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIPOS -->
+  <div class="section">
+    <div class="section-title">Tipos de embajadores</div>
+    <div class="types-grid">
+
+      <div class="type-card">
+        <div class="icon">🏛️</div>
+        <h3>Por centro</h3>
+        <p>Un PDI o PTGAS que representa a un centro concreto de la UMA (facultad, escuela técnica superior, etc.).</p>
+      </div>
+
+      <div class="type-card">
+        <div class="icon">👥</div>
+        <h3>Por sector</h3>
+        <p>Una persona que actúa como enlace para un colectivo específico: PTGAS, estudiantes, personal investigador, etc.</p>
+      </div>
+
+      <div class="type-card">
+        <div class="icon">🎯</div>
+        <h3>Por tipo de actividad</h3>
+        <p>Una persona especializada en un ámbito concreto: programas formativos, hackathones, bibliotecas, Living Labs, etc.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- EMBAJADORES ACTUALES -->
+  <div class="section">
+    <div class="section-title">Embajadores actuales</div>
+
+    <!-- Por centro -->
+    <div class="ambassador-group">
+      <div class="group-title">🏛️ Por centro</div>
+      <div class="ambassador-cards">
+
+        <div class="ambassador-card">
+          <span class="tag">Fac. Filosofía y Letras</span>
+          <div class="name">Miriam Seghiri</div>
+          <div class="role">Catedrática de Traducción e Interpretación</div>
+          <div class="email"><a href="mailto:seghiri@uma.es">seghiri@uma.es</a></div>
+        </div>
+
+        <div class="ambassador-card">
+          <span class="tag">Fac. Ciencias de la Comunicación</span>
+          <div class="name">Gema Lobillo</div>
+          <div class="role">Profesora Titular de Comunicación Audiovisual y Publicidad</div>
+          <div class="email"><a href="mailto:gmlobillo@uma.es">gmlobillo@uma.es</a></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Por sector -->
+    <div class="ambassador-group">
+      <div class="group-title">👥 Por sector</div>
+      <div class="ambassador-cards">
+
+        <div class="ambassador-card">
+          <span class="tag green">Estudiantes</span>
+          <div class="name">Silvia López</div>
+          <div class="role">VRA de Estudiantes</div>
+          <div class="email"><a href="mailto:silloprod@uma.es">silloprod@uma.es</a></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Por tipo de actividad -->
+    <div class="ambassador-group">
+      <div class="group-title">🎯 Por tipo de actividad</div>
+      <div class="ambassador-cards">
+
+        <div class="ambassador-card">
+          <span class="tag purple">Programas conjuntos</span>
+          <div class="name">Daniel Navas</div>
+          <div class="role">VR Adjunto de Posgrado y Enseñanzas Propias</div>
+          <div class="email"><a href="mailto:vra.posgrado@uma.es">vra.posgrado@uma.es</a></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  UNINOVIS — University Alliance · Universidad de Málaga
+</footer>
+
+</body>
+</html>
