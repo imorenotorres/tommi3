@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AVERROES: UMA Socratic Tutor — Teacher Guide</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a3a6b 0%, #2563a8 100%);
+      color: white;
+      padding: 48px 32px 40px;
+      text-align: center;
+    }
+    header .label {
+      font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase;
+      opacity: 0.75; margin-bottom: 10px;
+    }
+    header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+    header h2 { font-size: 1.05rem; font-weight: 400; opacity: 0.85; }
+
+    .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 60px; }
+
+    /* Part banner */
+    .part-banner {
+      background: #1a1a2e;
+      color: white;
+      border-radius: 10px;
+      padding: 20px 28px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .part-number {
+      flex-shrink: 0;
+      width: 48px; height: 48px;
+      background: #2563a8;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; font-weight: 700;
+    }
+    .part-banner h2 {
+      font-size: 1.15rem; font-weight: 700; margin-bottom: 2px;
+    }
+    .part-banner p {
+      font-size: 0.82rem; opacity: 0.65; margin: 0;
+    }
+
+    .part { margin-bottom: 60px; }
+
+    .section { margin-bottom: 24px; }
+
+    .section-title {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #2563a8;
+      border-bottom: 2px solid #2563a8; padding-bottom: 6px; margin-bottom: 20px;
+    }
+
+    /* Cards */
+    .card {
+      background: white; border-radius: 10px; padding: 24px 28px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 16px;
+    }
+    .card.blue   { border-left: 4px solid #2563a8; }
+    .card.green  { border-left: 4px solid #27ae60; }
+    .card.purple { border-left: 4px solid #8e44ad; }
+    .card.orange { border-left: 4px solid #e67e22; }
+    .card.red    { border-left: 4px solid #c0392b; }
+
+    .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; color: #1a1a2e; }
+    .card p  { font-size: 0.9rem; color: #444; line-height: 1.65; margin-bottom: 10px; }
+    .card p:last-child { margin-bottom: 0; }
+    .card strong { color: #1a1a2e; }
+
+    /* Two-column grid */
+    .cards-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 600px) { .cards-2 { grid-template-columns: 1fr; } }
+
+    .cards-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media (max-width: 680px) { .cards-3 { grid-template-columns: 1fr; } }
+
+    /* Step list */
+    .steps { list-style: none; }
+    .steps li {
+      display: flex; gap: 18px; padding: 14px 0;
+      border-bottom: 1px solid #eef0f5; align-items: flex-start;
+    }
+    .steps li:last-child { border-bottom: none; }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 32px; height: 32px;
+      background: #2563a8; color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 700;
+    }
+    .step-body { flex: 1; }
+    .step-body strong { display: block; font-size: 0.95rem; margin-bottom: 4px; color: #1a1a2e; }
+    .step-body p { font-size: 0.85rem; color: #555; line-height: 1.55; margin: 0; }
+
+    /* Question type table */
+    .q-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .q-table th {
+      background: #2563a8; color: white; padding: 10px 14px;
+      text-align: left; font-weight: 600; font-size: 0.78rem; letter-spacing: 0.04em;
+    }
+    .q-table td { padding: 10px 14px; border-bottom: 1px solid #eef0f5; vertical-align: top; }
+    .q-table tr:last-child td { border-bottom: none; }
+    .q-table tr:nth-child(even) td { background: #f8faff; }
+    .q-table td:first-child { font-weight: 600; color: #2563a8; white-space: nowrap; }
+
+    /* Prompt box */
+    .prompt-box {
+      background: #1a1a2e; color: #e8f4e8; border-radius: 8px;
+      padding: 20px 22px; font-family: 'Courier New', monospace;
+      font-size: 0.82rem; line-height: 1.6; margin-top: 12px;
+      white-space: pre-wrap;
+    }
+
+    /* Warning / note box */
+    .note {
+      background: #fff8e1; border-left: 4px solid #f39c12;
+      border-radius: 6px; padding: 14px 18px;
+      font-size: 0.85rem; color: #555; line-height: 1.55;
+      margin-bottom: 16px;
+    }
+    .note strong { color: #c0392b; }
+
+    .tag {
+      display: inline-block; font-size: 0.7rem; font-weight: 700;
+      background: #e8f0fb; color: #2563a8;
+      border-radius: 4px; padding: 2px 8px;
+      letter-spacing: 0.03em; margin-right: 6px;
+    }
+    .tag.green  { background: #e6f9f0; color: #1e8449; }
+    .tag.purple { background: #f3eeff; color: #7d3c98; }
+    .tag.orange { background: #fef5e7; color: #c0392b; }
+
+    footer {
+      text-align: center; font-size: 0.78rem; color: #aaa;
+      padding: 24px; border-top: 1px solid #e0e4ed;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="label">UNINOVIS · ULTIR · Teacher Guide</div>
+  <h1>AVERROES: UMA Socratic Tutor</h1>
+  <h2>How to design, configure and integrate your Socratic Tutor in Moodle</h2>
+</header>
+
+<div class="container">
+
+  <!-- ═══════════════════════════════════════════════════════
+       PART 1: WHAT IS A SOCRATIC TUTOR
+  ═══════════════════════════════════════════════════════ -->
+  <div class="part">
+    <div class="part-banner">
+      <div class="part-number">1</div>
+      <div>
+        <h2>What is a Socratic Tutor?</h2>
+        <p>Definition, pedagogical foundations and question types</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">What it does</div>
+
+      <div class="card blue">
+        <p>The <strong>Socratic Tutor</strong> is an AI tool integrated into Moodle via the <strong>LTI (Learning Tools Interoperability)</strong> standard. Unlike a conventional chatbot, it does not provide direct answers: it guides students through questions so they build knowledge themselves.</p>
+        <p>The tutor is configured for a specific topic and learning objective, and operates exclusively within that scope. The teacher defines its behaviour; the student interacts with it as an on-call tutor available at any time.</p>
+      </div>
+
+      <div class="cards-2">
+        <div class="card green">
+          <h3>👩‍🏫 Teacher view</h3>
+          <p>Access the configuration panel: write the system prompt, upload documents to the knowledge base, adjust behaviour parameters, and monitor student interactions.</p>
+        </div>
+        <div class="card purple">
+          <h3>🎓 Student view</h3>
+          <p>Access a chat with the tutor. The student does not see the internal configuration. The tutor always responds with questions, never with direct answers, following the principles of the Socratic method.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>Important:</strong> the Socratic Tutor does not replace the teacher. It is a complement for independent student work outside the classroom. The teacher remains responsible for assessment and pedagogical design.
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Pedagogical foundations</div>
+
+      <div class="card blue">
+        <h3>The Socratic method in higher education</h3>
+        <p>The Socratic method is based on guided dialogue: the interlocutor asks questions that lead the student to examine their own beliefs, detect contradictions, and build solid knowledge through reasoning. The aim is not to transmit information, but to provoke thought.</p>
+        <p>In the university context, this approach draws on constructivist theory (Piaget, Vygotsky) and dialogic learning: knowledge is constructed through interaction, and responsibility for learning progressively shifts to the student.</p>
+      </div>
+
+      <div class="card purple">
+        <h3>The five types of Socratic questions</h3>
+        <div style="overflow-x:auto; margin-top:12px;">
+          <table class="q-table">
+            <thead>
+              <tr><th>Type</th><th>Purpose</th><th>Example</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Clarification</td>
+                <td>Verify that the student understands what they are saying</td>
+                <td>"Could you explain in your own words what you mean by X?"</td>
+              </tr>
+              <tr>
+                <td>Probing assumptions</td>
+                <td>Reveal the implicit premises behind a statement</td>
+                <td>"What assumption are you making with that claim? Is it always true?"</td>
+              </tr>
+              <tr>
+                <td>Evidence-seeking</td>
+                <td>Ask for the basis of a claim</td>
+                <td>"What evidence would you need to support that?"</td>
+              </tr>
+              <tr>
+                <td>Alternative perspectives</td>
+                <td>Broaden the analytical frame</td>
+                <td>"How would someone who disagrees with you see this?"</td>
+              </tr>
+              <tr>
+                <td>Implications and consequences</td>
+                <td>Explore what follows from a statement</td>
+                <td>"If that were true, what would it imply for X?"</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="cards-2">
+        <div class="card orange">
+          <h3>Intervention criteria</h3>
+          <p>The tutor does not intervene uniformly. Define when to offer a minimal hint (e.g., after three unproductive exchanges), when to redirect out-of-scope questions, and when to signal that the student should consult the teacher.</p>
+          <p>Excessive intervention turns the tutor into an assistant, not a guide.</p>
+        </div>
+        <div class="card red">
+          <h3>Tutor limits</h3>
+          <p>The Socratic Tutor has clear limits: it does not assess, certify, or provide information outside its knowledge base, and it does not replace the pedagogical relationship between teacher and student.</p>
+          <p>Explicitly define in the prompt which topics it must <em>not</em> address.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PART 2: WHY USE IT AND WHY AVERROES?
+  ═══════════════════════════════════════════════════════ -->
+  <div class="part">
+    <div class="part-banner">
+      <div class="part-number">2</div>
+      <div>
+        <h2>Why should I use a Socratic Tutor — and why Averroes?</h2>
+        <p>The challenge we pose, and the tradition we draw from</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Not a solution — a challenge</div>
+
+      <div class="card blue">
+        <p>This guide does not present a solution. It poses a challenge.</p>
+        <p>The idea of Socratic tutors arises, as the name suggests, from an attempt to bring forms of reflection developed in antiquity into an age dominated by technology — one that does not always acknowledge the tradition that preceded it. We believe these tutors offer a framework for addressing a core challenge: steering students towards critical thinking. That does not mean they will necessarily succeed. The outcome will depend on factors such as the subject matter, the teacher's skill in designing the tutor, and the engagement it sparks in students.</p>
+        <p>We therefore do not offer a solution. Rather, we ask for help in answering a question: <strong>can Socratic tutors help teachers meet the challenge of fostering critical thinking?</strong> We do not know whether the answer will be affirmative, or to what degree — but we believe that posing the question itself can prompt reflection on what ultimately matters most to us as educators: <em>how do we educate our students?</em></p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Why Averroes?</div>
+
+      <div class="card" style="border-left: 4px solid #c8a84b; background: #fffdf4;">
+        <div style="display:flex; align-items:flex-start; gap:24px;">
+          <img src="innoTeachInfo/averroes.jpg" alt="Averroes (Ibn Rushd)" style="width:160px; flex-shrink:0; border-radius:8px; filter:sepia(20%); object-fit:cover;">
+          <div>
+            <h3 style="color:#8a6a00; margin-bottom:10px;">Ibn Rushd — Averroes (1126–1198)</h3>
+            <p>Ibn Rushd (Córdoba, 1126 – Marrakech, 1198), known in the West as <strong>Averroes</strong>, was a philosopher, physician and jurist born in the heart of Al-Ándalus. He devoted much of his life to commenting on, translating and interpreting the work of Aristotle with such depth that Thomas Aquinas referred to him simply as <em>The Commentator</em>.</p>
+            <p>The ideas that had emerged in ancient Greece did not reach medieval Europe directly: they did so <strong>through Andalusia</strong>. Córdoba and Seville were the meeting point between the Greek tradition, Arab thought, and the Latin heritage — a place where knowledge from different civilisations was gathered, enriched and transmitted to the rest of the world. Without that Andalusian bridge, much of Aristotle — and with him, the foundations of Western scientific and philosophical thought — would have been lost to Europe.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PART 3: HOW CAN I USE AVERROES?
+  ═══════════════════════════════════════════════════════ -->
+  <div class="part">
+    <div class="part-banner">
+      <div class="part-number">3</div>
+      <div>
+        <h2>How can I use Averroes?</h2>
+        <p>Preconditions, design canvas and technical configuration</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">A note on training</div>
+
+      <div class="card orange">
+        <h3>⚠️ Training is recommended before you start</h3>
+        <p>The guide below provides the information needed to design and deploy a Socratic Tutor. However, the notes collected here are a starting point, not a substitute for proper training. Most teachers will benefit from specific support — both <strong>technical</strong> (platform setup, prompt writing, knowledge base management) and <strong>pedagogical</strong> (adapting the Socratic method to their discipline and student profile).</p>
+        <p>UNINOVIS-UMA is currently considering the development of a <strong>Microcredential</strong> that will offer teachers a structured pathway to create their own tutor, combining guided practice with peer feedback and expert mentoring.</p>
+        <p>If you are interested in receiving further information when it becomes available, you can register your interest via our survey — <em>link to be added soon.</em></p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" style="color:#27ae60; border-bottom-color:#27ae60;">Preconditions for effective use</div>
+
+      <div class="card green">
+        <h3>1. Students' prior knowledge of the topic</h3>
+        <p>The Socratic method is not designed for complete novices. It works by questioning and challenging existing understanding, so it requires a foundation to build upon. If students arrive without any baseline knowledge, the tutor will have nothing meaningful to question or challenge — and the dialogue will stall.</p>
+        <p><strong>Before directing students to the Socratic Tutor, ensure they have:</strong></p>
+        <ul style="margin: 8px 0 10px 20px; font-size:0.88rem; color:#444; line-height:1.7;">
+          <li>Read the assigned materials for the topic covered by the tutor.</li>
+          <li>Attended at least one lecture or class session introducing core concepts.</li>
+          <li>Been exposed to the key terminology included in the tutor's knowledge base.</li>
+        </ul>
+        <p><strong>Recommended positioning:</strong> use the Socratic Tutor as a <em>consolidation</em> or <em>application</em> tool — not as a first introduction to new content. It is most effective when students already hold partial or imperfect understanding that the tutor can probe and refine.</p>
+      </div>
+
+      <div class="card green">
+        <h3>2. Documentary material available to the tutor (knowledge base)</h3>
+        <p>The tutor retrieves information from the documents you upload. The quality of its responses depends directly on the quality and scope of this material.</p>
+
+        <div class="cards-2" style="margin-top:14px;">
+          <div style="background:#f4faf7; border-radius:8px; padding:16px 18px;">
+            <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#27ae60; margin-bottom:10px;">Document selection</div>
+            <ul style="font-size:0.83rem; color:#444; line-height:1.7; padding-left:16px;">
+              <li>Include only materials relevant to the specific learning objective.</li>
+              <li>Prefer focused chapters over entire textbooks.</li>
+              <li>Add a glossary of key terms if available.</li>
+              <li>Include worked examples or annotated case studies where appropriate.</li>
+              <li><strong>Limit:</strong> 10 documents · 50 MB per tutor instance.</li>
+            </ul>
+          </div>
+          <div style="background:#f4faf7; border-radius:8px; padding:16px 18px;">
+            <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#27ae60; margin-bottom:10px;">Document quality</div>
+            <ul style="font-size:0.83rem; color:#444; line-height:1.7; padding-left:16px;">
+              <li>Use text-based PDFs — not scanned images.</li>
+              <li>Avoid documents where the main content is tables, figures, or mathematical notation.</li>
+              <li>Remove decorative headers and footers that may interfere with indexing.</li>
+              <li><strong>Recommended formats:</strong> PDF (text-based), DOCX, TXT.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card green">
+        <h3>3. Prompt design — including question type guidance</h3>
+        <p>The prompt is the core behavioural specification of your tutor. Beyond the basic structure (role, objective, instructions, error patterns), it must include explicit guidance on <strong>which question types to use and when</strong>. Without this, the tutor defaults to generic questioning and loses pedagogical precision.</p>
+
+        <div style="margin: 14px 0 10px;">
+          <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#27ae60; margin-bottom:10px;">Question types by dialogue style</div>
+          <table class="q-table">
+            <thead>
+              <tr><th>Dialogue style</th><th>Recommended question types</th><th>Typical use case</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Convergent</td>
+                <td>Clarification · Evidence-seeking</td>
+                <td>Topics with a single correct answer (formulas, definitions, procedures)</td>
+              </tr>
+              <tr>
+                <td>Divergent</td>
+                <td>Alternative perspectives · Implications</td>
+                <td>Topics with multiple valid positions (ethics, policy, interpretation)</td>
+              </tr>
+              <tr>
+                <td>Scenario-based</td>
+                <td>All five types in structured sequence</td>
+                <td>Case studies, applied problems, design challenges</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p style="margin-top:14px; margin-bottom:6px;">Include a dedicated section in your prompt specifying which types to favour and providing example phrasings adapted to your discipline:</p>
+
+        <div class="prompt-box">QUESTION TYPE GUIDANCE:
+Favour the following question types depending on the situation:
+
+1. CLARIFICATION — when the student uses vague or imprecise language:
+   "Could you rephrase that in your own words?"
+   "What exactly do you mean by [term]?"
+
+2. PROBING ASSUMPTIONS — when the student makes an unexamined claim:
+   "What assumption are you making there? Is it always true?"
+   "What would have to be true for that statement to hold?"
+
+3. EVIDENCE-SEEKING — when the student asserts something without justification:
+   "What evidence would you need to support that?"
+   "Where does that idea come from?"
+
+4. ALTERNATIVE PERSPECTIVES — when the student presents only one point of view:
+   "How might someone who disagrees with you respond to that?"
+   "Can you think of a context where the opposite would be true?"
+
+5. IMPLICATIONS AND CONSEQUENCES — to deepen reasoning:
+   "If that were true, what would follow from it?"
+   "What would change in your answer if [condition] were different?"
+
+For [your topic], prioritise types [X] and [Y].
+Avoid type [Z] unless the student has already demonstrated [level of understanding].</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">The Design Canvas — before configuring</div>
+
+      <div class="card green">
+        <p>Before accessing the technical platform, complete the <strong>Design Canvas</strong>. It is a working document that ensures the technical configuration is pedagogically grounded. A validated canvas is a prerequisite for creating a tutor instance.</p>
+      </div>
+
+      <div class="card blue">
+        <h3>The five elements of the Canvas</h3>
+        <ul class="steps">
+          <li>
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <strong>Learning objective</strong>
+              <p>Formulate a single verifiable objective: "By the end of the session with the tutor, the student will be able to [verb + content + criterion]". A vague objective produces a vague tutor.</p>
+            </div>
+          </li>
+          <li>
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>Typical errors and misconceptions</strong>
+              <p>List the 3–5 most common misunderstandings in your discipline on this topic. The tutor needs to know which incorrect ideas to detect and how to respond to them without correcting directly.</p>
+            </div>
+          </li>
+          <li>
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <strong>Type of Socratic dialogue</strong>
+              <p>Decide whether the tutor will use a convergent approach (one correct answer), divergent (multiple valid perspectives), or scenario-based (the student analyses a case). This determines the question style.</p>
+            </div>
+          </li>
+          <li>
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <strong>Knowledge base</strong>
+              <p>Select the documents the tutor will be able to consult: textbook chapters, reference articles, glossaries. Prepare them as PDF or plain text, without decorative elements that may interfere with retrieval.</p>
+            </div>
+          </li>
+          <li>
+            <div class="step-num">5</div>
+            <div class="step-body">
+              <strong>System prompt</strong>
+              <p>Write the prompt following this structure: role → objective → behaviour instructions → errors to detect → limits. The prompt is the heart of the tutor: invest time in it.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card purple">
+        <h3>Recommended system prompt structure</h3>
+        <div class="prompt-box">ROLE:
+You are a Socratic tutor specialised in [topic] for the course "[course name]" at [institution].
+
+OBJECTIVE:
+Your function is to guide the student so that [learning objective].
+
+BEHAVIOUR INSTRUCTIONS:
+- Never answer directly. Ask a question that helps the student reason.
+- If the student makes an error, do not correct it: make the contradiction visible with a question.
+- If the student asks for the direct answer, explain your function and suggest a starting point.
+- Always respond in [language]. Tone: friendly, curious, patient.
+- Do not answer questions outside the scope of [topic].
+- If the student is stuck after three exchanges, offer a minimal hint in the form of a simpler question.
+
+LEARNING OBJECTIVE:
+[Paste here the objective from the Canvas]
+
+COMMON ERRORS TO DETECT:
+- [Error 1]
+- [Error 2]
+- [Error 3]</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Technical configuration — step by step</div>
+
+      <div class="card orange">
+        <p>Once the Design Canvas has been validated, access the <strong>ULTIR</strong> platform (UNINOVIS LTI Repository) to create and configure your tutor instance. ULTIR manages hosting, LTI integration, and interaction logging.</p>
+      </div>
+
+      <div class="card blue">
+        <ul class="steps">
+          <li>
+            <div class="step-num" style="background:#2563a8;">1</div>
+            <div class="step-body">
+              <strong>Log in to ULTIR with your institutional account</strong>
+              <p>Go to <code>ultir.uninovis.eu</code> and sign in with your university credentials. If this is your first time, request access from your institution's local UNINOVIS coordinator.</p>
+            </div>
+          </li>
+          <li>
+            <div class="step-num" style="background:#2563a8;">2</div>
+            <div class="step-body">
+              <strong>Create a new tutor instance</strong>
+              <p>Click <em>New tool → Socratic Tutor</em>. Assign an internal name (for your reference only) and the name students will see. Choose the main language.</p>
+            </div>
+          </li>
+          <li>
+            <div class="step-num" style="background:#2563a8;">3</div>
+            <div class="step-body">
+              <strong>Upload the knowledge base documents</strong>
+              <p>In the <em>Knowledge base</em> tab, drag and drop your files (PDF, DOCX, TXT). The system will index them via RAG. Verify that documents do not contain complex tables or images that may degrade retrieval.</p>
+              <p><span class="tag orange">Limit</span> Max. 10 documents · 50 MB per instance</p>
+            </div>
+          </li>
+          <li>
+            <div class="step-num" style="background:#2563a8;">4</div>
+            <div class="step-body">
+              <strong>Enter the system prompt</strong>
+              <p>Paste the Canvas prompt into the <em>Configuration → System prompt</em> tab. Use the <em>Test prompt</em> button to run a trial session before publishing.</p>
+            </div>
+          </li>
+          <li>
+            <div class="step-num" style="background:#2563a8;">5</div>
+            <div class="step-body">
+              <strong>Adjust behaviour parameters</strong>
+              <p>Configure: intervention threshold (after how many unproductive exchanges the tutor offers a hint), maximum session length, and whether to activate the out-of-scope topic filter.</p>
+            </div>
+          </li>
+          <li>
+            <div class="step-num" style="background:#2563a8;">6</div>
+            <div class="step-body">
+              <strong>Obtain LTI credentials</strong>
+              <p>In <em>Integration → LTI 1.3</em>, copy the <strong>Launch URL</strong>, the <strong>Client ID</strong> and the <strong>Public key URL</strong>. You will need these in Moodle.</p>
+            </div>
+          </li>
+          <li>
+            <div class="step-num" style="background:#2563a8;">7</div>
+            <div class="step-body">
+              <strong>Register the tool in Moodle</strong>
+              <p>In your Virtual Campus, go to <em>Site administration → Plugins → External tools → Manage tools</em>. Click <em>Configure a tool manually</em> and enter the ULTIR data. Enable <em>Send user name and email</em> so the tutor can identify the student.</p>
+            </div>
+          </li>
+          <li>
+            <div class="step-num" style="background:#2563a8;">8</div>
+            <div class="step-body">
+              <strong>Add the tutor to your course and test it</strong>
+              <p>In your Moodle course, use <em>Add activity → External tool</em> and select your tutor. Access it first with the <strong>teacher</strong> role to verify the configuration panel, then switch to a test user with the <strong>student</strong> role to try the chat.</p>
+            </div>
+          </li>
+          <li>
+            <div class="step-num" style="background:#27ae60;">9</div>
+            <div class="step-body">
+              <strong>Monitoring during the course</strong>
+              <p>Periodically access the monitoring panel in ULTIR to review the interaction log. You will identify topics where students frequently get stuck — that information is valuable for adjusting the tutor or reinforcing those concepts in class.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="note">
+        <strong>Remember:</strong> the tutor can be shared in the ULTIR repository with the UNINOVIS community. If your tutor is high quality and the Canvas is complete, consider publishing it so other teachers can adapt it.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  UNINOVIS — University Alliance · ULTIR — LTI Repository · Version 1.0
+</footer>
+
+</body>
+</html>
